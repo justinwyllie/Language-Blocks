@@ -1,0 +1,20 @@
+{
+  "name": "activities",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "wp-scripts build",
+    "start": "wp-scripts start"
+  },
+  "author": "Justin Wyllie",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@wordpress/scripts": "^16.1.2"
+  },
+  "dependencies": {
+    "formik": "^2.2.9",
+    "react-bootstrap": "^1.6.1"
+  }
+}
