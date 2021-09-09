@@ -19,7 +19,7 @@ import './custom.scss';
  *  
  * https://formik.org/docs/examples/field-arrays
  * rendering problem: 
- * https://wordpress.org/support/topic/gutenberg-block-constantly-re-renders-on-state-change-in-inner-component/
+ * https://stackoverflow.com/questions/65422084/do-i-have-to-worry-about-usestate-causing-a-re-render
  */
 
 /**
