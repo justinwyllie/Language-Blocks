@@ -54,6 +54,7 @@ fix sec issues in wp-scripts - run audit and maybe update version? try 16.0.0 no
 
 const initialValues = {}; 
 initialValues.set = false;
+const supportedLangs = ['en','ru'];
 console.log("set to false");
 
 const GapFillQuestion = ({values,
@@ -147,12 +148,14 @@ const FormWrapper = ({processForm, metaData}) =>
                 initialValues.level = 0;
                 initialValues.legacyName = '';
                 initialValues.title = '';
-
-                //initialValues.q1 = '';
-                //initialValues.q1answer = '';
                 initialValues.questions = [];
-                initialValues.instructions = {};
-                //setCurrentInstructionsText('');
+                initialValues.instructions = [];
+                for (const lang of supportedLangs)
+                {
+                    initialValues.instructions.push({lang: lang, text: ''});
+                }
+              
+                
             }
             else //set initialValues for form based on XML string loaded from postmeta
             {
@@ -205,51 +208,29 @@ const FormWrapper = ({processForm, metaData}) =>
                 {
                     initialValues.questions = [];        
                 }
-               
-                /** 
-                let instructionsNodes = xmlDoc.getElementsByTagName("instructions");
 
+                let instructionsNodes = xmlDoc.getElementsByTagName("instructions");
+                let instructionsHolder = new Array();
                 if (instructionsNodes != null)
                 {
-                    let instructionsLangNodes = instructionsNodes[0].childNodes;
-                    //we are trying to set up state for the multilang instructions object
-                
-                    let textForBox;
-                    instructionsLangNodes.forEach((el) => { 
-                        
-                        const newKey = el.getAttribute("code");
-                        let langTextNodes = el.childNodes;
-                        let newValue;
-                        
-                        if (langTextNodes.length > 0)
-                        {
-                            newValue = el.childNodes[0].nodeValue;
-                            
-                        }
-                        else
-                        {
-                            newValue = "";
-                            
-                        }
-                        
-                        if (newKey == defaultLang)
-                        {
-                            textForBox = newValue;
-                        }
-                        
-                      
-                        setInstructions((prevState) => (
-                            {
-                                ...prevState,
-                                [newKey]: newValue
-                            }
-                        ));
-
+                    let instructionNodes = instructionsNodes[0].childNodes;
+                    instructionNodes.forEach((el) => {
+                        const lang = el.getAttribute("lang");
+                        instructionsHolder[lang] = el.textContent;     
                     });
-                    
-                    setCurrentInstructionsText(textForBox) ;
-                    
-                }*/
+                }
+                initialValues.instructions = new Array();
+                for (const lang in supportedLangs)
+                {
+                    if (instructionsHolder.includes(lang))
+                    {
+                        initialValues.instructions.push({lang: lang, text: instructionsHolder[lang] });    
+                    }
+                    else
+                    {
+                        initialValues.instructions.push({lang: lang, text: '' });   
+                    }
+                }
 
                 let s = new XMLSerializer();
                 let newXmlStr = s.serializeToString(xmlDoc);
@@ -257,7 +238,7 @@ const FormWrapper = ({processForm, metaData}) =>
                 
 
             }
-            console.log("setting initialvalues");
+            console.log("setting initialvalues" , initialValues);
             initialValues.set = true;
         }
         if (!initialValues.set)
@@ -447,23 +428,24 @@ const FormWrapper = ({processForm, metaData}) =>
 
                     </Form.Control>
                 </Col>
-                    </Form.Group>
+                    </Form.Group> */}
                 
-
-            <Form.Group as={Row}>   
-
-
-                    <Col md={12}>
-                            
-                        <Form.Control as="textarea" id="instructions" 
-                        name="instructions" rows={6}
-                        onBlur={handleBlur}
-                        onChange={setInstructionsHandler}
-                        value={currentInstructionsText}                                    >
-
-                        </Form.Control>
-                    </Col>
-            </Form.Group>   */}  
+            {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
+                <Form.Group as={Row}> 
+                        <Col md={2}>
+                        <span className="badge badge-info">{instruction.lang}</span>
+                        </Col>    
+                        <Col md={10}>
+                                
+                            <Field as="textarea" 
+                                name="{`instructions.${idx}.text`}" rows={6}
+                                onBlur={handleBlur}
+                                onChange={handleChange}
+                                value={instruction.text} >
+                            </Field>
+                        </Col>
+                </Form.Group>
+            )}     
 
             <Row>
                 <Col>
@@ -673,22 +655,18 @@ registerBlockType( 'activities/activity-gap-fill', {
             titleNode.appendChild(titleValueNode);
             xmlDoc.getElementsByTagName("activity")[0].appendChild(titleNode);
 
-            let  instructionsNode = xmlDoc.createElement("instructions");
-            //read instructions from state and create xml accordingly xxx
-            /*
-     
-            for (const [key, value] of Object.entries(instructions)) {
-                var instructionsLangNodeText = xmlDoc.createTextNode(value);
-                var instructionsLangNode = xmlDoc.createElement("lang");
-                instructionsLangNode.setAttribute("code", key);
-                instructionsLangNode.appendChild(instructionsLangNodeText);
-                instructionsNode.appendChild(instructionsLangNode);
-            }
-            */
+            let instructionsNode = xmlDoc.createElement("instructions");
+            values.instructions.forEach(function(item, i)
+            {
+                let iNode = xmlDoc.createElement("instruction");
+                iNode.setAttribute("lang", item.lang);
+                let iValueNode = xmlDoc.createTextNode(item.text);
+                iNode.appendChild(iValueNode);
+                instructionsNode.appendChild(iNode);
+            });
             xmlDoc.getElementsByTagName("activity")[0].appendChild(instructionsNode);
 
             let questionsNode = xmlDoc.createElement("questions");
-
             values.questions.forEach(function(item, i)
             {
                 let qNode = xmlDoc.createElement("q"+i);
