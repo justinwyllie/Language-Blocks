@@ -12,3 +12,19 @@ input.kea-wide-field
 {
         width: 100%;
 }
+
+.field-error
+{
+    color: #ff0000;
+}
+
+/* waiting for support !*/
+.kea-question-field:has(+ div.field-error) 
+{
+    border-color: #ff0000;
+}
+
+.kea-question-block
+{
+    margin-bottom: 10px;
+}

@@ -8,7 +8,7 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { Button} from 'react-bootstrap';
-import { Formik, Field, ErrorMessage } from 'formik'; 
+import { Formik, Field, FieldArray, ErrorMessage } from 'formik'; 
 //import bootstrap CSS 
 //rather lucily the webpack installed by wp-scripts includes a process for scss
 //and by default builds it to index.css minified. 
@@ -52,7 +52,9 @@ fix sec issues in wp-scripts - run audit and maybe update version? try 16.0.0 no
 
 */  
 
-
+const initialValues = {}; 
+initialValues.set = false;
+console.log("set to false");
 
 const GapFillQuestion = ({values,
     idx,
@@ -62,18 +64,18 @@ const GapFillQuestion = ({values,
     handleBlur,
     handleSubmit,
     isSubmitting,
-    removeQuestion}) =>
-{
-    
-    return(
-    <div> 
+    remove}) => {
+
+    return (
+    <div className="kea-question-block"> 
         <Form.Group as={Row}>
             <Form.Label column md={2}>1.</Form.Label>
             <Col md={10}>
-                <Field className="kea-wide-field" name={`questions.${idx}.question`}
+                <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.question`}
                     placeholder="Example ___ sentence with blank and (keyword)"
                     type="text"
                 />
+               
                 <ErrorMessage
                           name={`questions.${idx}.question`}
                           component="div"
@@ -84,7 +86,7 @@ const GapFillQuestion = ({values,
         <Form.Group as={Row}>
             <Form.Label column md={2}>1. (fillers)</Form.Label>
             <Col md={10}>
-                <Field className="kea-wide-field" name={`questions.${idx}.answer`}
+                <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.answer`}
                     placeholder="keywordAnswer"
                     type="text"
                 />
@@ -97,11 +99,15 @@ const GapFillQuestion = ({values,
         </Form.Group>
         <Row>
             <Col className="text-right">
-                <Button onClick={() => removeQuestion()}>-</Button>   
+                <Button 
+                    type="button"
+                    className="secondary"
+                    onClick={() => remove(idx)}>-</Button>   
             </Col>
         </Row> 
     </div>)
 }
+
 
 
  
@@ -116,7 +122,7 @@ const FormWrapper = ({processForm, metaData}) =>
 {
     console.log("formwrapper called");
     const metaFieldValue = metaData[ '_activity_gap_fill_meta' ]; 
-    const initialValues = {};    
+    
     function setInitialValues() {
             
             
@@ -144,7 +150,7 @@ const FormWrapper = ({processForm, metaData}) =>
 
                 //initialValues.q1 = '';
                 //initialValues.q1answer = '';
-                initialValues.questions = [{"question": "test", "answer": ""}];
+                initialValues.questions = [];
                 initialValues.instructions = {};
                 //setCurrentInstructionsText('');
             }
@@ -197,7 +203,7 @@ const FormWrapper = ({processForm, metaData}) =>
                 }
                 else
                 {
-                    initialValues.questions = [{"question": "", "answer": ""}];        
+                    initialValues.questions = [];        
                 }
                
                 /** 
@@ -251,16 +257,23 @@ const FormWrapper = ({processForm, metaData}) =>
                 
 
             }
-
+            console.log("setting initialvalues");
+            initialValues.set = true;
         }
-        setInitialValues();
-
+        if (!initialValues.set)
+        {
+            setInitialValues();
+        }
+        if (typeof errors != "undefined") {
+        console.log("rrrrr", errors);
+        }
     return <div>
                 
     <Formik
         initialValues={initialValues}
 
         validate={values => {
+            console.log("validating");
             let errors = {};
            
          
@@ -277,27 +290,25 @@ const FormWrapper = ({processForm, metaData}) =>
            
             //https://formik.org/docs/guides/arrays
             //todo how to do my array of questions https://formik.org/docs/api/fieldarray
-            /*values.questions.forEach((item, idx) =>
+            errors.questions = new Array();
+            values.questions.forEach((item, idx) =>
             {
+                let errorObj = {"question": '', "answer": ''};
+                errors.questions[idx] = errorObj;
+
                 if (values.questions[idx].question == '')
                 {
                     errors.questions[idx].question = "Required";
                 }
-                else
-                {
-                    errors.questions[idx].question = undefined;
-                }
-
+ 
                 if (values.questions[idx].answer == '')
                 {
                     errors.questions[idx].answer = "Required";
                 }
-                else
-                {
-                    errors.questions.answer = undefined;
-                }
-            })*/
-
+          
+            })
+            console.log("errors", errors);
+            //errors = {};
             return errors;
         }}
         
@@ -318,9 +329,8 @@ const FormWrapper = ({processForm, metaData}) =>
             isSubmitting,
      
         }) => (
-        /* 
-            https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
-            params => ({foo: "a"}) // returning the object {foo: "a"} */
+         
+            
         <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
 
             <Form.Group as={Row} >
@@ -446,14 +456,28 @@ const FormWrapper = ({processForm, metaData}) =>
                 </Col>
             </Row>
 
-                   
-            {(typeof values.questions != "undefined") ? values.questions.map( (item, idx) =>            
-                <GapFillQuestion idx={idx} values={values} 
-                    errors={errors} touched={touched} 
-                    handleChange={handleChange} handleBlur={handleBlur} 
-                    >
-                </GapFillQuestion>) : ''
-            }
+            <FieldArray name="questions">
+            {({ insert, remove, push }) => (
+                <div>     
+                    {values.questions.length > 0 && values.questions.map( (item, idx) =>            
+                        <GapFillQuestion idx={idx} 
+                            insert={insert}
+                            remove={remove}
+                            values={values} 
+                            errors={errors} touched={touched} 
+                            handleChange={handleChange} handleBlur={handleBlur} 
+                            >
+                        </GapFillQuestion>)
+                    }
+                    <button
+                        type="button"
+                        className="secondary"
+                        onClick={() => push({ question: '', answer: '' })}>
+                    Add Question
+                    </button>
+                </div>
+            )}
+            </FieldArray>
                
             <Form.Group as={Row}>
                 <Col md={12}>
@@ -607,7 +631,7 @@ registerBlockType( 'activities/activity-gap-fill', {
         {
             //?? how to manage form data: Formik
             //attributes ?
-            console.log("processForm");
+            console.log("processForm", values);
             
             //idea is values should contain current form values
             //we now process them into XML and save that to 
