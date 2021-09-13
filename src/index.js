@@ -65,7 +65,7 @@ const GapFillQuestion = ({values,
     handleSubmit,
     isSubmitting,
     remove}) => {
-
+        console.log("errors in gf", errors);
     return (
     <div className="kea-question-block"> 
         <Form.Group as={Row}>
@@ -290,25 +290,40 @@ const FormWrapper = ({processForm, metaData}) =>
            
             //https://formik.org/docs/guides/arrays
             //todo how to do my array of questions https://formik.org/docs/api/fieldarray
-            errors.questions = new Array();
+            
             values.questions.forEach((item, idx) =>
             {
                 let errorObj = {"question": '', "answer": ''};
-                errors.questions[idx] = errorObj;
 
                 if (values.questions[idx].question == '')
                 {
+                    if (errors.questions == undefined)
+                    {
+                        errors.questions = new Array();
+                    }
+                    errors.questions[idx] = errorObj;
                     errors.questions[idx].question = "Required";
                 }
  
+                //for formik to pass validation there must be no
+                //questions field on the errors object at all. 
+                //so only put it on if there is at least one error
                 if (values.questions[idx].answer == '')
                 {
+                    if (errors.questions == undefined)
+                    {
+                        errors.questions = new Array();
+                    }
+                    if (errors.questions[idx] == undefined)
+                    {
+                        errors.questions[idx] = errorObj;    
+                    }
                     errors.questions[idx].answer = "Required";
                 }
-          
             })
+            
             console.log("errors", errors);
-            //errors = {};
+            
             return errors;
         }}
         
@@ -456,7 +471,7 @@ const FormWrapper = ({processForm, metaData}) =>
                 </Col>
             </Row>
 
-            <FieldArray name="questions">
+            <FieldArray name="questions" validateOnChange={false}>
             {({ insert, remove, push }) => (
                 <div>     
                     {values.questions.length > 0 && values.questions.map( (item, idx) =>            
