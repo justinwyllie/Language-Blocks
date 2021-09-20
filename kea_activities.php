@@ -10,7 +10,15 @@ Textdomain: kea
 License: copyright Justin Wyllie
 */
 
-/* add custom post type */
+/* add custom post type
+https://wordpress.stackexchange.com/questions/275543/custom-post-types-filtered-by-taxonomy-using-rest-api-v2
+https://wordpress.stackexchange.com/questions/165610/get-posts-under-custom-taxonomy 
+
+*/
+
+/* 
+add custom post type
+*/
 
 function activity_gap_fill_custom_post_type() {
     register_post_type('activity_gap_fill',
@@ -25,10 +33,13 @@ function activity_gap_fill_custom_post_type() {
                 'has_archive' => true,
                 'supports' => array( 'title', 'editor', 'custom-fields', 'revisions' ),
                 'rewrite'     => array( 'slug' => 'gap_fill' ),
+                //'taxonomies'  => array( 'category', 'post_tag' )
         )
     );
 }
 add_action('init', 'activity_gap_fill_custom_post_type');
+
+
 
 /* add custom field to custom post type 
 
@@ -237,6 +248,163 @@ function activity_gap_fill_register_block() {
 add_action( 'init', 'activity_gap_fill_register_block' );
 
 
+/* custom taxonomy 
 
+Level: beginner, intermediate, advanced
+Age: kids, teenager, adult
+Theme: 
+
+filter posts by custom taxon: https://wordpress.stackexchange.com/questions/165610/get-posts-under-custom-taxonomy
+custom rest: https://developer.wordpress.org/rest-api/reference/taxonomies/#definition-example-request
+and 
+
+- get lists of terms etc: https://torquemag.io/2014/10/working-taxonomies-using-json-rest-api/
+
+? json_url( 'posts?filter[category_name]=force_users&filter[tag]=sith' ); 
+
+https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/
+
+https://developer.wordpress.org/reference/functions/register_taxonomy/
+Note: If you want to ensure that your custom taxonomy behaves like a tag,
+ you must add the option 'update_count_callback' => '_update_post_term_count'.
+
+ support multiple langs: TODO
+ https://wordpress.stackexchange.com/questions/135747/best-pratice-to-make-taxonomy-terms-translatable-without-changing-slugs
+slugs should not change - but display labels should. 
+should change when user changes lang. in f/e. 
+
+todo - security on rest api? 
+
+rest for level:
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/level - gets list of all terms for level
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/level/2 Gets info about level term 2
+
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills - gets all gap fills then eg
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/34 - gets you one by id of post 
+
+    get all gap fills at level 2 (beginner):
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/?level=2
+    looks like it has to be by id. 
+
+    get all gap fills at beginner level (2) for kids (5):
+        https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/?level=2&age=5
+
+
+
+*/
+
+
+function wporg_register_taxonomy_english() {
+    $labels = array(
+        'name'              => _x( 'Levels', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Level', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Levels' ),
+        'all_items'         => __( 'All Levels' ),
+        'parent_item'       => __( 'Parent Level' ),
+        'parent_item_colon' => __( 'Parent Level:' ),
+        'edit_item'         => __( 'Edit Level' ),
+        'update_item'       => __( 'Update Level' ),
+        'add_new_item'      => __( 'Add New Level' ),
+        'new_item_name'     => __( 'New Level Name' ),
+        'menu_name'         => __( 'Level' ),
+      );
+     
+      $args = array(
+        'hierarchical'          => true,
+        'labels'                => $labels,
+        'show_ui'               => true,
+        'show_admin_column'     => true,
+        'query_var'             => true,
+        'rewrite'               => array( 'slug' => 'level' ),
+        'show_in_rest'          => true,
+        'rest_base'             => 'level',
+        'rest_controller_class' => 'WP_REST_Terms_Controller',
+      );
+     
+      register_taxonomy( 'levels', array( 'activity_gap_fill' ), $args );
+
+    wp_insert_term(
+        'Beginner',
+        'levels',
+        array(
+          'description' => 'Beginner Level',
+          'slug'        => 'beginner' //parent if hier
+        )
+    );
+    wp_insert_term(
+        'Intermediate',
+        'levels',
+        array(
+          'description' => 'Intermediate Level',
+          'slug'        => 'intermediate' //parent if hier
+        )
+    );
+    wp_insert_term(
+        'Advanced',
+        'levels',
+        array(
+          'description' => 'Advanced Level',
+          'slug'        => 'advanced' //parent if hier
+        )
+    );
+
+    $labels = array(
+        'name'              => _x( 'Age', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Age', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Ages' ),
+        'all_items'         => __( 'All Ages' ),
+        'parent_item'       => __( 'Parent Level' ),
+        'parent_item_colon' => __( 'Parent Level:' ),
+        'edit_item'         => __( 'Edit Age' ),
+        'update_item'       => __( 'Update Age' ),
+        'add_new_item'      => __( 'Add New Age' ),
+        'new_item_name'     => __( 'New Age Name' ),
+        'menu_name'         => __( 'Age' ),
+      );
+     
+      $args = array(
+        'hierarchical'          => true,
+        'labels'                => $labels,
+        'show_ui'               => true,
+        'show_admin_column'     => true,
+        'query_var'             => true,
+        'rewrite'               => array( 'slug' => 'age' ),
+        'show_in_rest'          => true,
+        'rest_base'             => 'age',
+        'rest_controller_class' => 'WP_REST_Terms_Controller',
+      );
+     
+      register_taxonomy( 'ages', array( 'activity_gap_fill' ), $args );
+
+    wp_insert_term(
+        'Kids',
+        'ages',
+        array(
+          'description' => 'Kids (6-12)',
+          'slug'        => 'kids' //parent if hier
+        )
+    );
+    wp_insert_term(
+        'Teens',
+        'ages',
+        array(
+          'description' => 'Teenagers',
+          'slug'        => 'teenagers' //parent if hier
+        )
+    );
+    wp_insert_term(
+        'Adult',
+        'ages',
+        array(
+          'description' => 'Adults',
+          'slug'        => 'adults' //parent if hier
+        )
+    );
+
+
+    wp_delete_term(6, 'levels');
+
+}
+add_action( 'init', 'wporg_register_taxonomy_english' );
 
 ?>

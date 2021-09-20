@@ -70,7 +70,7 @@ const GapFillQuestion = ({values,
     return (
     <div className="kea-question-block"> 
         <Form.Group as={Row}>
-            <Form.Label column md={2}>1.</Form.Label>
+            <Form.Label column md={2}>{idx}. (question)</Form.Label>
             <Col md={10}>
                 <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.question`}
                     placeholder="Example ___ sentence with blank and (keyword)"
@@ -85,7 +85,7 @@ const GapFillQuestion = ({values,
             </Col>
         </Form.Group> 
         <Form.Group as={Row}>
-            <Form.Label column md={2}>1. (fillers)</Form.Label>
+            <Form.Label column md={2}>{idx}. (fillers)</Form.Label>
             <Col md={10}>
                 <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.answer`}
                     placeholder="keywordAnswer"
@@ -121,7 +121,7 @@ function useForceUpdate() {
 
 const FormWrapper = ({processForm, metaData}) =>
 {
-    console.log("formwrapper called");
+    console.log("formwrapper called with metaData", metaData);
     const metaFieldValue = metaData[ '_activity_gap_fill_meta' ]; 
     
     function setInitialValues() {
@@ -220,7 +220,8 @@ const FormWrapper = ({processForm, metaData}) =>
                     });
                 }
                 initialValues.instructions = new Array();
-                for (const lang in supportedLangs)
+                
+                for (const lang of supportedLangs)
                 {
                     if (instructionsHolder.includes(lang))
                     {
@@ -276,20 +277,22 @@ const FormWrapper = ({processForm, metaData}) =>
             {
                 let errorObj = {"question": '', "answer": ''};
 
-                if (values.questions[idx].question == '')
+                if ((values.questions[idx].question == '') 
+                    || (!values.questions[idx].question.includes("___")))
                 {
                     if (errors.questions == undefined)
                     {
                         errors.questions = new Array();
                     }
                     errors.questions[idx] = errorObj;
-                    errors.questions[idx].question = "Required";
+                    errors.questions[idx].question = "Required and must contain ___";
                 }
  
                 //for formik to pass validation there must be no
                 //questions field on the errors object at all. 
                 //so only put it on if there is at least one error
-                if (values.questions[idx].answer == '')
+                if ((values.questions[idx].answer == '') 
+                    || (!values.questions[idx].answer.includes("|")))
                 {
                     if (errors.questions == undefined)
                     {
@@ -299,7 +302,7 @@ const FormWrapper = ({processForm, metaData}) =>
                     {
                         errors.questions[idx] = errorObj;    
                     }
-                    errors.questions[idx].answer = "Required";
+                    errors.questions[idx].answer = "Required and must contain |";
                 }
             })
             
@@ -429,6 +432,12 @@ const FormWrapper = ({processForm, metaData}) =>
                     </Form.Control>
                 </Col>
                     </Form.Group> */}
+
+            <Form.Group as={Row}> 
+                    <Col>
+                        <h3>Instructions</h3>
+                    </Col>
+            </Form.Group>        
                 
             {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
                 <Form.Group as={Row}> 
@@ -437,8 +446,8 @@ const FormWrapper = ({processForm, metaData}) =>
                         </Col>    
                         <Col md={10}>
                                 
-                            <Field as="textarea" 
-                                name="{`instructions.${idx}.text`}" rows={6}
+                            <Field as="textarea"  className="kea-wide-field"
+                                name={`instruction-.${instruction.lang}`} rows={3}
                                 onBlur={handleBlur}
                                 onChange={handleChange}
                                 value={instruction.text} >
@@ -449,6 +458,7 @@ const FormWrapper = ({processForm, metaData}) =>
 
             <Row>
                 <Col>
+                    <h3>Questions</h3>
                     <p>To create a gap use ___ (3 underscores). Fillers in second box separated by |</p>
                 </Col>
             </Row>
@@ -466,12 +476,14 @@ const FormWrapper = ({processForm, metaData}) =>
                             >
                         </GapFillQuestion>)
                     }
-                    <button
-                        type="button"
-                        className="secondary"
-                        onClick={() => push({ question: '', answer: '' })}>
-                    Add Question
-                    </button>
+                    <div className="text-right">
+                        <button
+                            className="secondary btn btn-primary"
+                            type="button"
+                            onClick={() => push({ question: '', answer: '' })}>
+                        +
+                        </button>
+                    </div>
                 </div>
             )}
             </FieldArray>
