@@ -276,8 +276,9 @@ should change when user changes lang. in f/e.
 todo - security on rest api? 
 
 rest for level:
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/level - gets list of all terms for level
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/level/2 Gets info about level term 2
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/grammar_terms
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/levels - gets list of all terms for level (or ages)
+    https://dev.kazanenglishacademy.com/wp-json/wp/v2/levels/2 Gets info about level term 2
 
     https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills - gets all gap fills then eg
     https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/34 - gets you one by id of post 
@@ -289,12 +290,24 @@ rest for level:
     get all gap fills at beginner level (2) for kids (5):
         https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/?level=2&age=5
 
+    //not tested - get taxonomy via WP register rather than own rest request:
+    https://wordpress.stackexchange.com/questions/352323/how-to-return-a-list-of-custom-taxonomy-terms-via-the-gutenberg-getentityrecords
 
 
+    https://developer.wordpress.org/block-editor/reference-guides/data/data-core/ 
+    getEntityRecords ?? does this get terms? 
+
+    //how to update block when tags change e.g. in their sep block:
+    //looks like you can get the tags this way? https://github.com/WordPress/gutenberg/issues/19486
+    wp.data.useSelect( select => select( 'core/editor' ).getEditedPostAttribute( 'tags' ) );
+    wp.coreData.useEntityProp( 'postType', postType, 'tags' ); 
 */
 
 
 function wporg_register_taxonomy_english() {
+
+    //Levels 
+
     $labels = array(
         'name'              => _x( 'Levels', 'taxonomy general name' ),
         'singular_name'     => _x( 'Level', 'taxonomy singular name' ),
@@ -317,7 +330,7 @@ function wporg_register_taxonomy_english() {
         'query_var'             => true,
         'rewrite'               => array( 'slug' => 'level' ),
         'show_in_rest'          => true,
-        'rest_base'             => 'level',
+        'rest_base'             => 'levels',
         'rest_controller_class' => 'WP_REST_Terms_Controller',
       );
      
@@ -348,6 +361,8 @@ function wporg_register_taxonomy_english() {
         )
     );
 
+    //Ages 
+
     $labels = array(
         'name'              => _x( 'Age', 'taxonomy general name' ),
         'singular_name'     => _x( 'Age', 'taxonomy singular name' ),
@@ -370,7 +385,7 @@ function wporg_register_taxonomy_english() {
         'query_var'             => true,
         'rewrite'               => array( 'slug' => 'age' ),
         'show_in_rest'          => true,
-        'rest_base'             => 'age',
+        'rest_base'             => 'ages',
         'rest_controller_class' => 'WP_REST_Terms_Controller',
       );
      
@@ -380,7 +395,7 @@ function wporg_register_taxonomy_english() {
         'Kids',
         'ages',
         array(
-          'description' => 'Kids (6-12)',
+          'description' => 'Kids (7-12)',
           'slug'        => 'kids' //parent if hier
         )
     );
@@ -402,7 +417,53 @@ function wporg_register_taxonomy_english() {
     );
 
 
-    wp_delete_term(6, 'levels');
+
+
+
+
+    //Grammar 
+
+    $labels = array(
+        'name'              => _x( 'Grammar', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Grammar', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Grammar' ),
+        'all_items'         => __( 'All Grammar' ),
+        'parent_item'       => __( 'Parent Level' ),
+        'parent_item_colon' => __( 'Parent Level:' ),
+        'edit_item'         => __( 'Edit Grammar' ),
+        'update_item'       => __( 'Update Grammar' ),
+        'add_new_item'      => __( 'Add New Grammar Term' ),
+        'new_item_name'     => __( 'New Grammar Name' ),
+        'menu_name'         => __( 'Grammar' ),
+      );
+     
+      $args = array(
+        'hierarchical'          => true,
+        'labels'                => $labels,
+        'show_ui'               => true,
+        'show_admin_column'     => true,
+        'query_var'             => true,
+        'rewrite'               => array( 'slug' => 'grammar' ),
+        'show_in_rest'          => true,
+        'rest_base'             => 'grammar_terms',
+        'rest_controller_class' => 'WP_REST_Terms_Controller',
+      );
+     
+      register_taxonomy( 'grammar', array( 'activity_gap_fill' ), $args );
+
+    wp_insert_term(
+        'Ajectives',
+        'grammar',
+        array(
+          'description' => 'Adjectives',
+          'slug'        => 'adjectives' //parent if hier
+        )
+    );
+   
+
+
+
+    //wp_delete_term(6, 'levels');
 
 }
 add_action( 'init', 'wporg_register_taxonomy_english' );
