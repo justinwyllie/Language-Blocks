@@ -452,7 +452,7 @@ function wporg_register_taxonomy_english() {
       register_taxonomy( 'grammar', array( 'activity_gap_fill' ), $args );
 
     wp_insert_term(
-        'Ajectives',
+        'Adjectives',
         'grammar',
         array(
           'description' => 'Adjectives',
@@ -463,7 +463,7 @@ function wporg_register_taxonomy_english() {
 
 
 
-    //wp_delete_term(6, 'levels');
+    wp_delete_term(15, 'grammar');
 
 }
 add_action( 'init', 'wporg_register_taxonomy_english' );

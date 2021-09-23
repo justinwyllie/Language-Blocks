@@ -57,6 +57,33 @@ initialValues.set = false;
 const supportedLangs = ['en','ru'];
 console.log("set to false");
 
+const Instruction = ({values,
+    instruction,
+    lang,
+    idx,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    isSubmitting,
+    remove}) => {
+        
+    return (
+    <div>
+        <Col md={2}>
+        <span className="badge badge-info">{instruction.lang}</span>
+        </Col>    
+        <Col md={10}>
+                
+            <Field as="textarea"  className="kea-wide-field"
+                name={`instructions.${idx}.text`} rows={3}
+            >
+            </Field>
+        </Col>
+    </div>)
+}
+
 const GapFillQuestion = ({values,
     idx,
     errors,
@@ -68,11 +95,11 @@ const GapFillQuestion = ({values,
     remove}) => {
         console.log("errors in gf", errors);
     return (
-    <div className="kea-question-block"> 
+    <div className="kea-additional-field-block"> 
         <Form.Group as={Row}>
             <Form.Label column md={2}>{idx}. (question)</Form.Label>
             <Col md={10}>
-                <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.question`}
+                <Field className="kea-wide-field kea-additional-field" name={`questions.${idx}.question`}
                     placeholder="Example ___ sentence with blank and (keyword)"
                     type="text"
                 />
@@ -144,8 +171,8 @@ const FormWrapper = ({processForm, metaData}) =>
             {
                 console.log("init form with no prior meta data");
                 initialValues.type = postType;
-                initialValues.ageGroup = 0;
-                initialValues.level = 0;
+                //initialValues.ageGroup = 0;
+                //initialValues.level = 0;
                 initialValues.legacyName = '';
                 initialValues.title = '';
                 initialValues.questions = [];
@@ -164,8 +191,8 @@ const FormWrapper = ({processForm, metaData}) =>
                 let xmlDoc = parser.parseFromString(metaFieldValue, "text/xml");
                 let rootNode = xmlDoc.getElementsByTagName("activity")[0];
                 initialValues.type = rootNode.getAttribute("type");
-                initialValues.ageGroup = rootNode.getAttribute("ageGroup");
-                initialValues.level = rootNode.getAttribute("level");
+                //initialValues.ageGroup = rootNode.getAttribute("ageGroup");
+                //initialValues.level = rootNode.getAttribute("level");
 
                 let legacyNameNodes = xmlDoc.getElementsByTagName("legacyName");
                 
@@ -249,6 +276,7 @@ const FormWrapper = ({processForm, metaData}) =>
         if (typeof errors != "undefined") {
         console.log("rrrrr", errors);
         }
+        {console.log("values--", initialValues)};
     return <div>
                 
     <Formik
@@ -258,13 +286,14 @@ const FormWrapper = ({processForm, metaData}) =>
             console.log("validating");
             let errors = {};
            
-         
+            /*
             if (values.ageGroup == 0) {
                 errors.ageGroup = "Required"; 
             }
             if (values.level == 0) {
                 errors.level = "Required"; 
             }
+            */
             if ((values.title == "") || (values.title.length <= 10 )) {
                 errors.title = "Required and must be > 10 chars"; 
             }
@@ -308,7 +337,7 @@ const FormWrapper = ({processForm, metaData}) =>
             
             console.log("errors", errors);
             
-            return errors;
+            return {};
         }}
         
         onSubmit={(values) => {
@@ -331,7 +360,7 @@ const FormWrapper = ({processForm, metaData}) =>
          
             
         <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
-
+            {/* 
             <Form.Group as={Row} >
 
                 <Form.Label column sm={2}>Age Group</Form.Label>
@@ -374,7 +403,7 @@ const FormWrapper = ({processForm, metaData}) =>
                         </div> : null
                     }
                 </Col>
-            </Form.Group>
+                </Form.Group> */}
 
             <Form.Group as={Row}>
                 <Form.Label column md={2}>Title</Form.Label>
@@ -441,18 +470,8 @@ const FormWrapper = ({processForm, metaData}) =>
                 
             {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
                 <Form.Group as={Row}> 
-                        <Col md={2}>
-                        <span className="badge badge-info">{instruction.lang}</span>
-                        </Col>    
-                        <Col md={10}>
-                                
-                            <Field as="textarea"  className="kea-wide-field"
-                                name={`instruction-.${instruction.lang}`} rows={3}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                value={instruction.text} >
-                            </Field>
-                        </Col>
+                        <Instruction instruction={instruction} idx={idx}  >
+                        </Instruction>
                 </Form.Group>
             )}     
 
@@ -553,7 +572,7 @@ registerBlockType( 'activities/activity-gap-fill', {
    
 
     edit: ( { setAttributes, attributes } ) => {
-        console.log("edit run");
+        console.log("edit run values");
         
         //const forceUpdate = useForceUpdate();
      
@@ -654,8 +673,8 @@ registerBlockType( 'activities/activity-gap-fill', {
 
             let rootNode = xmlDoc.getElementsByTagName("activity")[0];
             rootNode.setAttribute("type", postType);
-            rootNode.setAttribute("ageGroup", values.ageGroup);
-            rootNode.setAttribute("level", values.level);
+            //rootNode.setAttribute("ageGroup", values.ageGroup);
+            //rootNode.setAttribute("level", values.level);
 
             let legacyNameNode = xmlDoc.createElement("legacyName");
             let legacyNameValueNode = xmlDoc.createTextNode(values.legacyName);
