@@ -19,12 +19,17 @@ input.kea-wide-field, textarea.kea-wide-field
 }
 
 /* waiting for support !*/
-.kea-question-field:has(+ div.field-error) 
+.kea-additional-field:has(+ div.field-error) 
 {
     border-color: #ff0000;
 }
 
-.kea-question-block
+.kea-additional-field-block
 {
     margin-bottom: 10px;
+}
+
+.margin-top-10
+{
+    margin-top: 10px;
 }

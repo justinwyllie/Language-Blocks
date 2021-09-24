@@ -54,34 +54,34 @@ fix sec issues in wp-scripts - run audit and maybe update version? try 16.0.0 no
 
 const initialValues = {}; 
 initialValues.set = false;
-const supportedLangs = ['en','ru'];
+const defaultLang = 'en';
+const additionalLangs = ['ru'];
+const supportedLangs = [defaultLang, ...additionalLangs];
 console.log("set to false");
+//{`instructions.${idx}.text`} 
 
-const Instruction = ({values,
+const Instruction = ({
     instruction,
-    lang,
-    idx,
-    errors,
-    touched,
-    handleChange,
-    handleBlur,
-    handleSubmit,
-    isSubmitting,
-    remove}) => {
+    idx
+    }) => {
         
     return (
-    <div>
+    <Row>
         <Col md={2}>
-        <span className="badge badge-info">{instruction.lang}</span>
+            <span className="badge badge-info">{instruction.lang}</span>
         </Col>    
         <Col md={10}>
-                
             <Field as="textarea"  className="kea-wide-field"
                 name={`instructions.${idx}.text`} rows={3}
             >
             </Field>
+            <ErrorMessage
+                          name={`instructions.${idx}.text`}
+                          component="div"
+                          className="field-error"
+            />
         </Col>
-    </div>)
+    </Row>)
 }
 
 const GapFillQuestion = ({values,
@@ -93,7 +93,7 @@ const GapFillQuestion = ({values,
     handleSubmit,
     isSubmitting,
     remove}) => {
-        console.log("errors in gf", errors);
+        
     return (
     <div className="kea-additional-field-block"> 
         <Form.Group as={Row}>
@@ -112,7 +112,7 @@ const GapFillQuestion = ({values,
             </Col>
         </Form.Group> 
         <Form.Group as={Row}>
-            <Form.Label column md={2}>{idx}. (fillers)</Form.Label>
+            <Form.Label column md={2}>{idx}. (answer)</Form.Label>
             <Col md={10}>
                 <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.answer`}
                     placeholder="keywordAnswer"
@@ -250,9 +250,9 @@ const FormWrapper = ({processForm, metaData}) =>
                 
                 for (const lang of supportedLangs)
                 {
-                    if (instructionsHolder.includes(lang))
-                    {
-                        initialValues.instructions.push({lang: lang, text: instructionsHolder[lang] });    
+                    if (lang in instructionsHolder)
+                    {   
+                        initialValues.instructions.push({lang: lang, text: instructionsHolder[lang]});    
                     }
                     else
                     {
@@ -301,6 +301,18 @@ const FormWrapper = ({processForm, metaData}) =>
            
             //https://formik.org/docs/guides/arrays
             //todo how to do my array of questions https://formik.org/docs/api/fieldarray
+
+            values.instructions.forEach((item, idx) =>
+            {
+                if (item.lang == defaultLang)
+                {
+                    if (item.text == '')
+                    {
+                        errors.instructions = new Array();
+                        errors.instructions[idx] = {"lang": '', "text": "Required"};
+                    }
+                }
+            })
             
             values.questions.forEach((item, idx) =>
             {
@@ -337,7 +349,7 @@ const FormWrapper = ({processForm, metaData}) =>
             
             console.log("errors", errors);
             
-            return {};
+            return errors;
         }}
         
         onSubmit={(values) => {
@@ -467,18 +479,18 @@ const FormWrapper = ({processForm, metaData}) =>
                         <h3>Instructions</h3>
                     </Col>
             </Form.Group>        
-                
-            {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
-                <Form.Group as={Row}> 
-                        <Instruction instruction={instruction} idx={idx}  >
-                        </Instruction>
-                </Form.Group>
-            )}     
+
+            <div>     
+                {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
+                            <Instruction instruction={instruction} idx={idx} />
+                )}     
+            </div>
 
             <Row>
                 <Col>
                     <h3>Questions</h3>
-                    <p>To create a gap use ___ (3 underscores). Fillers in second box separated by |</p>
+                    <p>To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
+                        Answers in second box separated by |</p>
                 </Col>
             </Row>
 
@@ -495,7 +507,7 @@ const FormWrapper = ({processForm, metaData}) =>
                             >
                         </GapFillQuestion>)
                     }
-                    <div className="text-right">
+                    <div className="text-right margin-top-10">
                         <button
                             className="secondary btn btn-primary"
                             type="button"
