@@ -70,8 +70,10 @@ function useForceUpdate() {
 
 
 
-const FormWrapper = ({processForm, metaData}) =>
+const FormWrapper = ({processForm, metaData, postType}) =>
 {
+
+    
     console.log("formwrapper called with metaData", metaData);
     const metaFieldValue = metaData[ '_activity_gap_fill_meta' ]; 
     
@@ -123,12 +125,10 @@ const FormWrapper = ({processForm, metaData}) =>
                 if ((legacyNameNodes.length > 0) && (legacyNameNodes[0].childNodes.length > 0) )
                 {
                     initialValues.legacyName = legacyNameNodes[0].childNodes[0].nodeValue; 
-                        
                 }
                 else
                 {
                     initialValues.legacyName = '';  
-                        
                 }
 
                 let titleNodes = xmlDoc.getElementsByTagName("title");
@@ -197,9 +197,7 @@ const FormWrapper = ({processForm, metaData}) =>
         {
             setInitialValues();
         }
-        if (typeof errors != "undefined") {
-        console.log("rrrrr", errors);
-        }
+        
         {console.log("values--", initialValues)};
     return <div>
                 
@@ -509,6 +507,10 @@ registerBlockType( 'activities/activity-gap-fill', {
 
     edit: ( { setAttributes, attributes } ) => {
         console.log("edit run values");
+        const postType = useSelect(
+            ( select ) => select( 'core/editor' ).getCurrentPostType(),
+            []
+        );
         
         //const forceUpdate = useForceUpdate();
      
@@ -517,78 +519,9 @@ registerBlockType( 'activities/activity-gap-fill', {
         //and useState goes here https://reactjs.org/docs/hooks-state.html
      
         const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
-        
-        //toto look at the source for this
-        const postType = useSelect(
-            ( select ) => select( 'core/editor' ).getCurrentPostType(),
-            []
-        );
-        
         //TODO - does this make an ajax call or just get it from the data store
         const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
-        
-        
 
-        /*
-        const langObj = {};
-        let supportedLangs = ["en", "ru"];
-        supportedLangs.forEach((lang) =>
-            {
-                langObj[lang] = '';    
-            }
-        );
-        const defaultLang = "en";
-        const [instructions, setInstructions] = useState(langObj);
-        const [currentLang, setInstructionsLang] = useState(defaultLang);
-        const [currentInstructionsText, setCurrentInstructionsText] = useState('');
-        */ 
-  
-
-
-        function setInstructionsLangHandler(event)
-        {
-            setInstructionsLang(event.target.value);
-            
-            setCurrentInstructionsText(instructions[event.target.value]);
-      
-        }
-
-        function removeQuestion()
-        {
-            
-        }
-
-        function addQuestion()
-        {
-
-        }
-
-        function setInstructionsHandler(event)
-        {
-            let textValue;
-
-            if (event.target.value == null)
-            {
-                textValue = '';
-            }
-            else
-            {
-                textValue = event.target.value;
-            }
-     
-            const newValue = textValue;
-          
-            setInstructions((prevState) => (
-                {
-                    ...prevState,
-                    [currentLang]: newValue
-                }
-            ));
-            setCurrentInstructionsText(textValue);
-            
-        }
-
-       
         //validate form, if ok build XML (second validation step - test for valid
         //valid XML - call setMeta to update the meta field with the XML
         function processForm(values)
@@ -661,7 +594,7 @@ registerBlockType( 'activities/activity-gap-fill', {
  
         return (
             <div { ...blockProps }>
-                <FormWrapper metaData={meta} processForm={processForm}></FormWrapper>
+                <FormWrapper postType={postType} metaData={meta} processForm={processForm}></FormWrapper>
             </div>
         );
     },

@@ -459,11 +459,41 @@ function wporg_register_taxonomy_english() {
           'slug'        => 'adjectives' //parent if hier
         )
     );
+    
+    wp_insert_term(
+        'Gradable and non-gradable',
+        'grammar',
+        array(
+          'description' => 'Gradable and non-gradable adjectives',
+          'slug'        => 'gradable-adjectives', //parent if hier
+          'parent' => 10
+        )
+    );
+
+    wp_insert_term(
+        'Comparative Form',
+        'grammar',
+        array(
+          'description' => 'Comparative Form of Adjectives',
+          'slug'        => 'comparative-form', //parent if hier
+          'parent' => 10
+        )
+    );
+
+    wp_insert_term(
+        'Superlative Form',
+        'grammar',
+        array(
+          'description' => 'Superlative Form of Adjectives',
+          'slug'        => 'superlative-form', //parent if hier
+          'parent' => 10
+        )
+    );
    
 
 
 
-    wp_delete_term(15, 'grammar');
+    //wp_delete_term(15, 'grammar');
 
 }
 add_action( 'init', 'wporg_register_taxonomy_english' );
