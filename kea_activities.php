@@ -273,6 +273,9 @@ Note: If you want to ensure that your custom taxonomy behaves like a tag,
 slugs should not change - but display labels should. 
 should change when user changes lang. in f/e. 
 
+custom:
+https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/ 
+
 todo - security on rest api? 
 
 rest for level:
@@ -404,7 +407,7 @@ function wporg_register_taxonomy_english() {
         'ages',
         array(
           'description' => 'Teenagers',
-          'slug'        => 'teenagers' //parent if hier
+          'slug'        => 'teens' //parent if hier
         )
     );
     wp_insert_term(
@@ -493,7 +496,8 @@ function wporg_register_taxonomy_english() {
 
 
 
-    //wp_delete_term(15, 'grammar');
+    wp_delete_term(46, 'ages');
+    wp_delete_term(8, 'ages');
 
 }
 add_action( 'init', 'wporg_register_taxonomy_english' );
