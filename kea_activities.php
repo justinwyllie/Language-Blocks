@@ -452,7 +452,15 @@ function wporg_register_taxonomy_english() {
         'rest_controller_class' => 'WP_REST_Terms_Controller',
       );
      
-      register_taxonomy( 'grammar', array( 'activity_gap_fill' ), $args );
+    //if the plugin is being run on the main site with video posts associate taxonomy to that
+    $target_post_types = array( 'activity_gap_fill' );
+    $post_types = get_post_types();
+    if (array_key_exists("video", $post_types))
+    {
+        $target_post_types[] = "video";
+    }
+
+    register_taxonomy( 'grammar', $target_post_types, $args );
 
     wp_insert_term(
         'Adjectives',
