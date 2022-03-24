@@ -20,6 +20,10 @@ https://wordpress.stackexchange.com/questions/165610/get-posts-under-custom-taxo
 add custom post type
 */
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 function activity_gap_fill_custom_post_type() {
     register_post_type('activity_gap_fill',
         array(
@@ -337,7 +341,18 @@ function wporg_register_taxonomy_english() {
         'rest_controller_class' => 'WP_REST_Terms_Controller',
       );
      
-      register_taxonomy( 'levels', array( 'activity_gap_fill' ), $args );
+    $post_types = get_post_types();  
+    //if the plugin is running on the home site attach this taxonomy to video too.  
+    $target_post_types_levels = array( 'activity_gap_fill' );  
+    if (array_key_exists("video", $post_types))
+    {
+        $target_post_types_levels[] = "video";
+    }
+  
+    register_taxonomy( 'levels', $target_post_types_levels, $args );  
+
+
+    
 
     wp_insert_term(
         'Beginner',
@@ -453,14 +468,14 @@ function wporg_register_taxonomy_english() {
       );
      
     //if the plugin is being run on the main site with video posts associate taxonomy to that
-    $target_post_types = array( 'activity_gap_fill' );
-    $post_types = get_post_types();
+    $target_post_types_grammar = array( 'activity_gap_fill' );
+  
     if (array_key_exists("video", $post_types))
     {
-        $target_post_types[] = "video";
+        $target_post_types_grammar[] = "video";
     }
 
-    register_taxonomy( 'grammar', $target_post_types, $args );
+    register_taxonomy( 'grammar', $target_post_types_grammar, $args );
 
     wp_insert_term(
         'Adjectives',
