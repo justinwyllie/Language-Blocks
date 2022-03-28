@@ -401,17 +401,17 @@ function wporg_register_taxonomy_english() {
         'show_ui'               => true,
         'show_admin_column'     => true,
         'query_var'             => true,
-        'rewrite'               => array( 'slug' => 'age' ),
+        'rewrite'               => array( 'slug' => 'age_band' ),
         'show_in_rest'          => true,
-        'rest_base'             => 'ages',
+        'rest_base'             => 'ages_bands',
         'rest_controller_class' => 'WP_REST_Terms_Controller',
       );
      
-      register_taxonomy( 'ages', array( 'activity_gap_fill' ), $args );
+      register_taxonomy( 'ages_bands', array( 'activity_gap_fill' ), $args );
 
     wp_insert_term(
         'Kids',
-        'ages',
+        'ages_bands',
         array(
           'description' => 'Kids (7-12)',
           'slug'        => 'kids' //parent if hier
@@ -419,7 +419,7 @@ function wporg_register_taxonomy_english() {
     );
     wp_insert_term(
         'Teens',
-        'ages',
+        'ages_bands',
         array(
           'description' => 'Teenagers',
           'slug'        => 'teens' //parent if hier
@@ -427,17 +427,18 @@ function wporg_register_taxonomy_english() {
     );
     wp_insert_term(
         'Adult',
-        'ages',
+        'ages_bands',
         array(
           'description' => 'Adults',
           'slug'        => 'adults' //parent if hier
         )
     );
 
-
-
-
-
+    unregister_taxonomy("age_groups");
+    unregister_taxonomy("age_bands");
+    wp_delete_term(87, 'age_groups');
+    wp_delete_term(88, 'age_groups');
+    wp_delete_term(89, 'age_groups');
 
     //Grammar 
 
@@ -485,42 +486,14 @@ function wporg_register_taxonomy_english() {
           'slug'        => 'adjectives' //parent if hier
         )
     );
-    
-    wp_insert_term(
-        'Gradable and non-gradable',
-        'grammar',
-        array(
-          'description' => 'Gradable and non-gradable adjectives',
-          'slug'        => 'gradable-adjectives', //parent if hier
-          'parent' => 10
-        )
-    );
-
-    wp_insert_term(
-        'Comparative Form',
-        'grammar',
-        array(
-          'description' => 'Comparative Form of Adjectives',
-          'slug'        => 'comparative-form', //parent if hier
-          'parent' => 10
-        )
-    );
-
-    wp_insert_term(
-        'Superlative Form',
-        'grammar',
-        array(
-          'description' => 'Superlative Form of Adjectives',
-          'slug'        => 'superlative-form', //parent if hier
-          'parent' => 10
-        )
-    );
    
+   
+ 
 
-
-
+    /*
     wp_delete_term(46, 'ages');
     wp_delete_term(8, 'ages');
+    */
 
 }
 add_action( 'init', 'wporg_register_taxonomy_english' );
