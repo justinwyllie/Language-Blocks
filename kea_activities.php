@@ -154,7 +154,7 @@ https://igmoweb.com/2020/12/23/register_post_meta-vs-register_rest_field/
 
 function activity_gap_fill_register_post_meta() {
 
-    function convertXMLToJSON($xml_string)
+    function convert_xml_to_json($xml_string)
     {
         $xml = new SimpleXMLElement($xml_string);
         $legacy_name = (string) $xml->legacyName;
@@ -163,14 +163,27 @@ function activity_gap_fill_register_post_meta() {
         $questions = $xml->questions;
 
         $json_obj = new StdClass();
-        $json_obj["legacy_name"] = $legacy_name; 
-        $json_obj["title"] = $title; 
+        $json_obj->legacy_name = $legacy_name; 
+        $json_obj->title = $title; 
+        $json_obj->langs = new StdClass();
+        $json_obj->questions = [];
 
+        foreach ($xml->instructions->children() as $instruction)
+        {
+            $lang = $instruction['lang'];
+            $json_obj->langs->$lang = (string) $instruction;
+        }
 
-        return $legacy_name;
+        foreach ($xml->questions->children() as $question)
+        {
+            $question_obj = new StdClass();
+            $question_obj->question = (string) $question; 
+            $question_obj->answer = (string) $question['answer'];
+            $json_obj->questions[] = $question_obj;
+        }
+
+        return $json_obj;
     }
-
-
 
     //this registers a meta field for this post type and also makes it show in rest
     register_post_meta( 'activity_gap_fill', '_activity_gap_fill_meta', array(
@@ -178,7 +191,8 @@ function activity_gap_fill_register_post_meta() {
             'single' => true,
             'type' => 'string', 
             'prepare_callback' => function ( $value ) {
-                return convertXMLToJSON($value);
+                $json_obj = convert_xml_to_json($value);
+                return json_encode($json_obj);
             },
         ),
         'auth_callback' => function() {
