@@ -148,16 +148,43 @@ e.g add_meta_box and resp. register_rest_field
 https://igmoweb.com/2020/12/23/register_post_meta-vs-register_rest_field/
 */ 
 //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-2-register-meta/
+/* this means if we want to return XML to third-parties we need a separate API */
+
+
 
 function activity_gap_fill_register_post_meta() {
+
+    function convertXMLToJSON($xml_string)
+    {
+        $xml = new SimpleXMLElement($xml_string);
+        $legacy_name = (string) $xml->legacyName;
+        $title = (string) $xml->title;
+        $instructions = $xml->instructions;
+        $questions = $xml->questions;
+
+        $json_obj = new StdClass();
+        $json_obj["legacy_name"] = $legacy_name; 
+        $json_obj["title"] = $title; 
+
+
+        return $legacy_name;
+    }
+
+
+
     //this registers a meta field for this post type and also makes it show in rest
     register_post_meta( 'activity_gap_fill', '_activity_gap_fill_meta', array(
-        'show_in_rest' => true, /* this repalces register_rest_field */
-        'single' => true,
-        'type' => 'string', 
-        
+        'show_in_rest' => array(
+            'single' => true,
+            'type' => 'string', 
+            'prepare_callback' => function ( $value ) {
+                return convertXMLToJSON($value);
+            },
+        ),
         'auth_callback' => function() {
         return current_user_can( 'edit_posts' );
+        /* (callable) Optional. A function or method to call when 
+        performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
     } 
     ) );
 }
