@@ -165,13 +165,13 @@ function activity_gap_fill_register_post_meta() {
         $json_obj = new StdClass();
         $json_obj->legacy_name = $legacy_name; 
         $json_obj->title = $title; 
-        $json_obj->langs = new StdClass();
+        $json_obj->instructions = new StdClass();
         $json_obj->questions = [];
 
         foreach ($xml->instructions->children() as $instruction)
         {
             $lang = $instruction['lang'];
-            $json_obj->langs->$lang = (string) $instruction;
+            $json_obj->instructions->$lang = (string) $instruction;
         }
 
         foreach ($xml->questions->children() as $question)
