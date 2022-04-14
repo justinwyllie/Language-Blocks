@@ -14,8 +14,8 @@
     "@wordpress/scripts": "^18.0.1"
   },
   "dependencies": {
+    "bootstrap": "^4.6.0",
     "formik": "^2.2.9",
-    "react-bootstrap": "^1.6.1",
-    "bootstrap": "^4.6.0"
+    "react-bootstrap": "^1.6.1"
   }
 }
