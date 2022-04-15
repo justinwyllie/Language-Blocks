@@ -570,6 +570,7 @@ registerBlockType( 'activities/activity-gap-fill', {
             values.questions.forEach(function(item, i)
             {
                 let qNode = xmlDoc.createElement("q"+i);
+                qNode.setAttribute("questionNumber", (i + 1));
                 qNode.setAttribute("answer", item.answer);
                 let qValueNode = xmlDoc.createTextNode(item.question);
                 qNode.appendChild(qValueNode);

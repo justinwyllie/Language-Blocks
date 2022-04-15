@@ -179,6 +179,7 @@ function activity_gap_fill_register_post_meta() {
             $question_obj = new StdClass();
             $question_obj->question = (string) $question; 
             $question_obj->answer = (string) $question['answer'];
+            $question_obj->questionNumber = (string) $question['questionNumber'];
             $json_obj->questions[] = $question_obj;
         }
 
