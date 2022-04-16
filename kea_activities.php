@@ -156,34 +156,42 @@ function activity_gap_fill_register_post_meta() {
 
     function convert_xml_to_json($xml_string)
     {
-        $xml = new SimpleXMLElement($xml_string);
-        $legacy_name = (string) $xml->legacyName;
-        $title = (string) $xml->title;
-        $instructions = $xml->instructions;
-        $questions = $xml->questions;
 
-        $json_obj = new StdClass();
-        $json_obj->legacy_name = $legacy_name; 
-        $json_obj->title = $title; 
-        $json_obj->instructions = new StdClass();
-        $json_obj->questions = [];
-
-        foreach ($xml->instructions->children() as $instruction)
+        if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
-            $lang = $instruction['lang'];
-            $json_obj->instructions->$lang = (string) $instruction;
-        }
+            $xml = new SimpleXMLElement($xml_string);
+            $legacy_name = (string) $xml->legacyName;
+            $title = (string) $xml->title;
+            $instructions = $xml->instructions;
+            $questions = $xml->questions;
 
-        foreach ($xml->questions->children() as $question)
+            $json_obj = new StdClass();
+            $json_obj->legacy_name = $legacy_name; 
+            $json_obj->title = $title; 
+            $json_obj->instructions = new StdClass();
+            $json_obj->questions = [];
+
+            foreach ($xml->instructions->children() as $instruction)
+            {
+                $lang = $instruction['lang'];
+                $json_obj->instructions->$lang = (string) $instruction;
+            }
+
+            foreach ($xml->questions->children() as $question)
+            {
+                $question_obj = new StdClass();
+                $question_obj->question = (string) $question; 
+                $question_obj->answer = (string) $question['answer'];
+                $question_obj->questionNumber = (string) $question['questionNumber'];
+                $json_obj->questions[] = $question_obj;
+            }
+
+            return json_encode($json_obj);
+        }
+        else
         {
-            $question_obj = new StdClass();
-            $question_obj->question = (string) $question; 
-            $question_obj->answer = (string) $question['answer'];
-            $question_obj->questionNumber = (string) $question['questionNumber'];
-            $json_obj->questions[] = $question_obj;
+            return $xml_string;
         }
-
-        return $json_obj;
     }
 
     //this registers a meta field for this post type and also makes it show in rest
@@ -192,8 +200,7 @@ function activity_gap_fill_register_post_meta() {
             'single' => true,
             'type' => 'string', 
             'prepare_callback' => function ( $value ) {
-                $json_obj = convert_xml_to_json($value);
-                return json_encode($json_obj);
+                return convert_xml_to_json($value);
             },
         ),
         'auth_callback' => function() {
