@@ -30,7 +30,7 @@ const GapFillQuestion = ({idx, remove}) => {
     return (
     <div className="kea-additional-field-block"> 
         <Form.Group as={Row}>
-            <Form.Label column md={2}>{idx}. (question)</Form.Label>
+            <Form.Label column md={2}>{idx + 1}. (question)</Form.Label>
             <Col md={10}>
                 <Field className="kea-wide-field kea-additional-field" name={`questions.${idx}.question`}
                     placeholder="Example ___ sentence with blank and (keyword)"
@@ -45,7 +45,7 @@ const GapFillQuestion = ({idx, remove}) => {
             </Col>
         </Form.Group> 
         <Form.Group as={Row}>
-            <Form.Label column md={2}>{idx}. (answer)</Form.Label>
+            <Form.Label column md={2}>{idx + 1}. (answer)</Form.Label>
             <Col md={10}>
                 <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.answer`}
                     placeholder="keywordAnswer"
