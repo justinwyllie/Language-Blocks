@@ -269,9 +269,9 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 //so only put it on if there is at least one error
                 //test for: exists, has at least one |, and count of | = count of ___
                 if (   (values.questions[idx].answer == '') 
-                    || (values.questions[idx].answer.match(/|/g) == null )
+                    || (values.questions[idx].answer.match(/\|/g) == null )
                     || (values.questions[idx].question.match(/___/g) != null &&
-                        (values.questions[idx].answer.match(/|/g).length !=  
+                        (values.questions[idx].answer.match(/\|/g).length !=  
                         values.questions[idx].question.match(/___/g).length)
                         )
                     )
