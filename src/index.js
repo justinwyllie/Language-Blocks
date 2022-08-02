@@ -74,7 +74,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
 {
 
     
-    console.log("formwrapper called with metaData", metaData);
+    
     const metaFieldValue = metaData[ '_activity_gap_fill_meta' ]; 
     
     function setInitialValues() {
@@ -101,6 +101,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 //initialValues.level = 0;
                 initialValues.legacyName = '';
                 initialValues.title = '';
+                initialValues.models = '';
                 initialValues.questions = [];
                 initialValues.instructions = [];
                 for (const lang of supportedLangs)
@@ -140,6 +141,18 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 {
                     initialValues.title = '';
                 }
+
+                let modelsNodes = xmlDoc.getElementsByTagName("models");
+                if ((modelsNodes.length > 0))
+                {
+                    initialValues.models = modelsNodes[0].childNodes[0].nodeValue;     
+                }
+                else
+                {
+                    initialValues.models = '';
+                }
+
+
 
                 let questionNodes = xmlDoc.getElementsByTagName("questions");
                 
@@ -250,12 +263,18 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                     errors.questions[idx] = errorObj;
                     errors.questions[idx].question = "Required and must contain ___";
                 }
- 
+
                 //for formik to pass validation there must be no
                 //questions field on the errors object at all. 
                 //so only put it on if there is at least one error
-                if ((values.questions[idx].answer == '') 
-                    || (!values.questions[idx].answer.includes("|")))
+                //test for: exists, has at least one |, and count of | = count of ___
+                if (   (values.questions[idx].answer == '') 
+                    || (values.questions[idx].answer.match(/|/g) == null )
+                    || (values.questions[idx].question.match(/___/g) != null &&
+                        (values.questions[idx].answer.match(/|/g).length !=  
+                        values.questions[idx].question.match(/___/g).length)
+                        )
+                    )
                 {
                     if (errors.questions == undefined)
                     {
@@ -265,7 +284,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                     {
                         errors.questions[idx] = errorObj;    
                     }
-                    errors.questions[idx].answer = "Required and must contain |";
+                    errors.questions[idx].answer = "Required and number of | must equal number of ___";
                 }
             })
             
@@ -407,6 +426,24 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                             <Instruction instruction={instruction} idx={idx} />
                 )}     
             </div>
+
+            <Form.Group as={Row}>
+                <Form.Label column md={2}>Models</Form.Label>
+                <Col md={10}>
+                    
+                    <Form.Control as="textarea" name="models" id="models" rows={6}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        value={values.models}
+                        isInvalid={!!errors.models && !!touched.models}></Form.Control>
+
+                    {errors.models && touched.models ? 
+                        <div className="invalid-feedback">
+                        {errors.models}
+                        </div> : null
+                    }
+                </Col>
+            </Form.Group>
 
             <Row>
                 <Col>
@@ -554,6 +591,11 @@ registerBlockType( 'activities/activity-gap-fill', {
             let titleValueNode = xmlDoc.createTextNode(values.title);
             titleNode.appendChild(titleValueNode);
             xmlDoc.getElementsByTagName("activity")[0].appendChild(titleNode);
+
+            let modelsNode = xmlDoc.createElement("models");
+            let modelsValueNode = xmlDoc.createTextNode(values.models);
+            modelsNode.appendChild(modelsValueNode);
+            xmlDoc.getElementsByTagName("activity")[0].appendChild(modelsNode);
 
             let instructionsNode = xmlDoc.createElement("instructions");
             values.instructions.forEach(function(item, i)
