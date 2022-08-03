@@ -156,18 +156,20 @@ function activity_gap_fill_register_post_meta() {
 
     function convert_xml_to_json($xml_string)
     {
-
+        
         if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
             $xml = new SimpleXMLElement($xml_string);
             $legacy_name = (string) $xml->legacyName;
             $title = (string) $xml->title;
+            $models = (string) $xml->models;
             $instructions = $xml->instructions;
             $questions = $xml->questions;
 
             $json_obj = new StdClass();
             $json_obj->legacy_name = $legacy_name; 
             $json_obj->title = $title; 
+            $json_obj->models = $models; 
             $json_obj->instructions = new StdClass();
             $json_obj->questions = [];
 
@@ -200,7 +202,8 @@ function activity_gap_fill_register_post_meta() {
             'single' => true,
             'type' => 'string', 
             'prepare_callback' => function ( $value ) {
-                return convert_xml_to_json($value);
+                $json = convert_xml_to_json($value);
+                return $json;
             },
         ),
         'auth_callback' => function() {
