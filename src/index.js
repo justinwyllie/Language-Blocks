@@ -268,6 +268,9 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 //questions field on the errors object at all. 
                 //so only put it on if there is at least one error
                 //test for: exists, has at least one |, and count of | = count of ___
+                //if values.questions[idx].question.match(/___/g) is null we won't go into error
+                //but this case will have been picked up above. the purpose of this test
+                //is to avoid comparing lengths if we don't have arrays
                 if (   (values.questions[idx].answer == '') 
                     || (values.questions[idx].answer.match(/\|/g) == null )
                     || (values.questions[idx].question.match(/___/g) != null &&
