@@ -5,11 +5,11 @@ import { Field, ErrorMessage } from 'formik';
 import { Button} from 'react-bootstrap';
 
 const Instruction = ({instruction, idx}) => {
-        
+        console.log("instruction", instruction);
     return (
     <Row>
         <Col md={2}>
-            <span className="badge badge-info">{instruction.lang}</span>
+            <span className="badge bg-secondary">{instruction.lang}</span>
         </Col>    
         <Col md={10}>
             <Field as="textarea"  className="kea-wide-field"

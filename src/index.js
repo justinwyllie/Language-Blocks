@@ -1,5 +1,5 @@
 import { registerBlockType } from '@wordpress/blocks';
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps, RichText } from '@wordpress/block-editor';
 import { useState, useEffect } from '@wordpress/element'; // this is the abstraction for react?
 import { TextControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
@@ -7,6 +7,7 @@ import { useEntityProp } from '@wordpress/core-data';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+
 import { Formik, Field, FieldArray, ErrorMessage } from 'formik';
 import { Instruction, GapFillQuestion } from './components/components';
 //import bootstrap CSS 
@@ -57,7 +58,7 @@ initialValues.set = false;
 const defaultLang = 'en';
 const additionalLangs = ['ru'];
 const supportedLangs = [defaultLang, ...additionalLangs];
-console.log("set to false");
+
 //{`instructions.${idx}.text`} 
 
 
@@ -95,7 +96,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
             //this is case of new activity?
             if (metaFieldValue == "")
             {
-                console.log("init form with no prior meta data");
+                
                 initialValues.type = postType;
                 //initialValues.ageGroup = 0;
                 //initialValues.level = 0;
@@ -113,7 +114,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
             }
             else //set initialValues for form based on XML string loaded from postmeta
             {
-                console.log("init form with prior meta data", metaFieldValue);
+                
                 let parser = new DOMParser();
                 let xmlDoc = parser.parseFromString(metaFieldValue, "text/xml");
                 let rootNode = xmlDoc.getElementsByTagName("activity")[0];
@@ -203,7 +204,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 
 
             }
-            console.log("setting initialvalues" , initialValues);
+            
             initialValues.set = true;
         }
         if (!initialValues.set)
@@ -211,14 +212,14 @@ const FormWrapper = ({processForm, metaData, postType}) =>
             setInitialValues();
         }
         
-        {console.log("values--", initialValues)};
+        
     return <div>
                 
     <Formik
         initialValues={initialValues}
 
         validate={values => {
-            console.log("validating");
+            
             let errors = {};
            
             /*
@@ -291,14 +292,14 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 }
             })
             
-            console.log("errors", errors);
+            
             
             return errors;
         }}
         
         onSubmit={(values) => {
             //FormIk validation happens here?
-            console.log("called in onSubmit", values);
+            
             processForm(values);
         }}
             
@@ -308,6 +309,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
             errors,
             touched,
             handleChange,
+            setFieldValue,
             handleBlur,
             handleSubmit,
             isSubmitting,
@@ -316,50 +318,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
          
             
         <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
-            {/* 
-            <Form.Group as={Row} >
-
-                <Form.Label column sm={2}>Age Group</Form.Label>
-                <Col sm={4}>
-                    <Form.Control id="ageGroup" name="ageGroup" as="select"
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.ageGroup}
-                        isInvalid={!!errors.ageGroup && !!touched.ageGroup}
-                        >
-                        <option value="0">Select..</option>
-                        <option value="1">Kids</option>
-                        <option value="2">Teens</option>
-                        <option value="3">Adults</option>
-                    </Form.Control>
-
-                    {errors.ageGroup && touched.ageGroup ? 
-                        <div className="invalid-feedback">
-                        {errors.ageGroup}
-                        </div> : null
-                    }
-                </Col>
-                <Form.Label column sm={2}>Level</Form.Label>
-                <Col sm={4}>
-                    <Form.Control id="level" name="level" as="select"
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.level}
-                        isInvalid={!!errors.level && !!touched.level}
-                        >
-                        <option value="0">Select..</option>
-                        <option value="1">Beginner</option>
-                        <option value="2">Intermediate</option>
-                        <option value="3">Upper-Intermediate</option>
-                    </Form.Control>
-
-                    {errors.level && touched.level ? 
-                        <div className="invalid-feedback">
-                        {errors.level}
-                        </div> : null
-                    }
-                </Col>
-                </Form.Group> */}
+            
 
             <Form.Group as={Row}>
                 <Form.Label column md={2}>Title</Form.Label>
@@ -397,26 +356,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 </Col>
             </Form.Group>
 
-            {/*
-            <Form.Group as={Row}>
             
-                <Form.Label column md={2}>Instructions</Form.Label>
-
-                <Col md={10}>
-                    <Form.Control id="langSelector" name="langSelector" as="select"
-                        onChange={setInstructionsLangHandler}
-                        onBlur={handleBlur}
-                        value={currentLang}
-                        >
-                        {
-                            supportedLangs.map((lang) => {
-                                return (<option value={lang}>{lang}</option>)
-                            })
-                        }
-
-                    </Form.Control>
-                </Col>
-                    </Form.Group> */}
 
             <Form.Group as={Row}> 
                     <Col>
@@ -430,21 +370,31 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 )}     
             </div>
 
+            <Form.Group as={Row}> 
+                    <Col>
+                        <h3>Models</h3>
+                    </Col>
+            </Form.Group>   
+
             <Form.Group as={Row}>
-                <Form.Label column md={2}>Models</Form.Label>
+                <Col md={2}>
+                    
+                </Col>
                 <Col md={10}>
                     
-                    <Form.Control as="textarea" name="models" id="models" rows={6}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.models}
-                        isInvalid={!!errors.models && !!touched.models}></Form.Control>
+                    
+                    <RichText name="models" id="models"
+                        className="rich-input-control mt-3"
+                        tagName="div" 
+                        value={ values.models } 
+                        allowedFormats={ [ 'core/bold', 'core/italic' ] } 
+                        
+                        onChange={ ( content ) => {
+                            setFieldValue("models", content);
+                        } } 
+                         
+                      />
 
-                    {errors.models && touched.models ? 
-                        <div className="invalid-feedback">
-                        {errors.models}
-                        </div> : null
-                    }
                 </Col>
             </Form.Group>
 
@@ -546,7 +496,7 @@ registerBlockType( 'activities/activity-gap-fill', {
    
 
     edit: ( { setAttributes, attributes } ) => {
-        console.log("edit run values");
+        
         const postType = useSelect(
             ( select ) => select( 'core/editor' ).getCurrentPostType(),
             []
@@ -568,7 +518,7 @@ registerBlockType( 'activities/activity-gap-fill', {
         {
             //?? how to manage form data: Formik
             //attributes ?
-            console.log("processForm", values);
+            
             
             //idea is values should contain current form values
             //we now process them into XML and save that to 
