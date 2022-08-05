@@ -19,10 +19,15 @@ https://wordpress.stackexchange.com/questions/165610/get-posts-under-custom-taxo
 /* 
 add custom post type
 */
-
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+*/
+/* TODO sanitise custom post save
+currently it lets you save a <script> tag in in the title!!!
+https://stackoverflow.com/questions/5151409/what-action-can-i-use-in-wordpress-that-triggers-whenever-a-custom-post-is-saved
+*/
 
 function activity_gap_fill_custom_post_type() {
     register_post_type('activity_gap_fill',
@@ -97,7 +102,7 @@ error_log(ob_get_clean(), 4);
         update_post_meta(
             $post_id,
             '_activity_gap_fill_meta',
-            $_POST['activity_gap_fill_meta']
+            strip_tags($_POST['activity_gap_fill_meta'], ['<em>','<strong>','<br>'])
         );
     }
 }
@@ -163,6 +168,7 @@ function activity_gap_fill_register_post_meta() {
             $legacy_name = (string) $xml->legacyName;
             $title = (string) $xml->title;
             $models = (string) $xml->models;
+            $models = strip_tags($models, ['<em>','<strong>','<br>']);
             $instructions = $xml->instructions;
             $questions = $xml->questions;
 

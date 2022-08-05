@@ -388,7 +388,6 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                         tagName="div" 
                         value={ values.models } 
                         allowedFormats={ [ 'core/bold', 'core/italic' ] } 
-                        
                         onChange={ ( content ) => {
                             setFieldValue("models", content);
                         } } 
