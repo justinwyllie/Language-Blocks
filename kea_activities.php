@@ -535,6 +535,13 @@ function wporg_register_taxonomy_english() {
     }
 
     register_taxonomy( 'grammar', $target_post_types_grammar, $args );
+    /* ????
+   One thing to note, if you want more than 10 results, you should add 
+   ?per_page=100 at the end of your URL. If you have more than 100 results. 
+   You need to use some pagination, i.e. to get the second page: 
+   /wp-json/wp/v2/priority-tags?per_page=100&page=2 – 
+   who knows?
+ */
 
     wp_insert_term(
         'Adjectives',
@@ -542,6 +549,27 @@ function wporg_register_taxonomy_english() {
         array(
           'description' => 'Adjectives',
           'slug'        => 'adjectives' //parent if hier
+        )
+    );
+
+    
+    wp_insert_term(
+        'Passive',
+        'grammar',
+        array(
+          'description' => 'Passive',
+          'slug'        => 'passive' //parent if hier
+        )
+    );
+
+    wp_insert_term(
+        'Middle Voice',
+        'grammar',
+        array(
+          'description' => 'Middle Voice',
+          'slug'        => 'middle-voice' ,
+          'parent' =>110
+
         )
     );
    
