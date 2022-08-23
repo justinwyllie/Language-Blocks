@@ -230,8 +230,8 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 errors.level = "Required"; 
             }
             */
-            if ((values.title == "") || (values.title.length <= 10 )) {
-                errors.title = "Required and must be > 10 chars"; 
+            if ((values.title == "") || (values.title.length <= 5)) {
+                errors.title = "Required and must be > 5 chars"; 
             }
             //TODO could valdiate for correct format ___ and |
            
