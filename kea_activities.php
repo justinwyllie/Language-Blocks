@@ -169,6 +169,8 @@ function activity_gap_fill_register_post_meta() {
             $title = (string) $xml->title;
             $models = (string) $xml->models;
             $models = strip_tags($models, ['<em>','<strong>','<br>']);
+            $explanation = (string) $xml->explanation;
+            $explanation = strip_tags($explanation, ['<em>','<strong>','<br>']);
             $instructions = $xml->instructions;
             $questions = $xml->questions;
 
@@ -176,6 +178,7 @@ function activity_gap_fill_register_post_meta() {
             $json_obj->legacy_name = $legacy_name; 
             $json_obj->title = $title; 
             $json_obj->models = $models; 
+            $json_obj->explanation = $explanation; 
             $json_obj->instructions = new StdClass();
             $json_obj->questions = [];
 

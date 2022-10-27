@@ -103,6 +103,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 initialValues.legacyName = '';
                 initialValues.title = '';
                 initialValues.models = '';
+                initialValues.explanation = '';
                 initialValues.questions = [];
                 initialValues.instructions = [];
                 for (const lang of supportedLangs)
@@ -151,6 +152,16 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 else
                 {
                     initialValues.models = '';
+                }
+
+                let explanationNodes = xmlDoc.getElementsByTagName("explanation");
+                if ((explanationNodes.length > 0))
+                {
+                    initialValues.explanation = explanationNodes[0].childNodes[0].nodeValue;     
+                }
+                else
+                {
+                    initialValues.explanation = '';
                 }
 
 
@@ -397,6 +408,35 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 </Col>
             </Form.Group>
 
+            <Form.Group as={Row}> 
+                    <Col>
+                        <h3>Explanation</h3>
+                    </Col>
+            </Form.Group>   
+
+            <Form.Group as={Row}>
+                <Col md={2}>
+                    
+                </Col>
+                <Col md={10}>
+                    
+                    
+                    <RichText name="explanation" id="explanation"
+                        className="rich-input-control mt-3"
+                        tagName="div" 
+                        value={ values.explanation } 
+                        allowedFormats={ [ 'core/bold', 'core/italic' ] } 
+                        onChange={ ( content ) => {
+                            setFieldValue("explanation", content);
+                        } } 
+                         
+                      />
+
+                </Col>
+            </Form.Group>
+
+
+
             <Row>
                 <Col>
                     <h3>Questions</h3>
@@ -548,6 +588,11 @@ registerBlockType( 'activities/activity-gap-fill', {
             let modelsValueNode = xmlDoc.createTextNode(values.models);
             modelsNode.appendChild(modelsValueNode);
             xmlDoc.getElementsByTagName("activity")[0].appendChild(modelsNode);
+
+            let explanationNode = xmlDoc.createElement("explanation");
+            let explanationValueNode = xmlDoc.createTextNode(values.explanation);
+            explanationNode.appendChild(explanationValueNode);
+            xmlDoc.getElementsByTagName("activity")[0].appendChild(explanationNode);
 
             let instructionsNode = xmlDoc.createElement("instructions");
             values.instructions.forEach(function(item, i)
