@@ -467,8 +467,13 @@ function wporg_register_taxonomy_english() {
         'rest_base'             => 'ages_bands',
         'rest_controller_class' => 'WP_REST_Terms_Controller',
       );
-     
-      register_taxonomy( 'ages_bands', array( 'activity_gap_fill' ), $args );
+
+    $target_post_types_age_bands = array( 'activity_gap_fill' );
+  
+    $target_post_types_age_bands[] = "kea_vocab_item";
+
+    //$post_types are we sure we have kea_video_item?  
+    register_taxonomy( 'ages_bands', $target_post_types_age_bands, $args);
 
     wp_insert_term(
         'Kids',
