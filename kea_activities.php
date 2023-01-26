@@ -166,7 +166,9 @@ function activity_gap_fill_register_post_meta() {
         {
             $xml = new SimpleXMLElement($xml_string);
             $legacy_name = (string) $xml->legacyName;
+            $legacy_name = strip_tags($legacy_name);
             $title = (string) $xml->title;
+            $title = strip_tags($title);
             $models = (string) $xml->models;
             $models = strip_tags($models, ['<em>','<strong>','<br>']);
             $explanation = (string) $xml->explanation;
@@ -179,6 +181,7 @@ function activity_gap_fill_register_post_meta() {
             $json_obj->title = $title; 
             $json_obj->models = $models; 
             $json_obj->explanation = $explanation; 
+
             $json_obj->instructions = new StdClass();
             $json_obj->questions = [];
 
@@ -186,14 +189,18 @@ function activity_gap_fill_register_post_meta() {
             {
                 $lang = $instruction['lang'];
                 $json_obj->instructions->$lang = (string) $instruction;
+                $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
             }
 
             foreach ($xml->questions->children() as $question)
             {
                 $question_obj = new StdClass();
-                $question_obj->question = (string) $question; 
+                $question_obj->question = (string) $question;
+                $question_obj->question = strip_tags($question_obj->question); 
                 $question_obj->answer = (string) $question['answer'];
+                $question_obj->answer = strip_tags($question_obj->answer);
                 $question_obj->questionNumber = (string) $question['questionNumber'];
+                $question_obj->questionNumber = strip_tags($question_obj->questionNumber);
                 $json_obj->questions[] = $question_obj;
             }
 
@@ -201,7 +208,14 @@ function activity_gap_fill_register_post_meta() {
         }
         else
         {
-            return $xml_string;
+            if (str_contains($xml_string, "<script"))
+            {
+                return "";
+            }
+            else
+            {
+                return $xml_string;
+            }
         }
     }
 
@@ -470,6 +484,9 @@ function wporg_register_taxonomy_english() {
 
     $target_post_types_age_bands = array( 'activity_gap_fill' );
   
+    //not sure we need ages as the ages are given in the taxonomy for 'themes'
+    //TODO - check logic
+    //they have to be so we can get a simple request for all terms for e.g. themes/kids
     $target_post_types_age_bands[] = "kea_vocab_item";
 
     //$post_types are we sure we have kea_video_item?  
