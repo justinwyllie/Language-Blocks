@@ -609,4 +609,11 @@ function wporg_register_taxonomy_english() {
 }
 add_action( 'init', 'wporg_register_taxonomy_english' );
 
+function get_activity_gap_fill_posts( $data, $post, $context ) {
+
+    $data->data['title']['rendered'] = strip_tags($data->data['title']['rendered']);
+    return $data;
+}
+add_filter( 'rest_prepare_activity_gap_fill', 'get_activity_gap_fill_posts', 10, 3 );
+
 ?>
