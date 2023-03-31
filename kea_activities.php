@@ -423,6 +423,11 @@ function wporg_register_taxonomy_english() {
     {
         $target_post_types_levels[] = "video";
     }
+
+    if (array_key_exists("kea_vocab_item", $post_types))
+    {
+        $target_post_types_levels[] = "kea_vocab_item";
+    }
   
     register_taxonomy( 'levels', $target_post_types_levels, $args );  
 
@@ -487,7 +492,10 @@ function wporg_register_taxonomy_english() {
     //not sure we need ages as the ages are given in the taxonomy for 'themes'
     //TODO - check logic
     //they have to be so we can get a simple request for all terms for e.g. themes/kids
-    $target_post_types_age_bands[] = "kea_vocab_item";
+    if (array_key_exists("kea_vocab_item", $post_types))
+    {
+        $target_post_types_age_bands[] = "kea_vocab_item";
+    }
 
     //$post_types are we sure we have kea_video_item?  
     register_taxonomy( 'ages_bands', $target_post_types_age_bands, $args);
