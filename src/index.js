@@ -7,13 +7,18 @@ import { useEntityProp } from '@wordpress/core-data';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import { registerPlugin } from '@wordpress/plugins';
+const { __ } = wp.i18n; //TODO check
 
 import { Formik, Field, FieldArray, ErrorMessage } from 'formik';
-import { Instruction, GapFillQuestion } from './components/components';
+import { Instruction, GapFillQuestion, LinkPanelWrapper} from './components/components';
+
+
 //import bootstrap CSS 
 //rather lucily the webpack installed by wp-scripts includes a process for scss
 //and by default builds it to index.css minified. 
 import './custom.scss';
+
 
 /**
  * 
@@ -59,17 +64,16 @@ const defaultLang = 'en';
 const additionalLangs = ['ru'];
 const supportedLangs = [defaultLang, ...additionalLangs];
 
-//{`instructions.${idx}.text`} 
 
 
+
+registerPlugin( 'kea-grammar-links-meta', {
+	render() {
+		return(<LinkPanelWrapper />);
+	}
+} );
 
  
-function useForceUpdate() {
-    const [value, setValue] = useState(0); // integer state
-    return () => setValue(value => value + 1); // update the state to force render
-}
-
-
 
 const FormWrapper = ({processForm, metaData, postType}) =>
 {

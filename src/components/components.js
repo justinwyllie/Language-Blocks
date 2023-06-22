@@ -4,8 +4,19 @@ import Form from 'react-bootstrap/Form';
 import { Field, ErrorMessage } from 'formik';
 import { Button} from 'react-bootstrap';
 
+import { useSelect, useDispatch }  from '@wordpress/data';
+import { select, subscribe } from '@wordpress/data';
+import { TextControl, TextareaControl, PanelRow } from '@wordpress/components';
+import { PluginDocumentSettingPanel } from '@wordpress/edit-post'; 
+
+
+const { PluginSidebar } = wp.editPost;
+const { PanelBody } = wp.components; 
+const { isSavingPost } = select( 'core/editor' );
+const { __ } = wp.i18n; //TODO check
+
 const Instruction = ({instruction, idx}) => {
-        console.log("instruction", instruction);
+        
     return (
     <Row>
         <Col md={2}>
@@ -69,7 +80,103 @@ const GapFillQuestion = ({idx, remove}) => {
     </div>)
 }
 
+const LinkPanelWrapper = () =>
+{
+
+
+
+     //https://github.com/WordPress/gutenberg/issues/17632#issuecomment-583772895 
+     let checked = true; // Start in a checked state.
+     subscribe( () => {
+         //console.log("subscribe1");
+         if ( isSavingPost() ) {
+              checked = false;
+         } else {
+              if ( ! checked ) {
+                 checkPostAfterSave(); // Perform your custom handling here.
+                 checked = true;
+             }
+     
+         }
+     } );
+     let slugFromDataStore;
+     const checkPostAfterSave = () =>
+     {
+    
+         //gets the last saved state
+         let postData = wp.data.select("core/editor").getCurrentPost(); 
+         console.log("postData1.slug", postData.slug );
+         if ((postData !== undefined) && (postData.hasOwnProperty("slug")))
+         {
+             slugFromDataStore = postData.slug;
+             console.log("slugFromDataStore",slugFromDataStore);
+             return(<LinkPanel slugFromDataStore="sssds" /> )
+         }
+     }
+
+
+     return(<LinkPanel slugFromDataStore="sssds" /> )
+         
+}
+
+
+const LinkPanel = (props) => {
+
+    console.log("porps", props);
+
+    const postType = useSelect(
+        ( select ) => select( 'core/editor' ).getCurrentPostType(),
+        []
+    );
+
+    console.log("postType1" , postType );
+
+    if (postType != "activity_gap_fill")
+    {
+        return null;
+    }
+
+    console.log("postType1b" , postType );
+    
+   
+   
+    
+
+    const slug = useSelect(
+        ( select ) => select( 'core/editor' ).getEditedPostSlug()
+    );
+    
+    console.log("slug1", slug);
+    //slug1 should always == postData.slug
+
+
+    /*
+    const { editPost } = useDispatch( 'core/editor', [ postMeta._kea_vocab_item_ru_meta, 
+        postMeta._kea_vocab_item_phrase_meta ] );
+    */
+
+        return(<PluginDocumentSettingPanel title={ __( 'Links', 'kea') } initialOpen="true">
+			<PanelRow>
+				<TextControl
+					label={ __( 'Exercise with Key', 'kea' ) }
+					value={slug}
+                   				
+				/>  
+			</PanelRow>
+            <PanelRow>
+				<TextControl
+					label={ __( 'Exercise without Key', 'kea' ) }
+					value={props.slugFromDataStore? props.slugFromDataStore : ''}
+                   				
+				/>  
+			</PanelRow>
+
+
+		</PluginDocumentSettingPanel>);
+}
+
 export {
     Instruction,
-    GapFillQuestion
+    GapFillQuestion,
+    LinkPanelWrapper
 }
