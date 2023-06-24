@@ -87,7 +87,12 @@ const GapFillQuestion = ({idx, remove}) => {
 const LinkPanel = () => {
 
     
-   
+   function copyToClipboard(e)
+   {
+        var text = e.currentTarget.innerText;
+        console.log(text);
+        navigator.clipboard.writeText(text);
+   }
     
 
     const postType = useSelect(
@@ -166,13 +171,16 @@ const LinkPanel = () => {
 			<PanelRow>
 				<div className="">
                     <p className="kea-emp1">{ __( 'Exercise with Key:', 'kea' ) }</p>
-                    <p className="">{linkWithKey}</p>
+                    <p onClick={(e) => copyToClipboard(e)} className="">{linkWithKey} <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
+                   
+                    
                 </div>
 			</PanelRow>
             <PanelRow>
 				<div className="">
                     <p className="kea-emp1">{ __( 'Exercise without Key:', 'kea' ) }</p>
-                    <p className="">{linkWithOutKey}</p>
+                    <p onClick={(e) => copyToClipboard(e)} className="">{linkWithOutKey}  <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
+                   
                 </div>		
 				
 			</PanelRow>
