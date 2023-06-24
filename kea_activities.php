@@ -50,6 +50,8 @@ add_action('init', 'activity_gap_fill_custom_post_type');
 
 
 
+
+
 /* add custom field to custom post type 
 
 ? does it have to be a meta box? what is the difference? */
@@ -234,6 +236,31 @@ function activity_gap_fill_register_post_meta() {
         /* (callable) Optional. A function or method to call when 
         performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
     } 
+    ) );
+
+    //this registers a meta field for this post type and also makes it show in rest
+    register_post_meta( 'activity_gap_fill', '_with_key_gap_fill_meta', array(
+        'show_in_rest' => array(
+            'single' => true,
+            'type' => 'string',  //it doesn't in fact accept number or integer
+        ),
+        'auth_callback' => function() {
+        return current_user_can( 'edit_posts' );
+      
+    } 
+    ) );
+
+    //this registers a meta field for this post type and also makes it show in rest
+    register_post_meta( 'activity_gap_fill', '_without_key_gap_fill_meta', array(
+        'show_in_rest' => array(
+            'single' => true,
+            'type' => 'string', //it doesn't in fact accept number or integer
+ 
+        ),
+        'auth_callback' => function() {
+        return current_user_can( 'edit_posts' );
+
+        } 
     ) );
 }
 add_action( 'init', 'activity_gap_fill_register_post_meta' );

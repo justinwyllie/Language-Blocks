@@ -5,15 +5,16 @@ import { Field, ErrorMessage } from 'formik';
 import { Button} from 'react-bootstrap';
 
 import { useSelect, useDispatch }  from '@wordpress/data';
+import { useEntityProp } from '@wordpress/core-data';
 import { select, subscribe } from '@wordpress/data';
 import { TextControl, TextareaControl, PanelRow } from '@wordpress/components';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post'; 
+import { settings } from "../constants";
 
 
-const { PluginSidebar } = wp.editPost;
-const { PanelBody } = wp.components; 
-const { isSavingPost } = select( 'core/editor' );
+
 const { __ } = wp.i18n; //TODO check
+
 
 const Instruction = ({instruction, idx}) => {
         
@@ -80,95 +81,100 @@ const GapFillQuestion = ({idx, remove}) => {
     </div>)
 }
 
-const LinkPanelWrapper = () =>
-{
 
 
 
-     //https://github.com/WordPress/gutenberg/issues/17632#issuecomment-583772895 
-     let checked = true; // Start in a checked state.
-     subscribe( () => {
-         //console.log("subscribe1");
-         if ( isSavingPost() ) {
-              checked = false;
-         } else {
-              if ( ! checked ) {
-                 checkPostAfterSave(); // Perform your custom handling here.
-                 checked = true;
-             }
-     
-         }
-     } );
-     let slugFromDataStore;
-     const checkPostAfterSave = () =>
-     {
+const LinkPanel = () => {
+
     
-         //gets the last saved state
-         let postData = wp.data.select("core/editor").getCurrentPost(); 
-         console.log("postData1.slug", postData.slug );
-         if ((postData !== undefined) && (postData.hasOwnProperty("slug")))
-         {
-             slugFromDataStore = postData.slug;
-             console.log("slugFromDataStore",slugFromDataStore);
-             return(<LinkPanel slugFromDataStore="sssds" /> )
-         }
-     }
-
-
-     return(<LinkPanel slugFromDataStore="sssds" /> )
-         
-}
-
-
-const LinkPanel = (props) => {
-
-    console.log("porps", props);
+   
+    
 
     const postType = useSelect(
         ( select ) => select( 'core/editor' ).getCurrentPostType(),
         []
     );
 
-    console.log("postType1" , postType );
+  
 
     if (postType != "activity_gap_fill")
     {
         return null;
     }
-
-    console.log("postType1b" , postType );
-    
-   
-   
     
 
+    //https://developer.wordpress.org/block-editor/reference-guides/data/data-core-editor/
+    //useSelect monitors store value and if it changes will update sluh causing rerender
     const slug = useSelect(
         ( select ) => select( 'core/editor' ).getEditedPostSlug()
     );
     
-    console.log("slug1", slug);
-    //slug1 should always == postData.slug
+    const postId = useSelect(
+        ( select ) => select( 'core/editor' ).getCurrentPostId()
+    );
 
+    const [ meta, setMeta ] = useEntityProp( 'postType', 'activity_gap_fill', 'meta' ); 
+    console.log("meta", meta);
+
+    let withKeyMeta;
+    let withoutKeyMeta; 
+
+    withKeyMeta = meta._with_key_gap_fill_meta;
+    withoutKeyMeta = meta._without_key_gap_fill_meta;
+
+   let getRandom = () =>
+   {
+        const arraySet = new Uint32Array(2);
+        self.crypto.getRandomValues(arraySet);
+        return arraySet;
+    
+   }
+
+
+   if ( ((withKeyMeta == '') || (withKeyMeta == undefined)) || ((withoutKeyMeta == '') || (withoutKeyMeta == undefined))) 
+   {
+
+        let vals = getRandom();
+
+        if ((withKeyMeta == '') || (withKeyMeta == undefined))
+        {
+                withKeyMeta =  vals[0];
+                setMeta( { ...meta, _with_key_gap_fill_meta: withKeyMeta.toString() } );
+        }
+
+        if ((withoutKeyMeta == '') || (withoutKeyMeta == undefined))
+        {
+                withoutKeyMeta = vals[1];
+                setMeta( { ...meta, _without_key_gap_fill_meta:  withoutKeyMeta.toString() } );
+        }
+    
+    }
+
+   
+
+    let linkWithKey = settings.domainForUsers + "/" + slug + "/" + postId + "?key=" + withKeyMeta;
+    let linkWithOutKey = settings.domainForUsers + slug + "/" + postId + "?key=" + withoutKeyMeta;
+
+  
 
     /*
     const { editPost } = useDispatch( 'core/editor', [ postMeta._kea_vocab_item_ru_meta, 
         postMeta._kea_vocab_item_phrase_meta ] );
     */
-
+        //https://developer.wordpress.org/block-editor/reference-guides/slotfills/plugin-document-setting-panel/
         return(<PluginDocumentSettingPanel title={ __( 'Links', 'kea') } initialOpen="true">
 			<PanelRow>
-				<TextControl
-					label={ __( 'Exercise with Key', 'kea' ) }
-					value={slug}
-                   				
-				/>  
+				<div className="">
+                    <p className="kea-emp1">{ __( 'Exercise with Key:', 'kea' ) }</p>
+                    <p className="">{linkWithKey}</p>
+                </div>
 			</PanelRow>
             <PanelRow>
-				<TextControl
-					label={ __( 'Exercise without Key', 'kea' ) }
-					value={props.slugFromDataStore? props.slugFromDataStore : ''}
-                   				
-				/>  
+				<div className="">
+                    <p className="kea-emp1">{ __( 'Exercise without Key:', 'kea' ) }</p>
+                    <p className="">{linkWithOutKey}</p>
+                </div>		
+				
 			</PanelRow>
 
 
@@ -178,5 +184,5 @@ const LinkPanel = (props) => {
 export {
     Instruction,
     GapFillQuestion,
-    LinkPanelWrapper
+    LinkPanel
 }

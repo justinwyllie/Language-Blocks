@@ -11,7 +11,7 @@ import { registerPlugin } from '@wordpress/plugins';
 const { __ } = wp.i18n; //TODO check
 
 import { Formik, Field, FieldArray, ErrorMessage } from 'formik';
-import { Instruction, GapFillQuestion, LinkPanelWrapper} from './components/components';
+import { Instruction, GapFillQuestion, LinkPanel} from './components/components';
 
 
 //import bootstrap CSS 
@@ -69,7 +69,7 @@ const supportedLangs = [defaultLang, ...additionalLangs];
 
 registerPlugin( 'kea-grammar-links-meta', {
 	render() {
-		return(<LinkPanelWrapper />);
+		return(<LinkPanel />);
 	}
 } );
 
