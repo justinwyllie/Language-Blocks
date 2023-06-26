@@ -1,6 +1,10 @@
 const settings = {
-
-    domainForUsers: "https://justinwyllie.github.io/?q="
+    domain:
+    {
+        type: "query",
+        domainForUsers: "https://justinwyllie.github.io",
+    }
+    
 
 
 }

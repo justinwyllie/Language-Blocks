@@ -274,36 +274,26 @@ function activity_gap_fill_activated()
     require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
     global $wpdb;
     $db_version = '1.0';
-    $table_name1 = $wpdb->prefix . "kea_activity_types"; 
-    $table_name2 = $wpdb->prefix . "kea_activities"; 
+    $table_name1 = $wpdb->prefix . "kea_activity_gap_fill"; 
     $charset_collate = $wpdb->get_charset_collate();
 
-    $sql1 = "CREATE TABLE IF NOT EXISTS $table_name1 (
-		  activity_type_id mediumint NOT NULL AUTO_INCREMENT,
-	      activity_type_name varchar(255) NOT NULL,
-	     PRIMARY KEY activity_type_id (activity_type_id),
-	     UNIQUE (activity_type_name)
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name1 (
+		kea_activity_gap_fill_id bigint NOT NULL AUTO_INCREMENT,
+        kea_activity_gap_fill_post_id bigint NOT NULL,
+        kea_activity_gap_fill_post_json text NOT NULL,
+    	PRIMARY KEY  kea_activity_gap_fill_id (kea_activity_gap_fill_id),
+	    UNIQUE (kea_activity_gap_fill_post_id)
 	) $charset_collate;";
-    dbDelta( $sql1 );
+    dbDelta( $sql );
 
-
-    $sql2 = "CREATE TABLE IF NOT EXISTS $table_name2 (
-        activity_id bigint(20) NOT NULL AUTO_INCREMENT,
-		created timestamp NOT NULL default CURRENT_TIMESTAMP,
-		meta_id bigint(20) UNSIGNED NOT NULL,
-		activity_type_id mediumint NOT NULL,
-		age tinyint NOT NULL,
-		PRIMARY KEY activity_id (activity_id),
-    	FOREIGN KEY (`meta_id`) REFERENCES `wp_postmeta` (`meta_id`) ON DELETE CASCADE
-    ) $charset_collate;";
-    dbDelta( $sql2 );
-
+    if ( $wpdb->get_var("SHOW TABLES LIKE '$table_name1'") != $table_name1 ) {
+        echo "ERROR. Table not created. Please contact support";
+        die;
+    }
     
-    $sql3 = "INSERT INTO  $table_name1 VALUES(null, \"activity_gap_fill\");";
-    dbDelta( $sql3 );
 
  
-    add_option( 'activity_gap_fill_db_version', $db_version );
+    add_option( 'kea_activity_gap_fill_db_version', $db_version );
 }
 
 

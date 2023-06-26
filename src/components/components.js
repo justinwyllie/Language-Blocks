@@ -155,10 +155,19 @@ const LinkPanel = () => {
     
     }
 
+    let linkWithKey;
+    let linkWithoutKey;
+    if (settings.domain.type == "query")
+    {
+        linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + withKeyMeta;
+        linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + withoutKeyMeta;
+    }
+    else
+    {
+        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + withKeyMeta;
+        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + withoutKeyMeta;
+    }
    
-
-    let linkWithKey = settings.domainForUsers + "/" + slug + "/" + postId + "?key=" + withKeyMeta;
-    let linkWithOutKey = settings.domainForUsers + slug + "/" + postId + "?key=" + withoutKeyMeta;
 
   
 
@@ -179,7 +188,7 @@ const LinkPanel = () => {
             <PanelRow>
 				<div className="">
                     <p className="kea-emp1">{ __( 'Exercise without Key:', 'kea' ) }</p>
-                    <p onClick={(e) => copyToClipboard(e)} className="">{linkWithOutKey}  <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
+                    <p onClick={(e) => copyToClipboard(e)} className="">{linkWithoutKey}  <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
                    
                 </div>		
 				
