@@ -49,114 +49,92 @@ function activity_gap_fill_custom_post_type() {
 add_action('init', 'activity_gap_fill_custom_post_type');
 
 
-
-
-
-/* add custom field to custom post type 
-
-? does it have to be a meta box? what is the difference? */
-
-//https://developer.wordpress.org/plugins/metadata/custom-meta-boxes/
-
-//think this creates the box on the editor page which we don't need as we use block
 /*
-function add_activity_gap_fill_meta_boxes()
-{
-    add_meta_box("activity_gap_fill_meta", "Activity Gap Fill XML", 
-        "get_activity_gap_fill_meta_box", "activity_gap_fill", "normal", "high");
-}   
-
-
-//function to get the meta box data for the custom post
-function get_activity_gap_fill_meta_box($post)
-{
-        // Add a nonce field so we can check for it later. TODO - do I need to do this?
-        //is my rest api
-        //wp_nonce_field( 'global_notice_nonce', 'global_notice_nonce' ); TODO
-        $value = get_post_meta( $post->ID, '_activity_gap_fill_meta', true );
-  
-        echo '<textarea style="width:100%" id="activity_gap_fill_meta" name="activity_gap_fill_meta">' .  $value . '</textarea>';
-    
-}
-*/
-
-//function to save the meta box data for the custom post
-function save_activity_gap_fill_meta($post_id)
-{
-    /*
-    Возвращает
-int|true|false.
-
-true - при успешном обновлении.
-false - при неудаче. Или когда было передано такое же значение поля (как в бд).
-ID первичного поля таблицы метаполей (meta_id), когда было создано новое поле.
-*/ 
-
-
 ob_start();
 var_dump("debug", $post_id , $_POST);
 error_log(ob_get_clean(), 4);
+*/
 
 
+//save the postId and the data to the special table - need to convert to json and add the key type (withKey or withoutKey) and the taxonmy to this json
+//so it is a self-contained unit
 
-    if ( array_key_exists( 'activity_gap_fill_meta', $_POST ) ) {
-        
-        update_post_meta(
-            $post_id,
-            '_activity_gap_fill_meta',
-            strip_tags($_POST['activity_gap_fill_meta'], ['<em>','<strong>','<br>'])
-        );
-    }
-}
+//$json = get_json_from_xml_string($_POST['activity_gap_fill_meta']);
+//$with_key_meta = $_POST['with_key_gap_fill_meta'];
+//$without_key_meta = $_POST['without_key_gap_fill_meta'];
 
-add_action( 'save_post', 'save_activity_gap_fill_meta' );
-//add_action( 'admin_init', 'add_activity_gap_fill_meta_boxes' );
+//var_dump("test", $without_key_meta);
+     
 
-
-
-/* get custom field of custom post type in rest 
-function get_meta_data( $post, $field_name, $request ) {
+function save_activity_gap_fill_meta($post)
+{
 
     
-    
-    if (!empty($post)) {
-        //todo - this seems a bit weird; why is it not an object?
-        if (is_array($post)) {
-            $postObj = (object) $post;
-        } else
-        {
-            $postObj = $post;//hopefully    
-        }
-        $data =  get_post_meta( $postObj->id, $field_name, true);
-        return $data;
+    $post_id = $post->ID;
+    $post_meta = get_post_meta($post_id);
+    $post_xml_meta = $post_meta["_activity_gap_fill_meta"][0];
+    $post_with_key_meta = $post_meta["_with_key_gap_fill_meta"][0];
+    $post_without_key_meta = $post_meta["_without_key_gap_fill_meta"][0];
+   // $post_labels_meta = $post_meta["_labels"][0];
+   var_dump(get_the_terms($post_id, 'grammar' ));
 
-    }
-}
-
-
-function adding_test_meta_rest() {
    
-    register_rest_field( 'activity_gap_fill',
-        '_activity_gap_fill_meta',
-        array(
-            'get_callback'      => 'get_meta_data',
-            'update_callback'   => null,
-            'schema'            => null,
-        )
-    );
+
+
+
 }
-*/ 
+
+add_action( 'rest_after_insert_activity_gap_fill', 'save_activity_gap_fill_meta' );
 
 
-//add_action( 'rest_api_init', 'adding_test_meta_rest' );
 
-/* add a meta box via gutenberg - how much of the above is duplicated ? 
-e.g add_meta_box and resp. register_rest_field 
-https://igmoweb.com/2020/12/23/register_post_meta-vs-register_rest_field/
-*/ 
-//https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-2-register-meta/
-/* this means if we want to return XML to third-parties we need a separate API */
 
+
+function get_json_from_xml_string($xml_string)
+{
+    $xml = new SimpleXMLElement($xml_string);
+    $legacy_name = (string) $xml->legacyName;
+    $legacy_name = strip_tags($legacy_name);
+    $title = (string) $xml->title;
+    $title = strip_tags($title);
+    $models = (string) $xml->models;
+    $models = strip_tags($models, ['<em>','<strong>','<br>']);
+    $explanation = (string) $xml->explanation;
+    $explanation = strip_tags($explanation, ['<em>','<strong>','<br>']);
+    $instructions = $xml->instructions;
+    $questions = $xml->questions;
+
+    $json_obj = new StdClass();
+    $json_obj->legacy_name = $legacy_name; 
+    $json_obj->title = $title; 
+    $json_obj->models = $models; 
+    $json_obj->explanation = $explanation; 
+
+    $json_obj->instructions = new StdClass();
+    $json_obj->questions = [];
+
+    foreach ($xml->instructions->children() as $instruction)
+    {
+        $lang = $instruction['lang'];
+        $json_obj->instructions->$lang = (string) $instruction;
+        $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
+    }
+
+    foreach ($xml->questions->children() as $question)
+    {
+        $question_obj = new StdClass();
+        $question_obj->question = (string) $question;
+        $question_obj->question = strip_tags($question_obj->question); 
+        $question_obj->answer = (string) $question['answer'];
+        $question_obj->answer = strip_tags($question_obj->answer);
+        $question_obj->questionNumber = (string) $question['questionNumber'];
+        $question_obj->questionNumber = strip_tags($question_obj->questionNumber);
+        $json_obj->questions[] = $question_obj;
+    }
+
+    return json_encode($json_obj);
+
+}
 
 
 function activity_gap_fill_register_post_meta() {
@@ -166,47 +144,7 @@ function activity_gap_fill_register_post_meta() {
         
         if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
-            $xml = new SimpleXMLElement($xml_string);
-            $legacy_name = (string) $xml->legacyName;
-            $legacy_name = strip_tags($legacy_name);
-            $title = (string) $xml->title;
-            $title = strip_tags($title);
-            $models = (string) $xml->models;
-            $models = strip_tags($models, ['<em>','<strong>','<br>']);
-            $explanation = (string) $xml->explanation;
-            $explanation = strip_tags($explanation, ['<em>','<strong>','<br>']);
-            $instructions = $xml->instructions;
-            $questions = $xml->questions;
-
-            $json_obj = new StdClass();
-            $json_obj->legacy_name = $legacy_name; 
-            $json_obj->title = $title; 
-            $json_obj->models = $models; 
-            $json_obj->explanation = $explanation; 
-
-            $json_obj->instructions = new StdClass();
-            $json_obj->questions = [];
-
-            foreach ($xml->instructions->children() as $instruction)
-            {
-                $lang = $instruction['lang'];
-                $json_obj->instructions->$lang = (string) $instruction;
-                $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
-            }
-
-            foreach ($xml->questions->children() as $question)
-            {
-                $question_obj = new StdClass();
-                $question_obj->question = (string) $question;
-                $question_obj->question = strip_tags($question_obj->question); 
-                $question_obj->answer = (string) $question['answer'];
-                $question_obj->answer = strip_tags($question_obj->answer);
-                $question_obj->questionNumber = (string) $question['questionNumber'];
-                $question_obj->questionNumber = strip_tags($question_obj->questionNumber);
-                $json_obj->questions[] = $question_obj;
-            }
-
-            return json_encode($json_obj);
+            return get_json_from_xml_string($xml_string);
         }
         else
         {
