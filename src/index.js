@@ -97,13 +97,13 @@ const FormWrapper = ({processForm, metaData, postType}) =>
     */
 
     const grammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100}),
-            []
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100})
+
     );
 
    const russianGrammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100}),
-            []
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100})
+                 
     );
 
     const terms = [];
@@ -615,9 +615,13 @@ registerBlockType( 'activities/activity-gap-fill', {
     edit: ( { setAttributes, attributes } ) => {
         
         const postType = useSelect(
-            ( select ) => select( 'core/editor' ).getCurrentPostType(),
+            ( select ) => {
+                
+                return select( 'core/editor' ).getCurrentPostType();
+            },
             []
         );
+        console.log("postType", postType);
         
         //const forceUpdate = useForceUpdate();
      
