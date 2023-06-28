@@ -3,9 +3,9 @@ const settings = {
     {
         type: "query",
         domainForUsers: "https://justinwyllie.github.io",
-    }
-    
-
+    },
+    site: "vle"
+   
 
 }
 
