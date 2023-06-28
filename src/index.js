@@ -315,17 +315,23 @@ const FormWrapper = ({processForm, metaData, postType}) =>
             //https://formik.org/docs/guides/arrays
             //todo how to do my array of questions https://formik.org/docs/api/fieldarray
 
+            let instructionsError = true;
+            let instructionsCount = 0;
             values.instructions.forEach((item, idx) =>
             {
-                if (item.lang == defaultLang)
+                
+                if (item.text != '')
                 {
-                    if (item.text == '')
-                    {
-                        errors.instructions = new Array();
-                        errors.instructions[idx] = {"lang": '', "text": "Required"};
-                    }
+                    instructionsError = false;
                 }
-            })
+
+                instructionsCount = idx;
+            });
+
+            if (instructionsError) {
+                errors.instructions = new Array();
+                errors.instructions[instructionsCount] = {"lang": '', "text": "At least one language must have instructions"};
+            }
             
             values.questions.forEach((item, idx) =>
             {
