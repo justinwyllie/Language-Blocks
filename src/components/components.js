@@ -109,7 +109,9 @@ const LinkPanel = () => {
     
 
     //https://developer.wordpress.org/block-editor/reference-guides/data/data-core-editor/
-    //useSelect monitors store value and if it changes will update sluh causing rerender
+    //useSelect monitors store value and if it changes will update slug causing rerender
+    //this is reliable. the issue is if user manually updates it this will invalidate old slugs and old links will be invalidated
+    //so - unless we block that - and you can't just hide the slug part only the whole panel - it is best maybe not to rely on slug?
     const slug = useSelect(
         ( select ) => select( 'core/editor' ).getEditedPostSlug()
     );
