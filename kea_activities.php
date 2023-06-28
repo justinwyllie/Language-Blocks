@@ -76,7 +76,7 @@ function save_activity_gap_fill_meta($post)
     $post_with_key_meta = $post_meta["_with_key_gap_fill_meta"][0];
     $post_without_key_meta = $post_meta["_without_key_gap_fill_meta"][0];
    // $post_labels_meta = $post_meta["_labels"][0];
-   var_dump(get_the_terms($post_id, 'grammar' ));
+  // var_dump(get_the_terms($post_id, 'grammar' ));
 
    
 
@@ -489,17 +489,17 @@ function wporg_register_taxonomy_english() {
     //Grammar 
 
     $labels = array(
-        'name'              => _x( 'Grammar', 'taxonomy general name' ),
-        'singular_name'     => _x( 'Grammar', 'taxonomy singular name' ),
-        'search_items'      => __( 'Search Grammar' ),
-        'all_items'         => __( 'All Grammar' ),
+        'name'              => _x( 'English Grammar', 'taxonomy general name' ),
+        'singular_name'     => _x( 'English Grammar', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search English Grammar' ),
+        'all_items'         => __( 'All English Grammar' ),
         'parent_item'       => __( 'Parent Level' ),
         'parent_item_colon' => __( 'Parent Level:' ),
-        'edit_item'         => __( 'Edit Grammar' ),
-        'update_item'       => __( 'Update Grammar' ),
-        'add_new_item'      => __( 'Add New Grammar Term' ),
+        'edit_item'         => __( 'Edit English Grammar' ),
+        'update_item'       => __( 'Update English Grammar' ),
+        'add_new_item'      => __( 'Add New English Grammar Term' ),
         'new_item_name'     => __( 'New Grammar Name' ),
-        'menu_name'         => __( 'Grammar' ),
+        'menu_name'         => __( 'English Grammar' ),
       );
      
       $args = array(
@@ -562,7 +562,46 @@ function wporg_register_taxonomy_english() {
     );
    
    
- 
+    //RUSSIAN
+
+    $labels = array(
+        'name'              => _x( 'Russian Grammar', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Russian Grammar', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Russian Grammar' ),
+        'all_items'         => __( 'All Russian Grammar' ),
+        'parent_item'       => __( 'Parent Level' ),
+        'parent_item_colon' => __( 'Parent Level:' ),
+        'edit_item'         => __( 'Edit Grammar' ),
+        'update_item'       => __( 'Update Russian Grammar' ),
+        'add_new_item'      => __( 'Add New Russian Grammar Term' ),
+        'new_item_name'     => __( 'New Grammar Name' ),
+        'menu_name'         => __( 'Russian Grammar' ),
+      );
+     
+      $args = array(
+        'hierarchical'          => true,
+        'labels'                => $labels,
+        'show_ui'               => true,
+        'show_admin_column'     => true,
+        'query_var'             => true,
+        'rewrite'               => array( 'slug' => 'russian_grammar' ),
+        'show_in_rest'          => true,
+        'rest_base'             => 'russian_grammar_terms',
+        'rest_controller_class' => 'WP_REST_Terms_Controller',
+      );
+
+    register_taxonomy( 'russian_grammar', array( 'activity_gap_fill' ), $args);
+
+    wp_insert_term(
+         'Спряжение глаголов',
+         'russian_grammar',
+         array(
+           'description' => 'Спряжение глаголов',
+           'slug'        => 'russian-conjugation-of-verbs' //parent if hier
+         )
+    );
+
+
 
     /*
     wp_delete_term(46, 'ages');

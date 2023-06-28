@@ -78,9 +78,71 @@ registerPlugin( 'kea-grammar-links-meta', {
 const FormWrapper = ({processForm, metaData, postType}) =>
 {
 
+
     
-    
+
     const metaFieldValue = metaData[ '_activity_gap_fill_meta' ]; 
+
+    /*  TODO
+        Ideally I would like to pick up taxonomies dynamically so I did not have to rebuild the f/e but this seems hard.
+        https://stackoverflow.com/questions/76573295/wordpress-gutenberg-or-react-useselect-for-dynamic-data
+
+         const availableTaxonomies = useSelect(
+        ( select ) => wp.data.select('core').getEntitiesConfig('taxonomy', {per_page: 100}),
+            []
+        );
+
+        then do everything dynamically but....
+        for now we have to hardcode the taxonomies for labels. 
+    */
+
+    const grammarTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100}),
+            []
+    );
+
+   const russianGrammarTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100}),
+            []
+    );
+
+    const terms = [];
+    let userLabels = [];
+    console.log("grammarTaxonomy", grammarTaxonomy);
+    console.log("russianGrammarTaxonomy", russianGrammarTaxonomy);
+
+    if (grammarTaxonomy) {
+        grammarTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }));
+    }
+
+    if (russianGrammarTaxonomy) {
+        russianGrammarTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
+    //detect user changing taxonomy terms
+    //i think this weill get the latest unsaved values    
+    const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
+    const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
+    console.log("terms", grammarTerms, russianGrammarTerms );
+
+
+    
+    grammarTerms.forEach((item) => {
+        userLabels.push(terms[item]);
+    });
+    russianGrammarTerms.forEach((item) => {
+        userLabels.push(terms[item]);
+    });
+
+    console.log("userLabels",userLabels );
+ 
+    
+    const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
+
     
     function setInitialValues() {
             
@@ -481,6 +543,16 @@ const FormWrapper = ({processForm, metaData, postType}) =>
             </Form.Group>
 
             <Form.Group as={Row}>
+                <Col sm={{ span: 10, offset: 0 }}>
+                    <div className="px-1 py-1 mt-3 mb-3">
+                        {userLabels.map((item, i) => {
+                            return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
+                        })}
+                    </div>
+                </Col>
+            </Form.Group> 
+
+            <Form.Group as={Row}>
                 <Col md={12}>
                   
                     <Form.Label>Activity XML</Form.Label>
@@ -499,6 +571,8 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                     </button>
                 </Col>
             </Form.Group> 
+
+       
 
             
         </Form>
