@@ -10,24 +10,11 @@ Textdomain: kea
 License: copyright Justin Wyllie
 */
 
-/* add custom post type
-https://wordpress.stackexchange.com/questions/275543/custom-post-types-filtered-by-taxonomy-using-rest-api-v2
-https://wordpress.stackexchange.com/questions/165610/get-posts-under-custom-taxonomy 
 
-*/
 
-/* 
-add custom post type
-*/
-/*
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-*/
-/* TODO sanitise custom post save
-currently it lets you save a <script> tag in in the title!!!
-https://stackoverflow.com/questions/5151409/what-action-can-i-use-in-wordpress-that-triggers-whenever-a-custom-post-is-saved
-*/
+//TODO - oh dear. class? 
+$kea_table_name1 = $wpdb->prefix . "kea_activity_gap_fill"; 
+
 
 function activity_gap_fill_custom_post_type() {
     register_post_type('activity_gap_fill',
@@ -49,48 +36,75 @@ function activity_gap_fill_custom_post_type() {
 add_action('init', 'activity_gap_fill_custom_post_type');
 
 
-/*
-ob_start();
-var_dump("debug", $post_id , $_POST);
-error_log(ob_get_clean(), 4);
-*/
-
-
-//save the postId and the data to the special table - need to convert to json and add the key type (withKey or withoutKey) and the taxonmy to this json
-//so it is a self-contained unit
-
-//$json = get_json_from_xml_string($_POST['activity_gap_fill_meta']);
-//$with_key_meta = $_POST['with_key_gap_fill_meta'];
-//$without_key_meta = $_POST['without_key_gap_fill_meta'];
-
-//var_dump("test", $without_key_meta);
-     
-
 function save_activity_gap_fill_meta($post)
 {
 
-    
     $post_id = $post->ID;
-    $post_meta = get_post_meta($post_id);
+    $author_id = get_post_field( 'post_author', $post_id );
+    $author_email = get_the_author_meta("user_email", $author_id);
+    
+    /*
+        $author_first_name = get_the_author_meta("first_name", $author_id);
+        $author_last_name = get_the_author_meta("last_name", $author_id);
+        $author_name = $author_first_name + " " + $author_last_name;
+    */
+    $post_meta = get_post_meta($post_id); //from cache if poss or from db.
     $post_xml_meta = $post_meta["_activity_gap_fill_meta"][0];
     $post_with_key_meta = $post_meta["_with_key_gap_fill_meta"][0];
     $post_without_key_meta = $post_meta["_without_key_gap_fill_meta"][0];
-   // $post_labels_meta = $post_meta["_labels"][0];
-  // var_dump(get_the_terms($post_id, 'grammar' ));
+    //array of term objs or false if none
+    //as on the fe it would be nice to do this dynamically TODO
+    $grammar_terms = get_the_terms($post, "grammar");
+    $russian_grammar_terms = get_the_terms($post, "russian_grammar");
+    
+    $labels = array();
 
-   
+    function addTerm($terms, &$target)
+    {
+        
+        if ($terms === false)
+        {
+            return;
+        }
+        foreach ($terms as $term)
+        {
+            array_push($target, $term->name);
+        }
 
+    }
 
+    addTerm($grammar_terms,  $labels);
+    addTerm($russian_grammar_terms, $labels);
+
+    $json = get_json_from_xml_string($post_xml_meta, false);
+    $json->labels = $labels;
+    $json_string = json_encode($json);
+
+    global $wpdb;     
+    global $kea_table_name1;
+    $result = $wpdb->replace($kea_table_name1, array(
+        'kea_activity_gap_fill_post_id' => $post_id, 
+        'kea_activity_gap_fill_post_json' => $json_string, 
+        'kea_activity_gap_fill_post_author_id' => $author_id, 
+        'kea_activity_gap_fill_with_key_key' => $post_with_key_meta, 
+        'kea_activity_gap_fill_without_key_key' => $post_without_key_meta
+    ),array( '%d', '%s', '%d', '%d' ,'%d')); 
+  
+
+    if ($result === false)
+    {
+        //this prevents json being returned from rest and causes fe to produce a non-informative UI error
+        //TODO - can we modify the rest json reponse to produce a custom UI error 
+        die("Error saving data - please contact support");
+        
+    }
 
 }
 
 add_action( 'rest_after_insert_activity_gap_fill', 'save_activity_gap_fill_meta' );
 
 
-
-
-
-function get_json_from_xml_string($xml_string)
+function get_json_from_xml_string($xml_string, $encode)
 {
     $xml = new SimpleXMLElement($xml_string);
     $legacy_name = (string) $xml->legacyName;
@@ -132,7 +146,14 @@ function get_json_from_xml_string($xml_string)
         $json_obj->questions[] = $question_obj;
     }
 
-    return json_encode($json_obj);
+    if ($encode)
+    {
+        return json_encode($json_obj);
+    }
+    else
+    {
+        return $json_obj;
+    }
 
 }
 
@@ -144,7 +165,7 @@ function activity_gap_fill_register_post_meta() {
         
         if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
-            return get_json_from_xml_string($xml_string);
+            return get_json_from_xml_string($xml_string, true);
         }
         else
         {
@@ -211,20 +232,23 @@ function activity_gap_fill_activated()
 {
     require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
     global $wpdb;
+    global $kea_table_name1;
     $db_version = '1.0';
-    $table_name1 = $wpdb->prefix . "kea_activity_gap_fill"; 
     $charset_collate = $wpdb->get_charset_collate();
 
-    $sql = "CREATE TABLE IF NOT EXISTS $table_name1 (
+    $sql = "CREATE TABLE IF NOT EXISTS $kea_table_name1 (
 		kea_activity_gap_fill_id bigint NOT NULL AUTO_INCREMENT,
         kea_activity_gap_fill_post_id bigint NOT NULL,
         kea_activity_gap_fill_post_json text NOT NULL,
+        kea_activity_gap_fill_post_author_id bigint NOT NULL,
+        kea_activity_gap_fill_with_key_key int NOT NULL,
+        kea_activity_gap_fill_without_key_key int NOT NULL,
     	PRIMARY KEY  kea_activity_gap_fill_id (kea_activity_gap_fill_id),
 	    UNIQUE (kea_activity_gap_fill_post_id)
 	) $charset_collate;";
     dbDelta( $sql );
 
-    if ( $wpdb->get_var("SHOW TABLES LIKE '$table_name1'") != $table_name1 ) {
+    if ( $wpdb->get_var("SHOW TABLES LIKE '$kea_table_name1'") != $kea_table_name1 ) {
         echo "ERROR. Table not created. Please contact support";
         die;
     }
@@ -282,63 +306,6 @@ function activity_gap_fill_register_block() {
 add_action( 'init', 'activity_gap_fill_register_block' );
 
 
-/* custom taxonomy 
-
-Level: beginner, intermediate, advanced
-Age: kids, teenager, adult
-Theme: 
-
-filter posts by custom taxon: https://wordpress.stackexchange.com/questions/165610/get-posts-under-custom-taxonomy
-custom rest: https://developer.wordpress.org/rest-api/reference/taxonomies/#definition-example-request
-and 
-
-- get lists of terms etc: https://torquemag.io/2014/10/working-taxonomies-using-json-rest-api/
-
-? json_url( 'posts?filter[category_name]=force_users&filter[tag]=sith' ); 
-
-https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/
-
-https://developer.wordpress.org/reference/functions/register_taxonomy/
-Note: If you want to ensure that your custom taxonomy behaves like a tag,
- you must add the option 'update_count_callback' => '_update_post_term_count'.
-
- support multiple langs: TODO
- https://wordpress.stackexchange.com/questions/135747/best-pratice-to-make-taxonomy-terms-translatable-without-changing-slugs
-slugs should not change - but display labels should. 
-should change when user changes lang. in f/e. 
-
-custom:
-https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/ 
-
-todo - security on rest api? 
-
-rest for level:
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/grammar_terms
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/levels - gets list of all terms for level (or ages)
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/levels/2 Gets info about level term 2
-
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills - gets all gap fills then eg
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/34 - gets you one by id of post 
-
-    get all gap fills at level 2 (beginner):
-    https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/?level=2
-    looks like it has to be by id. 
-
-    get all gap fills at beginner level (2) for kids (5):
-        https://dev.kazanenglishacademy.com/wp-json/wp/v2/activity_gap_fills/?level=2&age=5
-
-    //not tested - get taxonomy via WP register rather than own rest request:
-    https://wordpress.stackexchange.com/questions/352323/how-to-return-a-list-of-custom-taxonomy-terms-via-the-gutenberg-getentityrecords
-
-
-    https://developer.wordpress.org/block-editor/reference-guides/data/data-core/ 
-    getEntityRecords ?? does this get terms? 
-
-    //how to update block when tags change e.g. in their sep block:
-    //looks like you can get the tags this way? https://github.com/WordPress/gutenberg/issues/19486
-    wp.data.useSelect( select => select( 'core/editor' ).getEditedPostAttribute( 'tags' ) );
-    wp.coreData.useEntityProp( 'postType', postType, 'tags' ); 
-*/
 
 
 function wporg_register_taxonomy_english() {
@@ -600,8 +567,6 @@ function wporg_register_taxonomy_english() {
            'slug'        => 'russian-conjugation-of-verbs' //parent if hier
          )
     );
-
-
 
     /*
     wp_delete_term(46, 'ages');

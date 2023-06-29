@@ -109,8 +109,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
 
     const terms = [];
     let userLabels = [];
-    console.log("grammarTaxonomy", grammarTaxonomy);
-    console.log("russianGrammarTaxonomy", russianGrammarTaxonomy);
+ 
 
     if (grammarTaxonomy) {
         grammarTaxonomy.forEach((item => {
