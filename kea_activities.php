@@ -347,7 +347,7 @@ class KeaActivities
         register_taxonomy( 'levels', $target_post_types_levels, $args );  
     
         
-    
+        /*
         wp_insert_term(
             'Beginner',
             'levels',
@@ -372,6 +372,7 @@ class KeaActivities
                 'slug'        => 'advanced' //parent if hier
             )
         );
+        */
     
         //Ages 
     
@@ -414,6 +415,7 @@ class KeaActivities
         //$post_types are we sure we have kea_video_item?  
         register_taxonomy( 'ages_bands', $target_post_types_age_bands, $args);
     
+        /*
         wp_insert_term(
             'Kids',
             'ages_bands',
@@ -438,12 +440,8 @@ class KeaActivities
                 'slug'        => 'adults' //parent if hier
             )
         );
-    
-        unregister_taxonomy("age_groups");
-        unregister_taxonomy("age_bands");
-        wp_delete_term(87, 'age_groups');
-        wp_delete_term(88, 'age_groups');
-        wp_delete_term(89, 'age_groups');
+        */
+
     
         //Grammar 
     
@@ -490,35 +488,9 @@ class KeaActivities
         who knows?
         */
     
-        wp_insert_term(
-            'Adjectives',
-            'grammar',
-            array(
-                'description' => 'Adjectives',
-                'slug'        => 'adjectives' //parent if hier
-            )
-        );
+   
     
-        
-        wp_insert_term(
-            'Passive',
-            'grammar',
-            array(
-                'description' => 'Passive',
-                'slug'        => 'passive' //parent if hier
-            )
-        );
-    
-        wp_insert_term(
-            'Middle Voice',
-            'grammar',
-            array(
-                'description' => 'Middle Voice',
-                'slug'        => 'middle-voice' ,
-                'parent' =>110
-    
-            )
-        );
+
         
         
         //RUSSIAN
