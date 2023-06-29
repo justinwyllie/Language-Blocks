@@ -441,6 +441,7 @@ class KeaActivities
             )
         );
         */
+    
 
     
         //Grammar 
@@ -523,14 +524,7 @@ class KeaActivities
     
         register_taxonomy( 'russian_grammar', array( 'activity_gap_fill' ), $args);
     
-        wp_insert_term(
-                'Спряжение глаголов',
-                'russian_grammar',
-                array(
-                'description' => 'Спряжение глаголов',
-                'slug'        => 'russian-conjugation-of-verbs' //parent if hier
-                )
-        );
+     
     
         /*
         wp_delete_term(46, 'ages');
