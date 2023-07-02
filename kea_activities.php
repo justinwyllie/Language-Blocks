@@ -32,8 +32,8 @@ class KeaActivities
 
 
     
-
-    private function get_json_from_xml_string($xml_string, $encode)
+    //called from outside of site e.g. via a rest call class is not instaniiated
+    public static function get_json_from_xml_string($xml_string, $encode)
     {
         $xml = new SimpleXMLElement($xml_string);
         $legacy_name = (string) $xml->legacyName;
@@ -176,7 +176,7 @@ class KeaActivities
             
             if (isset($_GET['data']) && ($_GET['data'] == 'json'))
             {
-                return $this->get_json_from_xml_string($xml_string, true);
+                return KeaActivities::get_json_from_xml_string($xml_string, true);
             }
             else
             {
