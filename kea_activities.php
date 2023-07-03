@@ -27,6 +27,9 @@ class KeaActivities
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
         add_filter( 'rest_prepare_activity_gap_fill', array($this, 'get_activity_gap_fill_posts'));
         register_activation_hook( __FILE__, array($this,'activity_gap_fill_activated' ));
+        $css = "/wp-content/plugins/kea_activities/build/index.css";
+   
+        wp_enqueue_style("kea_activities_css",  $css, array(), wp_get_theme()->get( 'Version' )  );
 
     } 
 
@@ -35,6 +38,7 @@ class KeaActivities
     //called from outside of site e.g. via a rest call class is not instaniiated
     public static function get_json_from_xml_string($xml_string, $encode)
     {
+
         $xml = new SimpleXMLElement($xml_string);
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
@@ -268,15 +272,24 @@ class KeaActivities
         // automatically load dependencies and version
         $asset_file = include( plugin_dir_path( __FILE__ ) . 'build/index.asset.php');
     
+       
+        wp_register_style(
+            'activity-gap-fill-editor',
+            false,
+            array( 'wp-edit-blocks' , "kea_activities_css"),
+            filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
+        );
         
-        
-    
+
+        /*
         wp_register_style(
             'activity-gap-fill-editor',
             plugins_url( 'build/index.css', __FILE__ ),
-            array( 'wp-edit-blocks' ),
+            array( 'wp-edit-blocks'),
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
         );
+        */
+   
     
         
         wp_register_script(
