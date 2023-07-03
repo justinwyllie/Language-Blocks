@@ -12,6 +12,7 @@ License: copyright Justin Wyllie
 
 class KeaActivities
 {
+    private $caps;
    
     public function __construct() 
     {
@@ -30,6 +31,13 @@ class KeaActivities
         $css = "/wp-content/plugins/kea_activities/build/index.css";
    
         wp_enqueue_style("kea_activities_css",  $css, array(), wp_get_theme()->get( 'Version' )  );
+
+        $this->caps =  array(
+            'manage_terms'  => 'activate_plugins',
+            'edit_terms'    => 'activate_plugins',
+            'delete_terms'  => 'activate_plugins',
+            'assign_term'  => 'edit_posts'
+        );
 
     } 
 
@@ -346,7 +354,8 @@ class KeaActivities
             'rewrite'               => array( 'slug' => 'level' ),
             'show_in_rest'          => true,
             'rest_base'             => 'levels',
-            'rest_controller_class' => 'WP_REST_Terms_Controller'
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
           
             );
             
@@ -419,6 +428,7 @@ class KeaActivities
             'show_in_rest'          => true,
             'rest_base'             => 'ages_bands',
             'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
             );
     
         $target_post_types_age_bands = array( 'activity_gap_fill' );
@@ -479,12 +489,7 @@ class KeaActivities
             'menu_name'         => __( 'English Grammar' ),
             );
 
-            $caps = array(
-                'manage_terms'  => 'activate_plugins',
-                'edit_terms'    => 'activate_plugins',
-                'delete_terms'  => 'activate_plugins',
-                'assign_term'  => 'edit_posts'
-            );
+   
             
             $args = array(
             'hierarchical'          => true,
@@ -496,7 +501,7 @@ class KeaActivities
             'show_in_rest'          => true,
             'rest_base'             => 'grammar_terms',
             'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $caps
+            'capabilities'          => $this->caps
             );
 
 
@@ -553,6 +558,7 @@ class KeaActivities
             'show_in_rest'          => true,
             'rest_base'             => 'russian_grammar_terms',
             'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
             );
     
         register_taxonomy( 'russian_grammar', array( 'activity_gap_fill' ), $args);
