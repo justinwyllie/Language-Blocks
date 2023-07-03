@@ -91,6 +91,7 @@ class KeaActivities
     }
 
     public function activity_gap_fill_custom_post_type() {
+
         register_post_type('activity_gap_fill',
             array(
                 'labels'      => array(
@@ -102,10 +103,12 @@ class KeaActivities
                     'rest_base'    => 'activity_gap_fills',
                     'has_archive' => true,
                     'supports' => array( 'title', 'editor', 'custom-fields', 'revisions' ),
-                    'rewrite'     => array( 'slug' => 'gap_fill' ),
+                    'rewrite'     => array( 'slug' => 'gap_fill' )
                     //'taxonomies'  => array( 'category', 'post_tag' )
             )
         );
+
+       
     }
 
     public function save_activity_gap_fill_meta($post)
@@ -331,6 +334,8 @@ class KeaActivities
             'new_item_name'     => __( 'New Level Name' ),
             'menu_name'         => __( 'Level' ),
             );
+
+           
             
             $args = array(
             'hierarchical'          => true,
@@ -341,7 +346,8 @@ class KeaActivities
             'rewrite'               => array( 'slug' => 'level' ),
             'show_in_rest'          => true,
             'rest_base'             => 'levels',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'rest_controller_class' => 'WP_REST_Terms_Controller'
+          
             );
             
         $post_types = get_post_types();  
@@ -472,6 +478,13 @@ class KeaActivities
             'new_item_name'     => __( 'New Grammar Name' ),
             'menu_name'         => __( 'English Grammar' ),
             );
+
+            $caps = array(
+                'manage_terms'  => 'activate_plugins',
+                'edit_terms'    => 'activate_plugins',
+                'delete_terms'  => 'activate_plugins',
+                'assign_term'  => 'edit_posts'
+            );
             
             $args = array(
             'hierarchical'          => true,
@@ -483,7 +496,11 @@ class KeaActivities
             'show_in_rest'          => true,
             'rest_base'             => 'grammar_terms',
             'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $caps
             );
+
+
+       
             
         //if the plugin is being run on the main site with video posts associate taxonomy to that
         $target_post_types_grammar = array( 'activity_gap_fill' );
@@ -493,6 +510,9 @@ class KeaActivities
             $target_post_types_grammar[] = "video";
         }
     
+
+
+
         register_taxonomy( 'grammar', $target_post_types_grammar, $args );
         /* ????
         One thing to note, if you want more than 10 results, you should add 
