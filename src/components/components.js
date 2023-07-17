@@ -82,6 +82,23 @@ const GapFillQuestion = ({idx, remove}) => {
 }
 
 
+const AuthorPanel = () => {
+
+
+    const [ meta, setMeta ] = useEntityProp( 'postType', 'activity_gap_fill', 'meta' ); 
+  
+
+    return(<PluginDocumentSettingPanel title={ __( 'Creator', 'kea') } initialOpen="true">
+			<PanelRow>
+				<div>
+                    <p className="kea-emp1">Email:</p> <p>{meta._author_email}</p>
+                </div>
+			</PanelRow>
+
+	</PluginDocumentSettingPanel>);
+
+
+}
 
 
 const LinkPanel = () => {
@@ -203,5 +220,6 @@ const LinkPanel = () => {
 export {
     Instruction,
     GapFillQuestion,
-    LinkPanel
+    LinkPanel,
+    AuthorPanel
 }

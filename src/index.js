@@ -11,7 +11,7 @@ import { registerPlugin } from '@wordpress/plugins';
 const { __ } = wp.i18n; //TODO check
 
 import { Formik, Field, FieldArray, ErrorMessage } from 'formik';
-import { Instruction, GapFillQuestion, LinkPanel} from './components/components';
+import { Instruction, GapFillQuestion, LinkPanel, AuthorPanel} from './components/components';
 import { settings } from "./constants";
 
 
@@ -65,6 +65,13 @@ const defaultLang = 'en';
 const additionalLangs = ['ru'];
 const supportedLangs = [defaultLang, ...additionalLangs];
 
+//TODO - look up registerPlugin
+
+registerPlugin( 'kea-grammar-author-meta', {
+	render() {
+		return(<AuthorPanel />);
+	}
+} );
 
 
 
@@ -73,6 +80,7 @@ registerPlugin( 'kea-grammar-links-meta', {
 		return(<LinkPanel />);
 	}
 } );
+
 
  
 

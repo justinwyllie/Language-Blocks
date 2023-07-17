@@ -27,6 +27,7 @@ class KeaActivities
         add_action( 'init', array($this, 'activity_gap_fill_register_block' ));
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
         add_filter( 'rest_prepare_activity_gap_fill', array($this, 'get_activity_gap_fill_posts'));
+      
         register_activation_hook( __FILE__, array($this,'activity_gap_fill_activated' ));
         $css = "/wp-content/plugins/kea_activities/build/index.css";
    
@@ -40,6 +41,8 @@ class KeaActivities
         );
 
     } 
+
+
 
 
     
@@ -124,7 +127,7 @@ class KeaActivities
 
         $post_id = $post->ID;
         $author_id = get_post_field( 'post_author', $post_id );
-        $author_email = get_the_author_meta("user_email", $author_id);
+        
         
         /*
             $author_first_name = get_the_author_meta("first_name", $author_id);
@@ -135,6 +138,10 @@ class KeaActivities
         $post_xml_meta = $post_meta["_activity_gap_fill_meta"][0];
         $post_with_key_meta = $post_meta["_with_key_gap_fill_meta"][0];
         $post_without_key_meta = $post_meta["_without_key_gap_fill_meta"][0];
+        //this was obtained in rest_prepare_activity_gap_fill and sent to f/e via meta for display : 
+        //we get it now from there and not from post and database so we are sure we have one seen by user
+        $author_email = $post_meta["_author_email"][0]; 
+       
         //array of term objs or false if none
         //as on the fe it would be nice to do this dynamically TODO
         $grammar_terms = get_the_terms($post, "grammar");
@@ -161,6 +168,7 @@ class KeaActivities
 
         $json = $this->get_json_from_xml_string($post_xml_meta, false);
         $json->labels = $labels;
+    
         $json_string = json_encode($json);
 
         
@@ -169,8 +177,9 @@ class KeaActivities
             'kea_activity_gap_fill_post_json' => $json_string, 
             'kea_activity_gap_fill_post_author_id' => $author_id, 
             'kea_activity_gap_fill_with_key_key' => $post_with_key_meta, 
-            'kea_activity_gap_fill_without_key_key' => $post_without_key_meta
-        ),array( '%d', '%s', '%d', '%d' ,'%d')); 
+            'kea_activity_gap_fill_without_key_key' => $post_without_key_meta,
+            'kea_activity_gap_fill_author_email' => $author_email
+        ),array( '%d', '%s', '%d', '%d' ,'%d', '%s')); 
     
 
         if ($result === false)
@@ -223,6 +232,18 @@ class KeaActivities
         } 
         ) );
 
+        register_post_meta( 'activity_gap_fill', '_author_email', array(
+            'show_in_rest' => array(
+                'single' => true,
+                'type' => 'string', 
+             ),
+            'auth_callback' => function() {
+            return current_user_can( 'edit_posts' );
+            /* (callable) Optional. A function or method to call when 
+            performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
+        } 
+        ) );
+
         //this registers a meta field for this post type and also makes it show in rest
         register_post_meta( 'activity_gap_fill', '_with_key_gap_fill_meta', array(
             'show_in_rest' => array(
@@ -263,6 +284,7 @@ class KeaActivities
             kea_activity_gap_fill_post_author_id bigint NOT NULL,
             kea_activity_gap_fill_with_key_key int NOT NULL,
             kea_activity_gap_fill_without_key_key int NOT NULL,
+            kea_activity_gap_fill_author_email varchar(100) NOT NULL,
             PRIMARY KEY  kea_activity_gap_fill_id (kea_activity_gap_fill_id),
             UNIQUE (kea_activity_gap_fill_post_id)
         ) $charset_collate;";
@@ -572,10 +594,19 @@ class KeaActivities
     
     }
 
-    public function get_activity_gap_fill_posts( $data ) {
+    //Filters the post data for a REST API response. https://developer.wordpress.org/reference/hooks/rest_prepare_this-post_type/
+    //strange - docs say 3 params but only 1 expected. 
+    public function get_activity_gap_fill_posts( $response ) {
 
-        $data->data['title']['rendered'] = strip_tags($data->data['title']['rendered']);
-        return $data;
+        $response->data['title']['rendered'] = strip_tags($response->data['title']['rendered']);
+        //TODO - ultimately i would like to do this in the f/e
+        //look at the rest calls - it does get all users and you can make a call to select fields - REST API for users
+        //https://teachers.onlinerepititor.ru/index.php?rest_route=%2Fwp%2Fv2%2Fusers&context=view&who=authors&per_page=50&_fields=id%2Cname&_locale=user
+        //but still need to get user ID of author of current post
+        $author_email = get_the_author_meta("user_email");
+        $response->data['meta']['_author_email'] = strip_tags($author_email); 
+
+        return $response;
     }
             
    
