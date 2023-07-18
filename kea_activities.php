@@ -113,7 +113,7 @@ class KeaActivities
                     'show_in_rest' => true,
                     'rest_base'    => 'activity_gap_fills',
                     'has_archive' => true,
-                    'supports' => array( 'title', 'editor', 'custom-fields', 'revisions' ),
+                    'supports' => array( 'title', 'editor', 'custom-fields', 'revisions', 'author' ),
                     'rewrite'     => array( 'slug' => 'gap_fill' )
                     //'taxonomies'  => array( 'category', 'post_tag' )
             )
@@ -599,13 +599,6 @@ class KeaActivities
     public function get_activity_gap_fill_posts( $response ) {
 
         $response->data['title']['rendered'] = strip_tags($response->data['title']['rendered']);
-        //TODO - ultimately i would like to do this in the f/e
-        //look at the rest calls - it does get all users and you can make a call to select fields - REST API for users
-        //https://teachers.onlinerepititor.ru/index.php?rest_route=%2Fwp%2Fv2%2Fusers&context=view&who=authors&per_page=50&_fields=id%2Cname&_locale=user
-        //but still need to get user ID of author of current post
-        $author_email = get_the_author_meta("user_email");
-        $response->data['meta']['_author_email'] = strip_tags($author_email); 
-
         return $response;
     }
             

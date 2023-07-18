@@ -1,8 +1,8 @@
 const settings = {
     domain:
     {
-        type: "query",
-        domainForUsers: "https://justinwyllie.github.io",
+        type: "slashes",
+        domainForUsers: "https://onlinerepititor.ru",
     },
     site: "repititor"
    

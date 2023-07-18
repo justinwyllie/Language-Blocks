@@ -84,14 +84,29 @@ const GapFillQuestion = ({idx, remove}) => {
 
 const AuthorPanel = () => {
 
-
-    const [ meta, setMeta ] = useEntityProp( 'postType', 'activity_gap_fill', 'meta' ); 
+    //https://gist.github.com/5ally/a35935bbaa5b3d913dcac5f27e163cce
+    let postAuthorId = wp.data.select( 'core/editor' ).getCurrentPostAttribute( 'author' );
   
+    const {
+		currentAuthorId
+	} = useSelect(
+		( select ) => ( {
+			currentAuthorId: select( 'core/editor' ).getCurrentPostAttribute( 'author' ),
+		
+		} ),
+		[]
+	);
 
+    const authorData = useSelect(
+		( select ) => select( 'core' ).getUser( currentAuthorId ),
+		[ currentAuthorId ]
+	);
+
+ 
     return(<PluginDocumentSettingPanel title={ __( 'Creator', 'kea') } initialOpen="true">
 			<PanelRow>
 				<div>
-                    <p className="kea-emp1">Email:</p> <p>{meta._author_email}</p>
+                    <p className="kea-emp1">Email:</p> <p>{authorData?.email}</p>
                 </div>
 			</PanelRow>
 
