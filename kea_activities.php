@@ -139,10 +139,10 @@ class KeaActivities
         */
         $post_meta = get_post_meta($post_id); //from cache if poss or from db.
         $post_xml_meta = $post_meta["_activity_gap_fill_meta"][0];
-        $post_with_key_meta = $post_meta["_with_key_gap_fill_meta"][0];
-        $post_without_key_meta = $post_meta["_without_key_gap_fill_meta"][0];
+        $post_with_key_meta = intval($post_meta["_with_key_gap_fill_meta"][0]);
+        $post_without_key_meta = intval($post_meta["_without_key_gap_fill_meta"][0]); 
 
-        var_dump("_without_key_gap_fill_meta", $post_meta["_without_key_gap_fill_meta"][0]);
+        //var_dump("_without_key_gap_fill_meta", $post_without_key_meta);
 
         //this was obtained in rest_prepare_activity_gap_fill and sent to f/e via meta for display : 
         //we get it now from there and not from post and database so we are sure we have one seen by user
@@ -177,16 +177,26 @@ class KeaActivities
     
         $json_string = json_encode($json);
 
-        
+
+
+        /*
+         wp replace -> mysql replace
+         REPLACE works exactly like INSERT, except that if an old row in the table has the same 
+         value as a new row for a PRIMARY KEY or a UNIQUE index, the old row is deleted before the new 
+         row is inserted. See Section 13.2.7, “INSERT Statement”.
+         https://dev.mysql.com/doc/refman/8.0/en/replace.html 
+         TODO maybe matter to use INSERT INTO UPDATE ON DUPLICATE though it looks like might have to build query manually for that
+         */
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_gap_fill_post_id' => $post_id, 
             'kea_activity_gap_fill_post_json' => $json_string, 
             'kea_activity_gap_fill_post_author_id' => $author_id, 
             'kea_activity_gap_fill_with_key_key' => $post_with_key_meta, 
-            'kea_activity_gap_fill_without_key_key' => $post_without_key_meta,
-            'kea_activity_gap_fill_author_email' => $author_email
-        ),array( '%d', '%s', '%d', '%d' ,'%d', '%s')); 
-    
+            'kea_activity_gap_fill_author_email' => $author_email,
+            'kea_activity_gap_fill_without_key_key' => $post_without_key_meta
+            
+        ), array( '%d', '%s', '%d', '%d' ,'%s', '%d')); 
+
 
         if ($result === false)
         {
@@ -288,8 +298,8 @@ class KeaActivities
             kea_activity_gap_fill_post_id bigint NOT NULL,
             kea_activity_gap_fill_post_json text NOT NULL,
             kea_activity_gap_fill_post_author_id bigint NOT NULL,
-            kea_activity_gap_fill_with_key_key int NOT NULL,
-            kea_activity_gap_fill_without_key_key int NOT NULL,
+            kea_activity_gap_fill_with_key_key bigint NOT NULL,
+            kea_activity_gap_fill_without_key_key bigint NOT NULL,
             kea_activity_gap_fill_author_email varchar(100) NOT NULL,
             PRIMARY KEY  kea_activity_gap_fill_id (kea_activity_gap_fill_id),
             UNIQUE (kea_activity_gap_fill_post_id)

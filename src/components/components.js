@@ -153,14 +153,8 @@ const LinkPanel = () => {
         ( select ) => select( 'core/editor' ).getCurrentPostId()
     );
 
-    const [ meta, setMeta ] = useEntityProp( 'postType', 'activity_gap_fill', 'meta' ); 
-    console.log("meta", meta);
+  
 
-    let withKeyMeta;
-    let withoutKeyMeta; 
-
-    withKeyMeta = meta._with_key_gap_fill_meta;
-    withoutKeyMeta = meta._without_key_gap_fill_meta;
 
    let getRandom = () =>
    {
@@ -170,46 +164,52 @@ const LinkPanel = () => {
     
    }
 
-
-   if ( ((withKeyMeta == '') || (withKeyMeta == undefined)) || ((withoutKeyMeta == '') || (withoutKeyMeta == undefined))) 
-   {
-
-        let vals = getRandom();
-
-        if ((withKeyMeta == '') || (withKeyMeta == undefined))
-        {
-                withKeyMeta =  vals[0];
-                
-        }
-
-        if ((withoutKeyMeta == '') || (withoutKeyMeta == undefined))
-        {
-                withoutKeyMeta = vals[1];
-                
-        }
+   const [ meta, setMeta ] = useEntityProp( 'postType', 'activity_gap_fill', 'meta' ); 
     
+   console.log("meta", meta);
+
+
+
+        //TDDO - not sure about the structure of this - will we always have meta by this point if it exists?
+        //or do i need to useSelect?
+    if ( ((meta._with_key_gap_fill_meta == '') || (meta._with_key_gap_fill_meta == undefined)) 
+        || ((meta._without_key_gap_fill_meta == '') || (meta._without_key_gap_fill_meta == undefined))) 
+    {
+
+            let vals = getRandom();
+
+            if ((meta._with_key_gap_fill_meta == '') || (meta._with_key_gap_fill_meta == undefined))
+            {
+                    
+                    setMeta( { ...meta, _with_key_gap_fill_meta: vals[0].toString()} );
+            }
+
+            if ((meta._without_key_gap_fill_meta == '') || (meta._without_key_gap_fill_meta == undefined))
+            {
+                    
+                    setMeta( { ...meta, _without_key_gap_fill_meta:  vals[1].toString() } );
+            }
+        
     }
+
+  
+
+  
 
     let linkWithKey;
     let linkWithoutKey;
     if (settings.domain.type == "query")
     {
-        linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + withKeyMeta;
-        linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + withoutKeyMeta;
+        linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_gap_fill_meta;
+        linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_gap_fill_meta;
     }
     else
     {
-        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + withKeyMeta;
-        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + withoutKeyMeta;
+        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_gap_fill_meta;
+        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_gap_fill_meta;
     }
 
-    console.log("setting key meta", meta);
-    //setMeta( { ...meta, _with_key_gap_fill_meta: withKeyMeta.toString() } );
-   // setMeta( { ...meta, _without_key_gap_fill_meta:  withoutKeyMeta.toString() } );
-   
-    
-    console.log("setting key meta", meta);
-  
+
 
     /*
     const { editPost } = useDispatch( 'core/editor', [ postMeta._kea_vocab_item_ru_meta, 
