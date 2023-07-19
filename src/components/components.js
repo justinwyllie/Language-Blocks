@@ -85,6 +85,7 @@ const GapFillQuestion = ({idx, remove}) => {
 const AuthorPanel = () => {
 
     //https://gist.github.com/5ally/a35935bbaa5b3d913dcac5f27e163cce
+    //https://wordpress.stackexchange.com/questions/417512/get-the-email-of-the-author-of-the-currently-being-edited-post-in-gutenberg-fron/417513#417513
     let postAuthorId = wp.data.select( 'core/editor' ).getCurrentPostAttribute( 'author' );
   
     const {
@@ -178,13 +179,13 @@ const LinkPanel = () => {
         if ((withKeyMeta == '') || (withKeyMeta == undefined))
         {
                 withKeyMeta =  vals[0];
-                setMeta( { ...meta, _with_key_gap_fill_meta: withKeyMeta.toString() } );
+                
         }
 
         if ((withoutKeyMeta == '') || (withoutKeyMeta == undefined))
         {
                 withoutKeyMeta = vals[1];
-                setMeta( { ...meta, _without_key_gap_fill_meta:  withoutKeyMeta.toString() } );
+                
         }
     
     }
@@ -201,8 +202,13 @@ const LinkPanel = () => {
         linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + withKeyMeta;
         linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + withoutKeyMeta;
     }
-   
 
+    console.log("setting key meta", meta);
+    //setMeta( { ...meta, _with_key_gap_fill_meta: withKeyMeta.toString() } );
+   // setMeta( { ...meta, _without_key_gap_fill_meta:  withoutKeyMeta.toString() } );
+   
+    
+    console.log("setting key meta", meta);
   
 
     /*

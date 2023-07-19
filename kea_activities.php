@@ -32,12 +32,15 @@ class KeaActivities
         $css = "/wp-content/plugins/kea_activities/build/index.css";
    
         wp_enqueue_style("kea_activities_css",  $css, array(), wp_get_theme()->get( 'Version' )  );
-
+        //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
+        //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
+        //
         $this->caps =  array(
-            'manage_terms'  => 'activate_plugins',
-            'edit_terms'    => 'activate_plugins',
-            'delete_terms'  => 'activate_plugins',
+            'manage_terms'  => 'delete_others_pages',
+            'edit_terms'    => 'delete_others_pages',
+            'delete_terms'  => 'delete_others_pages',
             'assign_term'  => 'edit_posts'
+            
         );
 
     } 
@@ -138,6 +141,9 @@ class KeaActivities
         $post_xml_meta = $post_meta["_activity_gap_fill_meta"][0];
         $post_with_key_meta = $post_meta["_with_key_gap_fill_meta"][0];
         $post_without_key_meta = $post_meta["_without_key_gap_fill_meta"][0];
+
+        var_dump("_without_key_gap_fill_meta", $post_meta["_without_key_gap_fill_meta"][0]);
+
         //this was obtained in rest_prepare_activity_gap_fill and sent to f/e via meta for display : 
         //we get it now from there and not from post and database so we are sure we have one seen by user
         $author_email = $post_meta["_author_email"][0]; 
