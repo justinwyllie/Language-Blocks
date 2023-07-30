@@ -139,6 +139,12 @@ class KeaActivities
         */
         $post_meta = get_post_meta($post_id); //from cache if poss or from db.
         $post_xml_meta = $post_meta["_activity_gap_fill_meta"][0];
+
+        if (empty($post_xml_meta))
+        {
+            return;
+        }
+
         $post_with_key_meta = intval($post_meta["_with_key_gap_fill_meta"][0]);
         $post_without_key_meta = intval($post_meta["_without_key_gap_fill_meta"][0]); 
 

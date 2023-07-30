@@ -229,7 +229,7 @@ const FormWrapper = ({processForm, metaData, postType}) =>
                 }
 
                 let explanationNodes = xmlDoc.getElementsByTagName("explanation");
-                if ((explanationNodes.length > 0))
+                if ((explanationNodes.length > 0) && (explanationNodes[0].childNodes.length > 0))
                 {
                     initialValues.explanation = explanationNodes[0].childNodes[0].nodeValue;     
                 }
