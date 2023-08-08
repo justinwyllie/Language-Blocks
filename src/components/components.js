@@ -9,7 +9,13 @@ import { useEntityProp } from '@wordpress/core-data';
 import { select, subscribe } from '@wordpress/data';
 import { TextControl, TextareaControl, PanelRow } from '@wordpress/components';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post'; 
-import { settings } from "../constants";
+import { useState, useRef } from 'react';
+import Overlay from 'react-bootstrap/Overlay';
+import Tooltip from 'react-bootstrap/Tooltip';
+
+import { LABELS, settings } from '../constants';
+import { CapitalizeFirstLetter } from "../helpers";
+
 
 
 
@@ -116,15 +122,48 @@ const AuthorPanel = () => {
 
 }
 
+const TipTool = (props) => {
+    console.log("tiptool", props.show);
+    if (props.show)
+    {
+        return <div className="kea-tiptool"> 
+                    <div>
+                        {props.tip}
+                    </div>
+          </div>
+    }
+    else
+    {
+        return <></>
+    }
+
+}
 
 const LinkPanel = () => {
 
+
     
-   function copyToClipboard(e)
+    const [show1, setShow1] = useState(false);
+    const [show2, setShow2] = useState(false);
+    const target = useRef(null);
+    const target2 = useRef(null);
+    
+   
+
+
+   function copyToClipboard(e, toggle)
    {
+   
+        toggle(true);
         var text = e.currentTarget.innerText;
-        console.log(text);
         navigator.clipboard.writeText(text);
+          
+        setTimeout(() => {
+      
+            toggle(false);
+            
+        }, 800);
+        
    }
     
 
@@ -220,15 +259,38 @@ const LinkPanel = () => {
 			<PanelRow>
 				<div className="">
                     <p className="kea-emp1">{ __( 'Exercise with Key:', 'kea' ) }</p>
-                    <p onClick={(e) => copyToClipboard(e)} className="">{linkWithKey} <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
-                   
-                    
+                  
+                    <p ref={target}
+                        onClick={(e) => copyToClipboard(e, setShow1)} className="">{linkWithKey} <span  className="kea-pointer dashicons-before dashicons-admin-page"></span> 
+                    </p>
+          
+                    <Overlay target={target.current} show={show1} placement="left">
+                        {(props) => (
+                        <Tooltip  {...props}>
+                                {CapitalizeFirstLetter(LABELS[settings.defaultUserLang]['copied_to_clipboard']['nominative'])} 
+
+                        </Tooltip>
+                        )}
+                    </Overlay>
+                  
                 </div>
 			</PanelRow>
             <PanelRow>
 				<div className="">
                     <p className="kea-emp1">{ __( 'Exercise without Key:', 'kea' ) }</p>
-                    <p onClick={(e) => copyToClipboard(e)} className="">{linkWithoutKey}  <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
+                    
+                            
+                    <p  ref={target2}
+                        onClick={(e) => copyToClipboard(e, setShow2)} className="">{linkWithoutKey}  <span className="kea-pointer dashicons-before dashicons-admin-page"></span> </p>
+
+                    <Overlay target={target2.current} show={show2} placement="left">
+                        {(props) => (
+                        <Tooltip  {...props}>
+                                {CapitalizeFirstLetter(LABELS[settings.defaultUserLang]['copied_to_clipboard']['nominative'])} 
+
+                        </Tooltip>
+                        )}
+                    </Overlay>
                    
                 </div>		
 				
