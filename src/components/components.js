@@ -4,10 +4,9 @@ import Form from 'react-bootstrap/Form';
 import { Field, ErrorMessage } from 'formik';
 import { Button} from 'react-bootstrap';
 
-import { useSelect, useDispatch }  from '@wordpress/data';
+import { useSelect }  from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
-import { select, subscribe } from '@wordpress/data';
-import { TextControl, TextareaControl, PanelRow } from '@wordpress/components';
+import { PanelRow } from '@wordpress/components';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post'; 
 import { useState, useRef } from 'react';
 import Overlay from 'react-bootstrap/Overlay';
