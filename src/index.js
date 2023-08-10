@@ -204,7 +204,7 @@ registerBlockType( 'activities/activity-gap-fill', {
             //but does not save anything to the backend - that takes saving the whole post
             //via the button on the page?
             //console.log("setMeta");
-            setMeta( { ...meta, _activity_gap_fill_meta: newXmlStr } );
+            setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
             
         }
   

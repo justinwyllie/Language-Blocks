@@ -19,7 +19,7 @@ const MultipleChoice = ({processForm, metaData, postType}) =>
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
 
-    const metaFieldValue = metaData[ '_activity_gap_fill_meta' ]; 
+    const metaFieldValue = metaData[ '_kea_activity_meta' ]; 
 
     /*  TODO
         Ideally I would like to pick up taxonomies dynamically so I did not have to rebuild the f/e but this seems hard.

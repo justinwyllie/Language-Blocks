@@ -173,7 +173,7 @@ const LinkPanel = () => {
 
   
 
-    if (postType != "activity_gap_fill")
+    if (postType != "kea_activity")
     {
         return null;
     }
@@ -202,7 +202,7 @@ const LinkPanel = () => {
     
    }
 
-   const [ meta, setMeta ] = useEntityProp( 'postType', 'activity_gap_fill', 'meta' ); 
+   const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
     
    console.log("meta", meta);
 
@@ -210,22 +210,22 @@ const LinkPanel = () => {
 
         //TDDO - not sure about the structure of this - will we always have meta by this point if it exists?
         //or do i need to useSelect?
-    if ( ((meta._with_key_gap_fill_meta == '') || (meta._with_key_gap_fill_meta == undefined)) 
-        || ((meta._without_key_gap_fill_meta == '') || (meta._without_key_gap_fill_meta == undefined))) 
+    if ( ((meta._with_key_meta == '') || (meta._with_key_meta == undefined)) 
+        || ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))) 
     {
 
             let vals = getRandom();
 
-            if ((meta._with_key_gap_fill_meta == '') || (meta._with_key_gap_fill_meta == undefined))
+            if ((meta._with_key_meta == '') || (meta._with_key_meta == undefined))
             {
                     
-                    setMeta( { ...meta, _with_key_gap_fill_meta: vals[0].toString()} );
+                    setMeta( { ...meta, _with_key_meta: vals[0].toString()} );
             }
 
-            if ((meta._without_key_gap_fill_meta == '') || (meta._without_key_gap_fill_meta == undefined))
+            if ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))
             {
                     
-                    setMeta( { ...meta, _without_key_gap_fill_meta:  vals[1].toString() } );
+                    setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
             }
         
     }
@@ -238,13 +238,13 @@ const LinkPanel = () => {
     let linkWithoutKey;
     if (settings.domain.type == "query")
     {
-        linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_gap_fill_meta;
-        linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_gap_fill_meta;
+        linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
+        linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_meta;
     }
     else
     {
-        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_gap_fill_meta;
-        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_gap_fill_meta;
+        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_meta;
+        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
     }
 
 
