@@ -31,6 +31,7 @@ class KeaActivities
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
+        add_action( 'rest_api_init', array($this, 'json_rest_route'));
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
@@ -212,6 +213,65 @@ class KeaActivities
             
         }
 
+    }
+
+
+    //https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/
+    //check - can only allow from github and no other source CORS 
+    //https://dev.kazanenglishacademy.com/wp-json/kea_activities/v1/json_post/2750/1784148523   
+    //https://dev.kazanenglishacademy.com/wp-json/kea_activities/v1/json_post/2750/2147483647
+    //TODO restrict this see CORS doc
+    public function json_rest_route()
+    {
+        register_rest_route( 'kea_activities/v1', '/json_post/(?P<post_id>\d+)/(?P<key>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'special_get_json_for_ad_hoc_projects'),
+            'permission_callback' => function () {
+                return __return_true();
+            } 
+            
+        ) );
+    }
+
+    /*
+    'permission_callback' => function () {
+                return current_user_can( 'read' );
+            } */
+
+    public function special_get_json_for_ad_hoc_projects($request)
+    {
+        $key = $request['key'];
+        $post_id = $request['post_id'];
+
+        $sql = $this->wpdb->prepare( "SELECT * FROM {$this->kea_table_name1} WHERE kea_activity_post_id = %d", $post_id );
+        $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
+        $ex = $results[0];
+
+        $ex_json = json_decode($ex->kea_activity_post_json);
+       
+
+        if ($key == $ex->kea_activity_with_key_key)
+        {
+            $ex_json->mode = "withkey";
+        }
+        else
+        {
+            function lose_answers($q)
+            {
+                
+              
+                $q->answer = preg_replace('/[^\|]/', "", $q->answer);
+                return $q;
+            }
+
+            $ex_json->mode = "withoutkey";
+            $questions = $ex_json->questions;
+            $questionsWithoutAnswers = array_map('lose_answers', $questions);
+            $ex_json->questions = $questionsWithoutAnswers;
+        }
+
+
+        return $ex_json;
     }
 
     
