@@ -265,12 +265,13 @@ class KeaActivities
             }
 
             $ex_json->mode = "withoutkey";
+            
             $questions = $ex_json->questions;
             $questionsWithoutAnswers = array_map('lose_answers', $questions);
             $ex_json->questions = $questionsWithoutAnswers;
         }
 
-
+        $ex_json->success = true;
         return $ex_json;
     }
 
