@@ -9,17 +9,87 @@ import { settings } from "../constants";
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 
 
-const MultipleChoice = ({processForm, metaData, postType}) =>
+const MultipleChoice = ({postType}) =>
 {
 
-
+    const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
     const initialValues = {}; 
     initialValues.set = false;
     const defaultLang = 'en';
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
+    const metaFieldValue = meta[ '_kea_activity_meta' ]; 
 
-    const metaFieldValue = metaData[ '_kea_activity_meta' ]; 
+    //validate form, if ok build XML (second validation step - test for valid
+    //valid XML - call setMeta to update the meta field with the XML
+    const processForm = (values) =>
+    {
+       
+        let parser = new DOMParser();
+        let xml = '<?xml version="1.0" encoding="UTF-8"?><activity></activity>';
+        let xmlDoc = parser.parseFromString(xml,"text/xml");
+
+        let rootNode = xmlDoc.getElementsByTagName("activity")[0];
+        rootNode.setAttribute("type", postType);
+        //rootNode.setAttribute("ageGroup", values.ageGroup);
+        //rootNode.setAttribute("level", values.level);
+
+        let legacyNameNode = xmlDoc.createElement("legacyName");
+        let legacyNameValueNode = xmlDoc.createTextNode(values.legacyName);
+        legacyNameNode.appendChild(legacyNameValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(legacyNameNode);
+
+        let titleNode = xmlDoc.createElement("title");
+        let titleValueNode = xmlDoc.createTextNode(values.title);
+        titleNode.appendChild(titleValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(titleNode);
+
+        let modelsNode = xmlDoc.createElement("models");
+        let modelsValueNode = xmlDoc.createTextNode(values.models);
+        modelsNode.appendChild(modelsValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(modelsNode);
+
+        let explanationNode = xmlDoc.createElement("explanation");
+        let explanationValueNode = xmlDoc.createTextNode(values.explanation);
+        explanationNode.appendChild(explanationValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(explanationNode);
+
+        let instructionsNode = xmlDoc.createElement("instructions");
+        values.instructions.forEach(function(item, i)
+        {
+            let iNode = xmlDoc.createElement("instruction");
+            iNode.setAttribute("lang", item.lang);
+            let iValueNode = xmlDoc.createTextNode(item.text);
+            iNode.appendChild(iValueNode);
+            instructionsNode.appendChild(iNode);
+        });
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(instructionsNode);
+
+        let questionsNode = xmlDoc.createElement("questions");
+        values.questions.forEach(function(item, i)
+        {
+            let qNode = xmlDoc.createElement("q"+i);
+            qNode.setAttribute("questionNumber", (i + 1));
+            qNode.setAttribute("answer", item.answer);
+            let qValueNode = xmlDoc.createTextNode(item.question);
+            qNode.appendChild(qValueNode);
+            questionsNode.appendChild(qNode);
+        });
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(questionsNode);
+
+        let s = new XMLSerializer();
+        let newXmlStr = s.serializeToString(xmlDoc);
+        values.rawXML = newXmlStr;
+    
+
+        //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
+        //this seems to cause a re-render of the component. does it?
+        //but does not save anything to the backend - that takes saving the whole post
+        //via the button on the page?
+        //console.log("setMeta");
+        setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
+        
+    }
 
     /*  TODO
         Ideally I would like to pick up taxonomies dynamically so I did not have to rebuild the f/e but this seems hard.

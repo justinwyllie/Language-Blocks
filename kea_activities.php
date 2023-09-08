@@ -386,20 +386,7 @@ class KeaActivities
 
 
 
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
+    //gap fill block
     public function kea_activity_register_block() {
 
         // automatically load dependencies and version
@@ -410,12 +397,12 @@ class KeaActivities
 
 
         wp_register_style(
-            'activity-gap-fill-editor',
+            'activity-editor',
             $css,
             array( 'wp-edit-blocks' ),
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
         );
-        wp_enqueue_style("activity-gap-fill-editor");
+        wp_enqueue_style("activity-editor");
 
         /*
         wp_register_style(
@@ -425,11 +412,10 @@ class KeaActivities
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
         );
         */
-   
-    
+      
         
         wp_register_script(
-            'activity-gap-fill-script',
+            'activity-script',
             plugins_url( 'build/index.js', __FILE__ ), 
             $asset_file['dependencies'],
             $asset_file['version']
@@ -443,12 +429,23 @@ class KeaActivities
         register_block_type( 'activities/activity-gap-fill', array(
             'api_version' => 2,
             'title' => 'Activity Gap Fill',
-            'style' => 'activity-gap-fill-editor-front',
-            'editor_style' => 'activity-gap-fill-editor',      
-            'editor_script' => 'activity-gap-fill-script',
+            'editor_style' => 'activity-editor',      
+            'editor_script' => 'activity-script',
+        ) );
+
+        register_block_type( 'activities/activity-multiple-choice', array(
+            'api_version' => 2,
+            'title' => 'Activity Multiple Chocie',
+            'editor_style' => 'activity-editor',      
+            'editor_script' => 'activity-script',
         ) );
         
     }
+
+
+
+
+
 
     public function wporg_register_taxonomy_english() {
 
