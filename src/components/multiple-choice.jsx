@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col';
 import { useSelect } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
 import { Formik, FieldArray  } from 'formik';
-import { Instruction, GapFillQuestion, LinkPanel, AuthorPanel} from './components';
+import { Instruction, MultipleChoiceQuestion, LinkPanel, AuthorPanel} from './components';
 import { settings } from "../constants";
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 
@@ -70,9 +70,11 @@ const MultipleChoice = ({postType}) =>
         {
             let qNode = xmlDoc.createElement("q"+i);
             qNode.setAttribute("questionNumber", (i + 1));
-            qNode.setAttribute("answer", item.answer);
             let qValueNode = xmlDoc.createTextNode(item.question);
             qNode.appendChild(qValueNode);
+
+            qNode.setAttribute("answer", item.answer);
+
             questionsNode.appendChild(qNode);
         });
         xmlDoc.getElementsByTagName("activity")[0].appendChild(questionsNode);
@@ -134,8 +136,7 @@ const MultipleChoice = ({postType}) =>
     //i think this weill get the latest unsaved values    
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
-    console.log("terms", grammarTerms, russianGrammarTerms );
-
+  
 
     
     grammarTerms.forEach((item) => {
@@ -145,7 +146,7 @@ const MultipleChoice = ({postType}) =>
         userLabels.push(terms[item]);
     });
 
-    console.log("userLabels",userLabels );
+ 
  
     
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
@@ -303,6 +304,7 @@ const MultipleChoice = ({postType}) =>
         initialValues={initialValues}
 
         validate={values => {
+            console.log("validate", values);
             
             let errors = {};
            
@@ -409,7 +411,7 @@ const MultipleChoice = ({postType}) =>
         
         onSubmit={(values) => {
             //FormIk validation happens here?
-            
+            console.log("values", values);
             processForm(values);
         }}
             
@@ -548,14 +550,14 @@ const MultipleChoice = ({postType}) =>
             {({ insert, remove, push }) => (
                 <div>     
                     {values.questions.length > 0 && values.questions.map( (item, idx) =>            
-                        <GapFillQuestion idx={idx} 
+                        <MultipleChoiceQuestion idx={idx} 
                             insert={insert}
                             remove={remove}
                             values={values} 
                             errors={errors} touched={touched} 
                             handleChange={handleChange} handleBlur={handleBlur} 
                             >
-                        </GapFillQuestion>)
+                        </MultipleChoiceQuestion>)
                     }
                     <div className="text-right margin-top-10">
                         <button

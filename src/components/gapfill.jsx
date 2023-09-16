@@ -89,7 +89,7 @@ const GapFill = ({postType}) =>
         //this seems to cause a re-render of the component. does it?
         //but does not save anything to the backend - that takes saving the whole post
         //via the button on the page?
-        //console.log("setMeta");
+       
         setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
         
     }
@@ -138,7 +138,7 @@ const GapFill = ({postType}) =>
     //i think this weill get the latest unsaved values    
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
-    console.log("terms", grammarTerms, russianGrammarTerms );
+
 
 
     
@@ -148,8 +148,7 @@ const GapFill = ({postType}) =>
     russianGrammarTerms.forEach((item) => {
         userLabels.push(terms[item]);
     });
-
-    console.log("userLabels",userLabels );
+ 
  
     
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
@@ -307,7 +306,7 @@ const GapFill = ({postType}) =>
         initialValues={initialValues}
 
         validate={values => {
-            
+            console.log("validate", values);
             let errors = {};
            
             /*

@@ -116,7 +116,7 @@ registerBlockType( 'activities/activity-gap-fill', {
             },
             []
         );
-        console.log("postType", postType);
+       
         
         //const forceUpdate = useForceUpdate();
      
@@ -190,7 +190,7 @@ registerBlockType( 'activities/activity-multiple-choice', {
         const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
         //TODO - does this make an ajax call or just get it from the data store
         
-        console.log("blockProps", blockProps);
+      
 
         return (
             <div { ...blockProps }>

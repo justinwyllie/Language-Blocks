@@ -86,6 +86,83 @@ const GapFillQuestion = ({idx, remove}) => {
     </div>)
 }
 
+const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
+
+    console.log("MultipleChoiceQuestionAnswer", idx, idx2);
+    let placeholder = "choice";
+    if (idx2 == 0)
+    {
+        placeholder = placeholder + " " + idx2 + " (correct)";
+    }
+    else
+    {
+        placeholder = placeholder + " " + idx2 + " (incorrect variant)";
+    }
+
+    return(<Col md={6}>
+                    <Field className="kea-wide-field kea-question-field mb-2" name={`questions.${idx}.answer${idx2}`}
+                        placeholder={placeholder}
+                        type="text"
+                    />
+                    <ErrorMessage
+                            name={`questions.${idx}.answer${idx2}`}
+                            component="div"
+                            className="field-error"
+                    />
+    </Col>)
+}
+
+const MultipleChoiceQuestion = ({idx, remove}) => {
+
+    const counter  = [...Array(4).keys()];
+    console.log("counter", counter);
+        
+    return (
+    <div className="kea-additional-field-block"> 
+        <Form.Group as={Row}>
+            <Form.Label column md={2}>{idx + 1}. (question)</Form.Label>
+            <Col md={10}>
+                <Field className="kea-wide-field kea-additional-field" name={`questions.${idx}.question`}
+                    placeholder="Example ___ sentence with blank and (keyword)"
+                    type="text"
+                />
+               
+                <ErrorMessage
+                          name={`questions.${idx}.question`}
+                          component="div"
+                          className="field-error"
+                />
+            </Col>
+        </Form.Group> 
+
+        <Row>
+            <Form.Label column md={12}>{idx + 1}. (answers:)</Form.Label>
+        </Row>
+
+        <Form.Group as={Row}>
+         
+             
+                    {counter.map((v, idx2) => {
+                            return(<MultipleChoiceQuestionAnswer key={idx2} idx={idx} idx2={idx2}/>)
+                        })
+                    }
+              
+
+        </Form.Group>
+
+
+        <Row>
+            <Col className="text-right">
+                <Button 
+                    type="button"
+                    className="secondary"
+                    onClick={() => remove(idx)}>-</Button>   
+            </Col>
+        </Row> 
+    </div>)
+}
+
+
 
 const AuthorPanel = () => {
 
@@ -122,7 +199,7 @@ const AuthorPanel = () => {
 }
 
 const TipTool = (props) => {
-    console.log("tiptool", props.show);
+    
     if (props.show)
     {
         return <div className="kea-tiptool"> 
@@ -204,7 +281,7 @@ const LinkPanel = () => {
 
    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
     
-   console.log("meta", meta);
+
 
 
 
@@ -303,5 +380,6 @@ export {
     Instruction,
     GapFillQuestion,
     LinkPanel,
-    AuthorPanel
+    AuthorPanel,
+    MultipleChoiceQuestion
 }
