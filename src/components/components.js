@@ -1,7 +1,7 @@
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
-import { Field, ErrorMessage } from 'formik';
+import { Field, ErrorMessage, FieldArray } from 'formik';
 import { Button} from 'react-bootstrap';
 
 import { useSelect }  from '@wordpress/data';
@@ -92,7 +92,7 @@ const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
     let placeholder = "choice";
     if (idx2 == 0)
     {
-        placeholder = placeholder + " " + idx2 + " (correct)";
+        placeholder = placeholder + " " + idx2 + " (correct variant)";
     }
     else
     {
@@ -100,19 +100,19 @@ const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
     }
 
     return(<Col md={6}>
-                    <Field className="kea-wide-field kea-question-field mb-2" name={`questions.${idx}.answer${idx2}`}
+                    <Field className="kea-wide-field kea-question-field mb-2" name={`questions[${idx}].answers[${idx2}].answer`}
                         placeholder={placeholder}
                         type="text"
                     />
                     <ErrorMessage
-                            name={`questions.${idx}.answer${idx2}`}
+                            name={`questions[${idx}].answers[${idx2}].answer`}
                             component="div"
                             className="field-error"
                     />
     </Col>)
 }
 
-const MultipleChoiceQuestion = ({idx, remove}) => {
+const MultipleChoiceQuestion = ({idx, remove, values, errors, handleChange, handleBlur, touched}) => {
 
     const counter  = [...Array(4).keys()];
     console.log("counter", counter);
@@ -122,13 +122,13 @@ const MultipleChoiceQuestion = ({idx, remove}) => {
         <Form.Group as={Row}>
             <Form.Label column md={2}>{idx + 1}. (question)</Form.Label>
             <Col md={10}>
-                <Field className="kea-wide-field kea-additional-field" name={`questions.${idx}.question`}
+                <Field className="kea-wide-field kea-additional-field" name={`questions[${idx}].question`}
                     placeholder="Example ___ sentence with blank and (keyword)"
                     type="text"
                 />
                
                 <ErrorMessage
-                          name={`questions.${idx}.question`}
+                          name={`questions[${idx}].question`}
                           component="div"
                           className="field-error"
                 />
@@ -140,14 +140,25 @@ const MultipleChoiceQuestion = ({idx, remove}) => {
         </Row>
 
         <Form.Group as={Row}>
-         
-             
-                    {counter.map((v, idx2) => {
-                            return(<MultipleChoiceQuestionAnswer key={idx2} idx={idx} idx2={idx2}/>)
-                        })
+        <FieldArray name="answers" validateOnChange={false}>
+            {({ insert, remove, push }) => (
+                <div>     
+                    {counter.map( (item, idx2) =>            
+                        <MultipleChoiceQuestionAnswer 
+                            idx={idx} 
+                            idx2={idx2} 
+                            insert={insert}
+                            remove={remove}
+                            values={values} 
+                            errors={errors} touched={touched} 
+                            handleChange={handleChange} handleBlur={handleBlur} 
+                            >
+                        </MultipleChoiceQuestionAnswer>)
                     }
-              
-
+                
+                </div>
+            )}
+            </FieldArray>
         </Form.Group>
 
 

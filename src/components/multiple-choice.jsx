@@ -170,7 +170,7 @@ const MultipleChoice = ({postType}) =>
             //this is case of new activity?
             if (metaFieldValue == "")
             {
-                
+            
                 initialValues.type = postType;
                 //initialValues.ageGroup = 0;
                 //initialValues.level = 0;
