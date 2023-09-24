@@ -361,11 +361,12 @@ const MultipleChoice = ({postType}) =>
             }
            
             
-            console.log("validating", values.questions);
+            console.log("validate2", values);
+            let errorObj = {"question": '', "answers": []};
             values.questions.forEach((item, idx) =>
             {
                 console.log("in loop", idx);
-                let errorObj = {"question": '', "answers": []};
+                
 
                 if (
                     (values.questions[idx].question == '') 
@@ -375,8 +376,9 @@ const MultipleChoice = ({postType}) =>
                     if (errors.questions == undefined)
                     {
                         errors.questions = new Array();
+                        errors.questions[idx] = errorObj;
                     }
-                    errors.questions[idx] = errorObj;
+                    
                     errors.questions[idx].question = "Required and must contain ___";
                 }
                 console.log("errors1", errors);
@@ -388,7 +390,8 @@ const MultipleChoice = ({postType}) =>
                 //if values.questions[idx].question.match(/___/g) is null we won't go into error
                 //but this case will have been picked up above. the purpose of this test
                 //is to avoid comparing lengths if we don't have arrays
-                if (   (values.questions[idx].answers.length == 4) &&
+                if (    (values.questions[idx].answers !== undefined) &&
+                        (values.questions[idx].answers.length == 4) &&
                        (values.questions[idx].answers[0] != '') &&
                        (values.questions[idx].answers[1] != '') &&
                        (values.questions[idx].answers[2] != '') &&
@@ -401,24 +404,23 @@ const MultipleChoice = ({postType}) =>
                 }
                 else
                 {
-                    values.questions[idx].answers.forEach((v, idx2) =>
+
+                    if (errors.questions == undefined)
                     {
-                        if (v == '')
+                        errors.questions = new Array();
+                        errors.questions[idx] = errorObj;
+                    }
+ 
+                    //TDDO 4 should be dynamic
+                    for (let i = 0;  i < 4; i++)
+                    {
+                        if (values.questions[idx].answers[i] == undefined || values.questions[idx].answers[i] == '' )
                         {
-                            if (errors.questions == undefined)
-                            {
-                                errors.questions = new Array();
-                            }
-                            if (errors.questions.answers == undefined)
-                            {
-                                errors.questions.answers = new Array();
-                            }
-                            errors.questions[idx].answers[idx2] = "Please enter a value";
+                            errors.questions[idx].answers[i] = "Please enter a value";
                         }
                         
                     }
-                    )
-                    
+
                 }
             })
             

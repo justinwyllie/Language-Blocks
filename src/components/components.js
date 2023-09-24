@@ -104,6 +104,7 @@ const MultipleChoiceQuestionAnswer = ({idx, idx2, remove, values, errors, handle
                         placeholder={placeholder}
                         type="text"
                     />
+                   
                     <ErrorMessage
                             name={`questions[${idx}].answers[${idx2}]`}
                             component="div"
