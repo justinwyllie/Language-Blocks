@@ -178,7 +178,7 @@ const MultipleChoice = ({postType}) =>
                 initialValues.title = '';
                 initialValues.models = '';
                 initialValues.explanation = '';
-                initialValues.questions = [];
+                initialValues.questions = [{question: '', answers: ['', '','','']}];
                 initialValues.instructions = [];
                 for (const lang of supportedLangs)
                 {
