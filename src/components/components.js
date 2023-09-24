@@ -88,7 +88,7 @@ const GapFillQuestion = ({idx, remove}) => {
 
 const MultipleChoiceQuestionAnswer = ({idx, idx2, remove, values, errors, handleChange, handleBlur, touched}) => {
 
-    console.log("MultipleChoiceQuestionAnswer", idx, idx2);
+    console.log("MultipleChoiceQuestionAnswer", idx, idx2,  errors);
     let placeholder = "choice";
     if (idx2 == 0)
     {
@@ -141,7 +141,7 @@ const MultipleChoiceQuestion = ({idx, remove, values, errors, handleChange, hand
         </Row>
 
         <Form.Group as={Row}>
-        <FieldArray name="answers" validateOnChange={false}>
+        <FieldArray name="answers" validateOnChange={true}>
             {({ insert, remove, push }) => (
                 <div>     
                     {counter.map( (item, idx2) =>            

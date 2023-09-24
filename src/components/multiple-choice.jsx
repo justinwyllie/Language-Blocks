@@ -376,9 +376,9 @@ const MultipleChoice = ({postType}) =>
                     if (errors.questions == undefined)
                     {
                         errors.questions = new Array();
-                        errors.questions[idx] = errorObj;
+                        
                     }
-                    
+                    errors.questions[idx] = errorObj;
                     errors.questions[idx].question = "Required and must contain ___";
                 }
                 console.log("errors1", errors);
@@ -408,8 +408,9 @@ const MultipleChoice = ({postType}) =>
                     if (errors.questions == undefined)
                     {
                         errors.questions = new Array();
-                        errors.questions[idx] = errorObj;
+                        
                     }
+                    errors.questions[idx] = errorObj;
  
                     //TDDO 4 should be dynamic
                     for (let i = 0;  i < 4; i++)
@@ -566,7 +567,7 @@ const MultipleChoice = ({postType}) =>
                 </Col>
             </Row>
 
-            <FieldArray name="questions" validateOnChange={false}>
+            <FieldArray name="questions" validateOnChange={true}>
             {({ insert, remove, push }) => (
                 <div>     
                     {values.questions.length > 0 && values.questions.map( (item, idx) =>            
