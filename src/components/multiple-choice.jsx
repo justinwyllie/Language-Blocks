@@ -361,13 +361,16 @@ const MultipleChoice = ({postType}) =>
             }
            
             
-            
+            console.log("validating", values.questions);
             values.questions.forEach((item, idx) =>
             {
-                let errorObj = {"question": '', "answer": ''};
+                console.log("in loop", idx);
+                let errorObj = {"question": '', "answers": []};
 
-                if ((values.questions[idx].question == '') 
-                    || (!values.questions[idx].question.includes("___")))
+                if (
+                    (values.questions[idx].question == '') 
+                    || (!values.questions[idx].question.includes("___"))
+                    )
                 {
                     if (errors.questions == undefined)
                     {
@@ -376,6 +379,7 @@ const MultipleChoice = ({postType}) =>
                     errors.questions[idx] = errorObj;
                     errors.questions[idx].question = "Required and must contain ___";
                 }
+                console.log("errors1", errors);
 
                 //for formik to pass validation there must be no
                 //questions field on the errors object at all. 
@@ -384,28 +388,42 @@ const MultipleChoice = ({postType}) =>
                 //if values.questions[idx].question.match(/___/g) is null we won't go into error
                 //but this case will have been picked up above. the purpose of this test
                 //is to avoid comparing lengths if we don't have arrays
-                if (   (values.questions[idx].answer == '') 
-                    || (values.questions[idx].answer.match(/\|/g) == null )
-                    || (values.questions[idx].question.match(/___/g) != null &&
-                        (values.questions[idx].answer.match(/\|/g).length !=  
-                        values.questions[idx].question.match(/___/g).length)
-                        )
-                    )
+                if (   (values.questions[idx].answers.length == 4) &&
+                       (values.questions[idx].answers[0] != '') &&
+                       (values.questions[idx].answers[1] != '') &&
+                       (values.questions[idx].answers[2] != '') &&
+                       (values.questions[idx].answers[3] != '') 
+                   
+                   )
                 {
-                    if (errors.questions == undefined)
+                    //all ok
+                    console.log("ok");
+                }
+                else
+                {
+                    values.questions[idx].answers.forEach((v, idx2) =>
                     {
-                        errors.questions = new Array();
+                        if (v == '')
+                        {
+                            if (errors.questions == undefined)
+                            {
+                                errors.questions = new Array();
+                            }
+                            if (errors.questions.answers == undefined)
+                            {
+                                errors.questions.answers = new Array();
+                            }
+                            errors.questions[idx].answers[idx2] = "Please enter a value";
+                        }
+                        
                     }
-                    if (errors.questions[idx] == undefined)
-                    {
-                        errors.questions[idx] = errorObj;    
-                    }
-                    errors.questions[idx].answer = "Required and number of | must equal number of ___";
+                    )
+                    
                 }
             })
             
             
-            
+            console.log("errors2", errors)
             return errors;
         }}
         
@@ -563,7 +581,7 @@ const MultipleChoice = ({postType}) =>
                         <button
                             className="secondary btn btn-primary"
                             type="button"
-                            onClick={() => push({ question: '', answer: '' })}>
+                            onClick={() => push({ question: '', answers: [] })}>
                         +
                         </button>
                     </div>

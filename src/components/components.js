@@ -86,7 +86,7 @@ const GapFillQuestion = ({idx, remove}) => {
     </div>)
 }
 
-const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
+const MultipleChoiceQuestionAnswer = ({idx, idx2, remove, values, errors, handleChange, handleBlur, touched}) => {
 
     console.log("MultipleChoiceQuestionAnswer", idx, idx2);
     let placeholder = "choice";
@@ -100,12 +100,12 @@ const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
     }
 
     return(<Col md={6}>
-                    <Field className="kea-wide-field kea-question-field mb-2" name={`questions[${idx}].answers[${idx2}].answer`}
+                    <Field className="kea-wide-field kea-question-field mb-2" name={`questions[${idx}].answers[${idx2}]`}
                         placeholder={placeholder}
                         type="text"
                     />
                     <ErrorMessage
-                            name={`questions[${idx}].answers[${idx2}].answer`}
+                            name={`questions[${idx}].answers[${idx2}]`}
                             component="div"
                             className="field-error"
                     />
