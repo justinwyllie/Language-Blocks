@@ -166,7 +166,7 @@ const MultipleChoice = ({postType}) =>
             //is this a mistake? newValue is the event?
             //this does the rest call to save the data?
             
-            
+            //https://github.com/jaredpalmer/formik/issues/445#issuecomment-366952762
             //this is case of new activity?
             if (metaFieldValue == "")
             {
@@ -178,7 +178,9 @@ const MultipleChoice = ({postType}) =>
                 initialValues.title = '';
                 initialValues.models = '';
                 initialValues.explanation = '';
-                initialValues.questions = [{question: '', answers: ['', '','','']}];
+                //initialValues.questions = [{question: '', answers: ['', '','','']}];
+                //initialValues.questions = [{question: '', answers: []}];
+                initialValues.questions = [];
                 initialValues.instructions = [];
                 for (const lang of supportedLangs)
                 {
@@ -303,7 +305,7 @@ const MultipleChoice = ({postType}) =>
     <Formik
         initialValues={initialValues}
 
-        validate={values => {
+        const validate={values => {
             console.log("validate", values);
             
             let errors = {};
@@ -361,13 +363,13 @@ const MultipleChoice = ({postType}) =>
             }
            
             
-            console.log("validate2", values);
-            let errorObj = {"question": '', "answers": []};
+           
+            //let errorObj = {"question": '', "answers": []};
             values.questions.forEach((item, idx) =>
             {
                 console.log("in loop", idx);
                 
-
+                //questions
                 if (
                     (values.questions[idx].question == '') 
                     || (!values.questions[idx].question.includes("___"))
@@ -376,57 +378,39 @@ const MultipleChoice = ({postType}) =>
                     if (errors.questions == undefined)
                     {
                         errors.questions = new Array();
-                        
                     }
-                    errors.questions[idx] = errorObj;
+                    if (errors.questions[idx] == undefined)
+                    {
+                        errors.questions[idx] = {question: '', answers: []};
+                    }
+                    console.log("setting errors.questions idx" + idx + ".question to error");
                     errors.questions[idx].question = "Required and must contain ___";
                 }
-                console.log("errors1", errors);
+                console.log("errors1", idx, errors);
 
-                //for formik to pass validation there must be no
-                //questions field on the errors object at all. 
-                //so only put it on if there is at least one error
-                //test for: exists, has at least one |, and count of | = count of ___
-                //if values.questions[idx].question.match(/___/g) is null we won't go into error
-                //but this case will have been picked up above. the purpose of this test
-                //is to avoid comparing lengths if we don't have arrays
-                if (    (values.questions[idx].answers !== undefined) &&
-                        (values.questions[idx].answers.length == 4) &&
-                       (values.questions[idx].answers[0] != '') &&
-                       (values.questions[idx].answers[1] != '') &&
-                       (values.questions[idx].answers[2] != '') &&
-                       (values.questions[idx].answers[3] != '') 
-                   
-                   )
-                {
-                    //all ok
-                    console.log("ok");
-                }
-                else
-                {
-
-                    if (errors.questions == undefined)
-                    {
-                        errors.questions = new Array();
-                        
-                    }
-                    errors.questions[idx] = errorObj;
- 
-                    //TDDO 4 should be dynamic
-                    for (let i = 0;  i < 4; i++)
+                //answers
+                for (let i = 0;  i < 4; i++)
                     {
                         if (values.questions[idx].answers[i] == undefined || values.questions[idx].answers[i] == '' )
                         {
+                            if (errors.questions == undefined)
+                            {
+                                errors.questions = new Array();
+                            }
+                            if (errors.questions[idx] == undefined)
+                            {
+                                errors.questions[idx] = {question: '', answers: []};
+                            }
                             errors.questions[idx].answers[i] = "Please enter a value";
                         }
                         
-                    }
-
                 }
+
+                console.log("errors2", idx, errors);
             })
             
             
-            console.log("errors2", errors)
+            
             return errors;
         }}
         

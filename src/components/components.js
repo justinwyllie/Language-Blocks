@@ -88,7 +88,7 @@ const GapFillQuestion = ({idx, remove}) => {
 
 const MultipleChoiceQuestionAnswer = ({idx, idx2, remove, values, errors, handleChange, handleBlur, touched}) => {
 
-    console.log("MultipleChoiceQuestionAnswer", idx, idx2,  errors);
+    //console.log("MultipleChoiceQuestionAnswer", idx, idx2,  errors);
     let placeholder = "choice";
     if (idx2 == 0)
     {
@@ -116,8 +116,7 @@ const MultipleChoiceQuestionAnswer = ({idx, idx2, remove, values, errors, handle
 const MultipleChoiceQuestion = ({idx, remove, values, errors, handleChange, handleBlur, touched}) => {
 
     const counter  = [...Array(4).keys()];
-    console.log("counter", counter);
-        
+
     return (
     <div className="kea-additional-field-block"> 
         <Form.Group as={Row}>
