@@ -558,9 +558,7 @@ const MultipleChoice = ({postType}) =>
                         <MultipleChoiceQuestion idx={idx} 
                             insert={insert}
                             remove={remove}
-                            values={values} 
-                            errors={errors} touched={touched} 
-                            handleChange={handleChange} handleBlur={handleBlur} 
+                            touched={touched} 
                             >
                         </MultipleChoiceQuestion>)
                     }
