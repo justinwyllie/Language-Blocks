@@ -1,9 +1,10 @@
 import Form from 'react-bootstrap/Form';
+
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { useSelect } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
-import { Formik, FieldArray  } from 'formik';
+import { Formik, FieldArray , useFormikContext } from 'formik';
 import { Instruction, MultipleChoiceQuestion, LinkPanel, AuthorPanel} from './components';
 import { settings } from "../constants";
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
@@ -19,11 +20,27 @@ const MultipleChoice = ({postType}) =>
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
     const metaFieldValue = meta[ '_kea_activity_meta' ]; 
+    let globalErrors = {};
+   
+    let formSubmitting = false;
+    const setFormSubmitting = (flag) =>
+    {
+        formSubmitting  = flag; 
+    }
 
 
     const preProcessForm = (values, touched) =>
     {
         console.log("in preProcessForm touched", values, touched);
+        if (touched.questions == undefined)
+        {
+            touched.questions = [];
+        }
+       values.questions.forEach((item, idx) => {
+           // touched.questions[idx].question = true;
+           // touched.questions[idx].answers = [true, true, true, true];
+
+        });
        
     }
 
@@ -127,13 +144,13 @@ const MultipleChoice = ({postType}) =>
     let userLabels = [];
  
 
-    if (grammarTaxonomy) {
+    if (grammarTaxonomy != undefined) {
         grammarTaxonomy.forEach((item => {
             terms[item.id] = item.name;
         }));
     }
 
-    if (russianGrammarTaxonomy) {
+    if (russianGrammarTaxonomy != undefined) {
         russianGrammarTaxonomy.forEach((item => {
             terms[item.id] = item.name;
         }))
@@ -320,8 +337,13 @@ const MultipleChoice = ({postType}) =>
     <Formik
         initialValues={initialValues}
 
-        const validate={values => {
+        validate={values => {
             console.log("validate", values);
+            console.log("formSubmitting", formSubmitting);
+            if (formSubmitting == true)
+            {
+                return {};
+            }
             
             let errors = {};
            
@@ -423,16 +445,37 @@ const MultipleChoice = ({postType}) =>
 
                 console.log("errors2", idx, errors);
             })
-
+            globalErrors = errors;
             return errors;
         }}
         
-        onSubmit={(values) => {
-            //FormIk validation happens here?
-            //for errors to display we need to first ? touch all fields
-            //why is q touched?
-            console.log("on submit called values", values);
-            processForm(values);
+        onSubmit={(values, formikBag) => {
+
+            
+
+            //this is only called if validation passes?
+            console.log("on submit called values", values, formikBag);
+            console.log(formikBag);    
+            setFormSubmitting(false);
+            formikBag.validateForm();
+            //TEST ONLY 
+            formikBag.setTouched(
+                {
+                    instructions: [undefined, {lang: '', text: 'At least one language must have instructions'}],
+                    title: true,
+                    questions : [{question: true, answers: [true, true, true, true]}]
+                }
+            );
+            console.log("globalErrors", globalErrors);
+            if (globalErrors == {})
+            {
+                processForm(values);
+            }
+            else
+            {
+                alert("fix errors");
+            }
+            
         }}
             
     >
@@ -445,14 +488,19 @@ const MultipleChoice = ({postType}) =>
             handleBlur,
             handleSubmit,
             isSubmitting,
+            setFieldTouched,
+            setTouched,
+            validateForm
      
         }) => (
          
             
-        <Form onSubmit={(e) => {
+        <Form  onSubmit={(e) => {
+            setFormSubmitting(true);
             
-            preProcessForm(values, touched);
-            handleSubmit(e);}} name="activty" id="activity" className="">
+            handleSubmit(e)
+            }
+            } name="activty" id="activity" className="">
             
 
             <Form.Group as={Row}>
