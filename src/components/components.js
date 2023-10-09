@@ -86,9 +86,7 @@ const GapFillQuestion = ({idx, remove}) => {
     </div>)
 }
 
-const MultipleChoiceQuestionAnswer = ({idx, idx2, touched}) => {
-
-    console.log("touched2", touched);
+const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
 
     //console.log("MultipleChoiceQuestionAnswer", idx, idx2,  errors);
     let placeholder = "choice";
@@ -115,10 +113,9 @@ const MultipleChoiceQuestionAnswer = ({idx, idx2, touched}) => {
     </Col>)
 }
 
-const MultipleChoiceQuestion = ({idx, touched, remove}) => {
-    console.log("touched1", touched);
-  
-
+const MultipleChoiceQuestion = ({idx, remove}) => {
+    
+    //validateOnChange={true}
     const counter  = [...Array(4).keys()];
 
     return (
@@ -144,14 +141,14 @@ const MultipleChoiceQuestion = ({idx, touched, remove}) => {
         </Row>
 
         <Form.Group as={Row}>
-        <FieldArray name="answers" validateOnChange={true}>
+        <FieldArray name="answers" >
             {({ insert, remove, push}) => (
                 <div>     
                     {counter.map( (item, idx2) =>            
                         <MultipleChoiceQuestionAnswer 
                             idx={idx} 
                             idx2={idx2} 
-                            touched={touched} 
+                           
                             
                             >
                         </MultipleChoiceQuestionAnswer>)

@@ -20,11 +20,18 @@ const MultipleChoice = ({postType}) =>
     const supportedLangs = [defaultLang, ...additionalLangs];
     const metaFieldValue = meta[ '_kea_activity_meta' ]; 
 
+
+    const preProcessForm = (values, touched) =>
+    {
+        console.log("in preProcessForm touched", values, touched);
+       
+    }
+
     //validate form, if ok build XML (second validation step - test for valid
     //valid XML - call setMeta to update the meta field with the XML
     const processForm = (values) =>
     {
-       
+        console.log("process form called values", values);
         let parser = new DOMParser();
         let xml = '<?xml version="1.0" encoding="UTF-8"?><activity></activity>';
         let xmlDoc = parser.parseFromString(xml,"text/xml");
@@ -138,13 +145,21 @@ const MultipleChoice = ({postType}) =>
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
   
 
+    console.log("grammarTerms", grammarTerms);
+    if (grammarTerms != undefined)
+    {
+        grammarTerms.forEach((item) => {
+            userLabels.push(terms[item]);
+        });
+    }
     
-    grammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
-    });
-    russianGrammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
-    });
+    if (russianGrammarTerms != undefined)
+    {
+        russianGrammarTerms.forEach((item) => {
+            userLabels.push(terms[item]);
+        });
+    }
+    
 
  
  
@@ -168,7 +183,7 @@ const MultipleChoice = ({postType}) =>
             
             //https://github.com/jaredpalmer/formik/issues/445#issuecomment-366952762
             //this is case of new activity?
-            if (metaFieldValue == "")
+            if ( (metaFieldValue == "")   ||  (metaFieldValue == undefined) )
             {
             
                 initialValues.type = postType;
@@ -408,15 +423,15 @@ const MultipleChoice = ({postType}) =>
 
                 console.log("errors2", idx, errors);
             })
-            
-            
-            
+
             return errors;
         }}
         
         onSubmit={(values) => {
             //FormIk validation happens here?
-            console.log("values", values);
+            //for errors to display we need to first ? touch all fields
+            //why is q touched?
+            console.log("on submit called values", values);
             processForm(values);
         }}
             
@@ -434,7 +449,10 @@ const MultipleChoice = ({postType}) =>
         }) => (
          
             
-        <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
+        <Form onSubmit={(e) => {
+            
+            preProcessForm(values, touched);
+            handleSubmit(e);}} name="activty" id="activity" className="">
             
 
             <Form.Group as={Row}>
