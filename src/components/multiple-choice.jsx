@@ -1,13 +1,15 @@
 import Form from 'react-bootstrap/Form';
-
+import useState from 'react';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Alert from 'react-bootstrap/Alert';
 import { useSelect } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
 import { Formik, FieldArray , useFormikContext } from 'formik';
 import { Instruction, MultipleChoiceQuestion, LinkPanel, AuthorPanel} from './components';
 import { settings } from "../constants";
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
+import _ from 'underscore';
 
 
 const MultipleChoice = ({postType}) =>
@@ -183,6 +185,15 @@ const MultipleChoice = ({postType}) =>
     
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
 
+    const ErrorMessage = () =>
+    {
+        const { isValid } = useFormikContext();
+        if (isValid) 
+            return <></>
+        else
+            return <Alert variant="danger">Please check the form</Alert>
+    };
+   
     
     function setInitialValues() {
             
@@ -331,13 +342,15 @@ const MultipleChoice = ({postType}) =>
             setInitialValues();
         }
         
-        
+
+
     return <div>
                 
     <Formik
         initialValues={initialValues}
 
         validate={values => {
+            
             console.log("validate", values);
             console.log("formSubmitting", formSubmitting);
             if (formSubmitting == true)
@@ -451,30 +464,37 @@ const MultipleChoice = ({postType}) =>
         
         onSubmit={(values, formikBag) => {
 
-            
-
             //this is only called if validation passes?
             console.log("on submit called values", values, formikBag);
             console.log(formikBag);    
-            setFormSubmitting(false);
+            setFormSubmitting(false);//can we use isSubmitting? maybe from context?
             formikBag.validateForm();
-            //TEST ONLY 
-            formikBag.setTouched(
-                {
-                    instructions: [undefined, {lang: '', text: 'At least one language must have instructions'}],
-                    title: true,
-                    questions : [{question: true, answers: [true, true, true, true]}]
-                }
-            );
             console.log("globalErrors", globalErrors);
-            if (globalErrors == {})
+            //TEST ONLY  
+            let touched = {}
+            if (!_.isEmpty(globalErrors) )
+            {
+                if (globalErrors.title != undefined)
+                {
+                    touched.title = true;
+                }
+                if (globalErrors.instructions != undefined)
+                {
+                    touched.instructions = [undefined, {lang: '', text: true}]; //TODO why not pos?
+                }
+                touched.questions = [];
+                globalErrors.questions.forEach((item, idx) => {
+                    touched.questions.push({question: true, answers: [true, true, true, true]});
+                })
+            }
+
+            formikBag.setTouched(touched);
+            
+            if (_.isEmpty(globalErrors))
             {
                 processForm(values);
             }
-            else
-            {
-                alert("fix errors");
-            }
+    
             
         }}
             
@@ -490,18 +510,22 @@ const MultipleChoice = ({postType}) =>
             isSubmitting,
             setFieldTouched,
             setTouched,
-            validateForm
+            validateForm,
+            isValid
      
         }) => (
          
+       
             
         <Form  onSubmit={(e) => {
+            console.log("touched", touched);
             setFormSubmitting(true);
-            
             handleSubmit(e)
             }
             } name="activty" id="activity" className="">
-            
+
+         
+            <ErrorMessage></ErrorMessage>
 
             <Form.Group as={Row}>
                 <Form.Label column md={2}>Title</Form.Label>
