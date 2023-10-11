@@ -31,20 +31,7 @@ const MultipleChoice = ({postType}) =>
     }
 
 
-    const preProcessForm = (values, touched) =>
-    {
-        console.log("in preProcessForm touched", values, touched);
-        if (touched.questions == undefined)
-        {
-            touched.questions = [];
-        }
-       values.questions.forEach((item, idx) => {
-           // touched.questions[idx].question = true;
-           // touched.questions[idx].answers = [true, true, true, true];
 
-        });
-       
-    }
 
     //validate form, if ok build XML (second validation step - test for valid
     //valid XML - call setMeta to update the meta field with the XML
@@ -56,7 +43,7 @@ const MultipleChoice = ({postType}) =>
         let xmlDoc = parser.parseFromString(xml,"text/xml");
 
         let rootNode = xmlDoc.getElementsByTagName("activity")[0];
-        rootNode.setAttribute("type", postType);
+        rootNode.setAttribute("type", "multiplechoice");
         //rootNode.setAttribute("ageGroup", values.ageGroup);
         //rootNode.setAttribute("level", values.level);
 
@@ -96,18 +83,40 @@ const MultipleChoice = ({postType}) =>
         {
             let qNode = xmlDoc.createElement("q"+i);
             qNode.setAttribute("questionNumber", (i + 1));
-            let qValueNode = xmlDoc.createTextNode(item.question);
-            qNode.appendChild(qValueNode);
 
-            qNode.setAttribute("answer", item.answer);
+            let questionNode = xmlDoc.createElement("question");
+            let questionNodeValue = xmlDoc.createTextNode(item.question);
+            questionNode.appendChild(questionNodeValue);
+            qNode.appendChild(questionNode);
 
+            let answersNode = xmlDoc.createElement("answers");
+
+
+            item.answers.forEach((answer, i2) => {
+                let answerNode = xmlDoc.createElement("answer");
+                if (i2 == 0)
+                {
+                    answerNode.setAttribute("variant", "correct");
+                }
+                else
+                {
+                    answerNode.setAttribute("variant", "incorrect");
+                }
+                let answerNodeValue = xmlDoc.createTextNode(answer);
+                answerNode.appendChild(answerNodeValue);
+                answersNode.appendChild(answerNode); 
+            });
+
+            qNode.appendChild(answersNode);
             questionsNode.appendChild(qNode);
+            
         });
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(questionsNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(questionsNode );
 
         let s = new XMLSerializer();
         let newXmlStr = s.serializeToString(xmlDoc);
         values.rawXML = newXmlStr;
+        console.log("xml string",newXmlStr );
     
 
         //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
@@ -264,7 +273,7 @@ const MultipleChoice = ({postType}) =>
                 }
 
                 let modelsNodes = xmlDoc.getElementsByTagName("models");
-                if ((modelsNodes.length > 0))
+                if ((modelsNodes.length > 0) && (modelsNodes[0].childNodes.length > 0))
                 {
                     initialValues.models = modelsNodes[0].childNodes[0].nodeValue;     
                 }
@@ -292,11 +301,21 @@ const MultipleChoice = ({postType}) =>
                 {
                     let theQuestionsNode = questionNodes[0];
                     initialValues.questions = [];
+
                     for (let el of theQuestionsNode.childNodes) { 
-                        let questionText = el.textContent;
-                        let answerText = el.getAttribute("answer");
-                        let question = {"question": questionText, "answer": answerText};
-                        initialValues.questions.push(question); 
+
+                        //let questionNumber = el.getAttribute("questionNumber");
+                        let questionNode = el.getElementsByTagName("question")[0];
+                        let questionText = questionNode.textContent;
+                        let questionAndAnswers = {question: questionText, answers: []};
+
+                        let answerNodes = el.getElementsByTagName("answers");
+                        //TODO - we are assuming our array order has been preserved
+                        answerNodes[0].childNodes.forEach((answerNode) => {
+                            questionAndAnswers.answers.push(answerNode.textContent);
+                        });
+                   
+                        initialValues.questions.push(questionAndAnswers); 
                     }
                 }
                 else
@@ -420,10 +439,7 @@ const MultipleChoice = ({postType}) =>
                 console.log("in loop", idx);
                 
                 //questions
-                if (
-                    (values.questions[idx].question == '') 
-                    || (!values.questions[idx].question.includes("___"))
-                    )
+                if (values.questions[idx].question == '')
                 {
                     if (errors.questions == undefined)
                     {
@@ -434,7 +450,7 @@ const MultipleChoice = ({postType}) =>
                         errors.questions[idx] = {question: '', answers: []};
                     }
                     console.log("setting errors.questions idx" + idx + ".question to error");
-                    errors.questions[idx].question = "Required and must contain ___";
+                    errors.questions[idx].question = "Required";
                 }
                 console.log("errors1", idx, errors);
 
@@ -480,12 +496,18 @@ const MultipleChoice = ({postType}) =>
                 }
                 if (globalErrors.instructions != undefined)
                 {
-                    touched.instructions = [undefined, {lang: '', text: true}]; //TODO why not pos?
+                    touched.instructions = Array();
+                    globalErrors.instructions.forEach((instruction, idx) => {
+                        touched.instructions[idx] =  {lang: '', text: true}; 
+                    });
                 }
-                touched.questions = [];
-                globalErrors.questions.forEach((item, idx) => {
-                    touched.questions.push({question: true, answers: [true, true, true, true]});
-                })
+                if (globalErrors.questions != undefined)
+                {
+                    touched.questions = [];
+                    globalErrors.questions.forEach((item, idx) => {
+                        touched.questions.push({question: true, answers: [true, true, true, true]});
+                    });
+                }
             }
 
             formikBag.setTouched(touched);
@@ -636,8 +658,9 @@ const MultipleChoice = ({postType}) =>
             <Row>
                 <Col>
                     <h3>Questions</h3>
-                    <p>To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
-                        Answers in second box separated by |. Variants can be expressed like this: is not:isn't|</p>
+                    <p>Write the question in the question box. Then put 4 variants in the 4 answer boxes. The first box should contain the <span class="font-italic">correct</span> variant. 
+                     The order of the answers in the drop-down presented to the user will be randomised. 
+                        </p>
                 </Col>
             </Row>
 

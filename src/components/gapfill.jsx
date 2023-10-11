@@ -33,7 +33,7 @@ const GapFill = ({postType}) =>
         let xmlDoc = parser.parseFromString(xml,"text/xml");
 
         let rootNode = xmlDoc.getElementsByTagName("activity")[0];
-        rootNode.setAttribute("type", postType);
+        rootNode.setAttribute("type", "gapfill");
         //rootNode.setAttribute("ageGroup", values.ageGroup);
         //rootNode.setAttribute("level", values.level);
 
@@ -221,7 +221,7 @@ const GapFill = ({postType}) =>
                 }
 
                 let modelsNodes = xmlDoc.getElementsByTagName("models");
-                if ((modelsNodes.length > 0))
+                if ((modelsNodes.length > 0) && (modelsNodes[0].childNodes.length > 0))
                 {
                     initialValues.models = modelsNodes[0].childNodes[0].nodeValue;     
                 }

@@ -47,14 +47,29 @@ class KeaActivities
     } 
 
 
-
+    public static function get_json_from_xml_string($xml_string, $encode)
+    {
+        $xml = new SimpleXMLElement($xml_string);
+        $activity = (string) $xml->activity;
+        $activity_type = $activity['type'];
+        //empty if XML was saved before type added
+        if (empty($activity_type))
+        {
+            $activity_type = 'gapfill';
+        }
+        $call = "get_json_from_xml_string_" . $activity_type;
+        return $call($xml_string, $encode);
+    }
 
     
     //called from outside of site e.g. via a rest call class is not instaniiated
-    public static function get_json_from_xml_string($xml_string, $encode)
+    //used to both return json and to save a json string in the 'special' table
+    private function get_json_from_xml_string_gapfill($xml_string, $encode)
     {
 
         $xml = new SimpleXMLElement($xml_string);
+        $activity = (string) $xml->activity;
+        $activity_type = $activity['type'];
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
         $title = (string) $xml->title;
@@ -67,6 +82,7 @@ class KeaActivities
         $questions = $xml->questions;
     
         $json_obj = new StdClass();
+        $json_obj->activity_type = $activity_type; 
         $json_obj->legacy_name = $legacy_name; 
         $json_obj->title = $title; 
         $json_obj->models = $models; 
@@ -81,7 +97,8 @@ class KeaActivities
             $json_obj->instructions->$lang = (string) $instruction;
             $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
         }
-    
+
+      
         foreach ($xml->questions->children() as $question)
         {
             $question_obj = new StdClass();
@@ -93,6 +110,73 @@ class KeaActivities
             $question_obj->questionNumber = strip_tags($question_obj->questionNumber);
             $json_obj->questions[] = $question_obj;
         }
+
+    
+        if ($encode)
+        {
+            return json_encode($json_obj);
+        }
+        else
+        {
+            return $json_obj;
+        }
+    
+    }
+
+    private function get_json_from_xml_string_multiplechoice($xml_string, $encode)
+    {
+
+        $xml = new SimpleXMLElement($xml_string);
+        $activity = (string) $xml->activity;
+        $activity_type = $activity['type'];
+        $legacy_name = (string) $xml->legacyName;
+        $legacy_name = strip_tags($legacy_name);
+        $title = (string) $xml->title;
+        $title = strip_tags($title);
+        $models = (string) $xml->models;
+        $models = strip_tags($models, ['<em>','<strong>','<br>']);
+        $explanation = (string) $xml->explanation;
+        $explanation = strip_tags($explanation, ['<em>','<strong>','<br>']);
+        $instructions = $xml->instructions;
+        $questions = $xml->questions;
+    
+        $json_obj = new StdClass();
+        $json_obj->activity_type = $activity_type; 
+        $json_obj->legacy_name = $legacy_name; 
+        $json_obj->title = $title; 
+        $json_obj->models = $models; 
+        $json_obj->explanation = $explanation; 
+    
+        $json_obj->instructions = new StdClass();
+        $json_obj->questions = [];
+    
+        foreach ($xml->instructions->children() as $instruction)
+        {
+            $lang = $instruction['lang'];
+            $json_obj->instructions->$lang = (string) $instruction;
+            $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
+        }
+
+   
+        foreach ($xml->questions->children() as $questionNode)
+        {
+            $question_obj = new StdClass();
+            $question = $questionNode->xpath("question");
+            $question_obj->question = (string) $question;
+            $question_obj->question = strip_tags($question_obj->question); 
+            $question_obj->answers =  array();
+
+            $answers = $questionNode->xpath("answers");
+            foreach ($answers as $answer)
+            {
+                $text = (string) $answer;
+                $question_obj->answers[] = strip_tags($text);
+            }
+
+            $json_obj->questions[] = $question_obj;
+        }
+
+    
     
         if ($encode)
         {
@@ -196,6 +280,7 @@ class KeaActivities
          */
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
+            'kea_activity_post_type' => $json_string->type, 
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 
@@ -278,7 +363,7 @@ class KeaActivities
     
     public function kea_activity_register_post_meta() {
 
-        function convert_xml_to_json2($xml_string)
+        function maybe_convert_xml_to_json2($xml_string)
         {
             
             if (isset($_GET['data']) && ($_GET['data'] == 'json'))
@@ -304,7 +389,7 @@ class KeaActivities
                 'single' => true,
                 'type' => 'string', 
                 'prepare_callback' => function ( $value ) {
-                    $json = convert_xml_to_json2($value);
+                    $json = maybe_convert_xml_to_json2($value);
                     return $json;
                 },
             ),
@@ -353,6 +438,7 @@ class KeaActivities
         ) );
     }
 
+    //TODO this is untested because we have manually run alter table statements.
     public function kea_activity_activated()
     {
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -363,6 +449,7 @@ class KeaActivities
         $sql = "CREATE TABLE IF NOT EXISTS $this->kea_table_name1 (
             kea_activity_id bigint NOT NULL AUTO_INCREMENT,
             kea_activity_post_id bigint NOT NULL,
+            kea_activity_post_type ENUM('gapfill', 'multiplechoice') NOT NULL,
             kea_activity_post_json text NOT NULL,
             kea_activity_post_author_id bigint NOT NULL,
             kea_activity_with_key_key bigint NOT NULL,

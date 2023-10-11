@@ -124,7 +124,7 @@ const MultipleChoiceQuestion = ({idx, remove}) => {
             <Form.Label column md={2}>{idx + 1}. (question)</Form.Label>
             <Col md={10}>
                 <Field className="kea-wide-field kea-additional-field" name={`questions[${idx}].question`}
-                    placeholder="Example ___ sentence with blank and (keyword)"
+                    placeholder="What did Einstein invent?"
                     type="text"
                 />
                
