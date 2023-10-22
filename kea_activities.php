@@ -47,29 +47,43 @@ class KeaActivities
     } 
 
 
-    public static function get_json_from_xml_string($xml_string, $encode)
+    public function get_json_from_xml_string($xml_string, $encode)
     {
         $xml = new SimpleXMLElement($xml_string);
         $activity = (string) $xml->activity;
-        $activity_type = $activity['type'];
+       
         //empty if XML was saved before type added
-        if (empty($activity_type))
+        if (!isset($activity['type']))
         {
             $activity_type = 'gapfill';
         }
+        else
+        {
+            $activity_type = $activity['type'];
+        }
         $call = "get_json_from_xml_string_" . $activity_type;
-        return $call($xml_string, $encode);
+        return call_user_func( array($this, $call), $xml_string, $encode);
+
     }
 
     
-    //called from outside of site e.g. via a rest call class is not instaniiated
+    //called from outside of site e.g. via a rest call class is not instaniiated when 
     //used to both return json and to save a json string in the 'special' table
     private function get_json_from_xml_string_gapfill($xml_string, $encode)
     {
 
         $xml = new SimpleXMLElement($xml_string);
         $activity = (string) $xml->activity;
-        $activity_type = $activity['type'];
+
+   
+        if (!isset($activity['type']))
+        {
+            $activity_type = 'gapfill';
+        }
+        else
+        {
+            $activity_type = $activity['type'];
+        }
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
         $title = (string) $xml->title;
@@ -325,6 +339,7 @@ class KeaActivities
 
     public function special_get_json_for_ad_hoc_projects($request)
     {
+
         $key = $request['key'];
         $post_id = $request['post_id'];
 
@@ -360,28 +375,31 @@ class KeaActivities
         return $ex_json;
     }
 
-    
-    public function kea_activity_register_post_meta() {
-
-        function maybe_convert_xml_to_json2($xml_string)
+    public function maybe_convert_xml_to_json2($xml_string)
+    {
+        
+        if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
-            
-            if (isset($_GET['data']) && ($_GET['data'] == 'json'))
+            //return KeaActivities::get_json_from_xml_string($xml_string, true);
+            return $this->get_json_from_xml_string($xml_string, true);
+        }
+        else
+        {
+            if (str_contains($xml_string, "<script"))
             {
-                return KeaActivities::get_json_from_xml_string($xml_string, true);
+                return "";
             }
             else
             {
-                if (str_contains($xml_string, "<script"))
-                {
-                    return "";
-                }
-                else
-                {
-                    return $xml_string;
-                }
+                return $xml_string;
             }
         }
+    }
+
+    
+    public function kea_activity_register_post_meta() {
+
+        
 
         //this registers a meta field for this post type and also makes it show in rest
         register_post_meta( 'kea_activity', '_kea_activity_meta', array(
@@ -389,7 +407,7 @@ class KeaActivities
                 'single' => true,
                 'type' => 'string', 
                 'prepare_callback' => function ( $value ) {
-                    $json = maybe_convert_xml_to_json2($value);
+                    $json = $this->maybe_convert_xml_to_json2($value);
                     return $json;
                 },
             ),
