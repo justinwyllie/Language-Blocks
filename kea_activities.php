@@ -278,11 +278,17 @@ class KeaActivities
         addTerm($russian_grammar_terms, $labels);
 
         $json = $this->get_json_from_xml_string($post_xml_meta, false);
+        
         $json->labels = $labels;
+         if (!isset($json->type)) 
+        {
+            $json->type = "gapfill";    
+        }
     
         $json_string = json_encode($json);
+       
 
-
+          //var_dump($json_string);
 
         /*
          wp replace -> mysql replace
@@ -292,16 +298,21 @@ class KeaActivities
          https://dev.mysql.com/doc/refman/8.0/en/replace.html 
          TODO maybe matter to use INSERT INTO UPDATE ON DUPLICATE though it looks like might have to build query manually for that
          */
+                                 
+       
+        
+       
+         
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
-            'kea_activity_post_type' => $json_string->type, 
+            'kea_activity_post_type' => $json->type, 
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 
             'kea_activity_author_email' => $author_email,
             'kea_activity_without_key_key' => $post_without_key_meta
             
-        ), array( '%d', '%s', '%d', '%d' ,'%s', '%d')); 
+        ), array( '%d', '%s', '%s', '%d', '%d' ,'%s', '%d')); 
 
 
         if ($result === false)
@@ -346,8 +357,12 @@ class KeaActivities
         $sql = $this->wpdb->prepare( "SELECT * FROM {$this->kea_table_name1} WHERE kea_activity_post_id = %d", $post_id );
         $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
         $ex = $results[0];
+        
+       
 
         $ex_json = json_decode($ex->kea_activity_post_json);
+        
+     //   var_dump($results[0]);
        
 
         if ($key == $ex->kea_activity_with_key_key)
