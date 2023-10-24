@@ -125,6 +125,7 @@ const MultipleChoice = ({postType}) =>
         //via the button on the page?
         //console.log("setMeta");
         setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
+        setMeta( { ...meta, _kea_activity_type: "multiplechoice" } );
         
     }
 

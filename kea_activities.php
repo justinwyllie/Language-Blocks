@@ -47,20 +47,9 @@ class KeaActivities
     } 
 
 
-    public function get_json_from_xml_string($xml_string, $encode)
+    public function get_json_from_xml_string($xml_string, $encode, $activity_type)
     {
-        $xml = new SimpleXMLElement($xml_string);
-        $activity = (string) $xml->activity;
-       
-        //empty if XML was saved before type added
-        if (!isset($activity['type']))
-        {
-            $activity_type = 'gapfill';
-        }
-        else
-        {
-            $activity_type = $activity['type'];
-        }
+
         $call = "get_json_from_xml_string_" . $activity_type;
         return call_user_func( array($this, $call), $xml_string, $encode);
 
@@ -75,15 +64,7 @@ class KeaActivities
         $xml = new SimpleXMLElement($xml_string);
         $activity = (string) $xml->activity;
 
-   
-        if (!isset($activity['type']))
-        {
-            $activity_type = 'gapfill';
-        }
-        else
-        {
-            $activity_type = $activity['type'];
-        }
+        $activity_type = "gapfill";
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
         $title = (string) $xml->title;
@@ -142,7 +123,7 @@ class KeaActivities
 
         $xml = new SimpleXMLElement($xml_string);
         $activity = (string) $xml->activity;
-        $activity_type = $activity['type'];
+        $activity_type = "multiplechoice";
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
         $title = (string) $xml->title;
@@ -238,6 +219,7 @@ class KeaActivities
         */
         $post_meta = get_post_meta($post_id); //from cache if poss or from db.
         $post_xml_meta = $post_meta["_kea_activity_meta"][0];
+        $activity_type = $post_meta["_kea_activity_type"][0];
 
         if (empty($post_xml_meta))
         {
@@ -277,7 +259,7 @@ class KeaActivities
         addTerm($grammar_terms,  $labels);
         addTerm($russian_grammar_terms, $labels);
 
-        $json = $this->get_json_from_xml_string($post_xml_meta, false);
+        $json = $this->get_json_from_xml_string($post_xml_meta, false, $activity_type);
         $json->labels = $labels;
     
         $json_string = json_encode($json);
@@ -381,7 +363,7 @@ class KeaActivities
         if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
             //return KeaActivities::get_json_from_xml_string($xml_string, true);
-            return $this->get_json_from_xml_string($xml_string, true);
+            return $this->get_json_from_xml_string($xml_string, true, $_GET['activity_type']); //NOT TESTED TODO
         }
         else
         {
@@ -411,6 +393,18 @@ class KeaActivities
                     return $json;
                 },
             ),
+            'auth_callback' => function() {
+            return current_user_can( 'edit_posts' );
+            /* (callable) Optional. A function or method to call when 
+            performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
+        } 
+        ) );
+
+        register_post_meta( 'kea_activity', '_kea_activity_type', array(
+            'show_in_rest' => array(
+                'single' => true,
+                'type' => 'string', 
+             ),
             'auth_callback' => function() {
             return current_user_can( 'edit_posts' );
             /* (callable) Optional. A function or method to call when 

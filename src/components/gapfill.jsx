@@ -91,6 +91,7 @@ const GapFill = ({postType}) =>
         //via the button on the page?
        
         setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
+        setMeta( { ...meta, _kea_activity_type: "gapfill" } );
         
     }
 
