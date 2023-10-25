@@ -157,15 +157,21 @@ class KeaActivities
         {
             $question_obj = new StdClass();
             $question = $questionNode->xpath("question");
-            $question_obj->question = (string) $question;
+            
+            $question_obj->question = (string) $question[0];
             $question_obj->question = strip_tags($question_obj->question); 
             $question_obj->answers =  array();
 
             $answers = $questionNode->xpath("answers");
-            foreach ($answers as $answer)
+            //var_dump($answers);die();
+            $question_obj->answers = array();
+            foreach ($answers[0] as $answer)
             {
+                $variant = (string) $answer["variant"][0];
                 $text = (string) $answer;
-                $question_obj->answers[] = strip_tags($text);
+                
+        
+                $question_obj->answers[strip_tags($text)] = $variant;
             }
 
             $json_obj->questions[] = $question_obj;
@@ -261,10 +267,7 @@ class KeaActivities
 
         $json = $this->get_json_from_xml_string($post_xml_meta, false, $activity_type);
         $json->labels = $labels;
-         if (!isset($json->type)) 
-        {
-            $json->type = "gapfill";    
-        }
+     
     
         $json_string = json_encode($json);
        
@@ -281,12 +284,12 @@ class KeaActivities
          */
                                  
        
-        
+        //TODO it is not post type - it is activity type
        
          
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
-            'kea_activity_post_type' => $json->type, 
+            'kea_activity_post_type' => $json->activity_type, 
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 

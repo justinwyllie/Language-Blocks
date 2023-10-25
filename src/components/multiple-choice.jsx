@@ -37,7 +37,7 @@ const MultipleChoice = ({postType}) =>
     //valid XML - call setMeta to update the meta field with the XML
     const processForm = (values) =>
     {
-        console.log("process form called values", values);
+       
         let parser = new DOMParser();
         let xml = '<?xml version="1.0" encoding="UTF-8"?><activity></activity>';
         let xmlDoc = parser.parseFromString(xml,"text/xml");
@@ -116,7 +116,7 @@ const MultipleChoice = ({postType}) =>
         let s = new XMLSerializer();
         let newXmlStr = s.serializeToString(xmlDoc);
         values.rawXML = newXmlStr;
-        console.log("xml string",newXmlStr );
+       
     
 
         //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
@@ -124,8 +124,9 @@ const MultipleChoice = ({postType}) =>
         //but does not save anything to the backend - that takes saving the whole post
         //via the button on the page?
         //console.log("setMeta");
-        setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
-        setMeta( { ...meta, _kea_activity_type: "multiplechoice" } );
+        console.log(" meta1", meta);
+        setMeta( { ...meta, _kea_activity_meta: newXmlStr, _kea_activity_type: "multiplechoice" } );
+        
         
     }
 
@@ -174,7 +175,7 @@ const MultipleChoice = ({postType}) =>
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
   
 
-    console.log("grammarTerms", grammarTerms);
+
     if (grammarTerms != undefined)
     {
         grammarTerms.forEach((item) => {
@@ -371,8 +372,7 @@ const MultipleChoice = ({postType}) =>
 
         validate={values => {
             
-            console.log("validate", values);
-            console.log("formSubmitting", formSubmitting);
+            
             if (formSubmitting == true)
             {
                 return {};
@@ -437,7 +437,7 @@ const MultipleChoice = ({postType}) =>
             //let errorObj = {"question": '', "answers": []};
             values.questions.forEach((item, idx) =>
             {
-                console.log("in loop", idx);
+                
                 
                 //questions
                 if (values.questions[idx].question == '')
@@ -450,10 +450,10 @@ const MultipleChoice = ({postType}) =>
                     {
                         errors.questions[idx] = {question: '', answers: []};
                     }
-                    console.log("setting errors.questions idx" + idx + ".question to error");
+                  
                     errors.questions[idx].question = "Required";
                 }
-                console.log("errors1", idx, errors);
+                
 
                 //answers
                 for (let i = 0;  i < 4; i++)
@@ -473,7 +473,7 @@ const MultipleChoice = ({postType}) =>
                         
                 }
 
-                console.log("errors2", idx, errors);
+                
             })
             globalErrors = errors;
             return errors;
@@ -482,11 +482,10 @@ const MultipleChoice = ({postType}) =>
         onSubmit={(values, formikBag) => {
 
             //this is only called if validation passes?
-            console.log("on submit called values", values, formikBag);
-            console.log(formikBag);    
+         
             setFormSubmitting(false);//can we use isSubmitting? maybe from context?
             formikBag.validateForm();
-            console.log("globalErrors", globalErrors);
+          
             //TEST ONLY  
             let touched = {}
             if (!_.isEmpty(globalErrors) )
@@ -541,7 +540,7 @@ const MultipleChoice = ({postType}) =>
        
             
         <Form  onSubmit={(e) => {
-            console.log("touched", touched);
+
             setFormSubmitting(true);
             handleSubmit(e)
             }

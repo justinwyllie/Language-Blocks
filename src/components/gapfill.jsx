@@ -90,8 +90,8 @@ const GapFill = ({postType}) =>
         //but does not save anything to the backend - that takes saving the whole post
         //via the button on the page?
        
-        setMeta( { ...meta, _kea_activity_meta: newXmlStr } );
-        setMeta( { ...meta, _kea_activity_type: "gapfill" } );
+        setMeta( { ...meta, _kea_activity_meta: newXmlStr, _kea_activity_type: "gapfill" } );
+        
         
     }
 
