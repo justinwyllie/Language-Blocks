@@ -169,9 +169,8 @@ class KeaActivities
             {
                 $variant = (string) $answer["variant"][0];
                 $text = (string) $answer;
-                
-        
-                $question_obj->answers[strip_tags($text)] = $variant;
+                $text = strip_tags($text);
+                $question_obj->answers += [$text => $variant];
             }
 
             $json_obj->questions[] = $question_obj;
@@ -245,8 +244,13 @@ class KeaActivities
         //as on the fe it would be nice to do this dynamically TODO
         $grammar_terms = get_the_terms($post, "grammar");
         $russian_grammar_terms = get_the_terms($post, "russian_grammar");
+        $ages_bands_values = get_the_terms($post, "ages_bands");
+        $levels_values = get_the_terms($post, "levels");
+
         
         $labels = array();
+        $ages_bands = array();
+        $levels = array();
 
         function addTerm($terms, &$target)
         {
@@ -265,8 +269,15 @@ class KeaActivities
         addTerm($grammar_terms,  $labels);
         addTerm($russian_grammar_terms, $labels);
 
+        addTerm($ages_bands_values, $ages_bands);
+        addTerm($levels_values, $levels);
+
         $json = $this->get_json_from_xml_string($post_xml_meta, false, $activity_type);
         $json->labels = $labels;
+
+        $json->ages_bands = $ages_bands;
+        $json->levels = $levels;
+        
      
     
         $json_string = json_encode($json);
