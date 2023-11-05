@@ -162,6 +162,8 @@ class KeaActivities
             $question_obj->question = strip_tags($question_obj->question); 
             $question_obj->answers =  array();
 
+            $question_obj->questionNumber = (string) $questionNode['questionNumber'];
+
             $answers = $questionNode->xpath("answers");
             //var_dump($answers);die();
             $question_obj->answers = array();
@@ -296,11 +298,13 @@ class KeaActivities
                                  
        
         //TODO it is not post type - it is activity type
+
+        
        
          
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
-            'kea_activity_post_type' => $json->activity_type, 
+            'kea_activity_ex_type' => $json->activity_type, 
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 
@@ -489,7 +493,7 @@ class KeaActivities
         $sql = "CREATE TABLE IF NOT EXISTS $this->kea_table_name1 (
             kea_activity_id bigint NOT NULL AUTO_INCREMENT,
             kea_activity_post_id bigint NOT NULL,
-            kea_activity_post_type ENUM('gapfill', 'multiplechoice') NOT NULL,
+            kea_activity_ex_type ENUM('gapfill', 'multiplechoice') NOT NULL,
             kea_activity_post_json text NOT NULL,
             kea_activity_post_author_id bigint NOT NULL,
             kea_activity_with_key_key bigint NOT NULL,
