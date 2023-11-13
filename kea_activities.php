@@ -49,7 +49,12 @@ class KeaActivities
 
     public function get_json_from_xml_string($xml_string, $encode, $activity_type)
     {
-
+        //another hack to support that this php is currently (temporarily) supporting
+        //a legacy version of GapFill JS
+        if (empty($activity_type) )
+        {
+            $activity_type = "gapfill";
+        }
         $call = "get_json_from_xml_string_" . $activity_type;
         return call_user_func( array($this, $call), $xml_string, $encode);
 
@@ -226,7 +231,13 @@ class KeaActivities
         */
         $post_meta = get_post_meta($post_id); //from cache if poss or from db.
         $post_xml_meta = $post_meta["_kea_activity_meta"][0];
-        $activity_type = $post_meta["_kea_activity_type"][0];
+        if   (isset($post_meta["_kea_activity_type"]) ) {
+                $activity_type = $post_meta["_kea_activity_type"][0];
+        }
+        else
+        {
+            $activity_type = "gapfill"; //historical reasons
+        }
 
         if (empty($post_xml_meta))
         {
