@@ -1,12 +1,14 @@
 const settings = {
     domain:
     {
-        type: "slashes",
-        domainForUsers: "https://onlinerepititor.ru",
+        type: "query",
+        domainForUsers: "https://justinwyllie.github.io",
     },
     site: "repititor",
     defaultUserLang: "en"
 }
+
+const SHOWLOGIN = true;
 
 const LABELS =  {
     ru: 
@@ -21,5 +23,6 @@ const LABELS =  {
 
 export {
     settings,
-    LABELS
+    LABELS,
+    SHOWLOGIN
 }
