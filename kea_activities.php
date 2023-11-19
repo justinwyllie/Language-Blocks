@@ -406,7 +406,16 @@ class KeaActivities
         if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
             //return KeaActivities::get_json_from_xml_string($xml_string, true);
-            return $this->get_json_from_xml_string($xml_string, true, $_GET['activity_type']); //NOT TESTED TODO
+            //TODO remove tempoary hack - need to make sure any calls to this method send the param
+            if (! isset($_GET['activity_type']))
+            {
+                $activity_type = 'gapfill';
+            }
+            else
+            {
+                $activity_type = $_GET['activity_type'];
+            }
+            return $this->get_json_from_xml_string($xml_string, true, $activity_type); //NOT TESTED TODO
         }
         else
         {
