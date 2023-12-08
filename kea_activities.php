@@ -47,29 +47,30 @@ class KeaActivities
     } 
 
 
-    public function get_json_from_xml_string($xml_string, $encode, $activity_type)
+    public function get_json_from_xml_string($xml_string, $encode)
     {
-        //another hack to support that this php is currently (temporarily) supporting
-        //a legacy version of GapFill JS
+     
+        $xml = new SimpleXMLElement($xml_string);
+        $activity_type = (string) $xml->activity['type'];
+        //fixup historic data
         if (empty($activity_type) )
         {
             $activity_type = "gapfill";
         }
-        $call = "get_json_from_xml_string_" . $activity_type;
-        return call_user_func( array($this, $call), $xml_string, $encode);
+        $call = "get_json_from_xml_" . $activity_type;
+        return call_user_func( array($this, $call), $xml, $encode, $activity_type);
 
     }
 
     
     //called from outside of site e.g. via a rest call class is not instaniiated when 
     //used to both return json and to save a json string in the 'special' table
-    private function get_json_from_xml_string_gapfill($xml_string, $encode)
+    private function get_json_from_xml_gapfill($xml, $encode, $activity_type)
     {
 
-        $xml = new SimpleXMLElement($xml_string);
+        
         $activity = (string) $xml->activity;
 
-        $activity_type = "gapfill";
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
         $title = (string) $xml->title;
@@ -123,12 +124,10 @@ class KeaActivities
     
     }
 
-    private function get_json_from_xml_string_multiplechoice($xml_string, $encode)
+    private function get_json_from_xml_multiplechoice($xml, $encode, $activity_type)
     {
 
-        $xml = new SimpleXMLElement($xml_string);
         $activity = (string) $xml->activity;
-        $activity_type = "multiplechoice";
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
         $title = (string) $xml->title;
@@ -285,7 +284,7 @@ class KeaActivities
         addTerm($ages_bands_values, $ages_bands);
         addTerm($levels_values, $levels);
 
-        $json = $this->get_json_from_xml_string($post_xml_meta, false, $activity_type);
+        $json = $this->get_json_from_xml_string($post_xml_meta, false);
         $json->labels = $labels;
 
         $json->ages_bands = $ages_bands;
@@ -315,7 +314,7 @@ class KeaActivities
          
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
-            'kea_activity_ex_type' => $json->activity_type, 
+            'kea_activity_ex_type' => $activity_type, 
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 
@@ -405,17 +404,8 @@ class KeaActivities
         
         if (isset($_GET['data']) && ($_GET['data'] == 'json'))
         {
-            //return KeaActivities::get_json_from_xml_string($xml_string, true);
-            //TODO remove tempoary hack - need to make sure any calls to this method send the param
-            if (! isset($_GET['activity_type']))
-            {
-                $activity_type = 'gapfill';
-            }
-            else
-            {
-                $activity_type = $_GET['activity_type'];
-            }
-            return $this->get_json_from_xml_string($xml_string, true, $activity_type); //NOT TESTED TODO
+
+            return $this->get_json_from_xml_string($xml_string, true); 
         }
         else
         {
