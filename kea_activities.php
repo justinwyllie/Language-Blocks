@@ -342,6 +342,16 @@ class KeaActivities
     //TODO restrict this see CORS doc
     public function json_rest_route()
     {
+
+        register_rest_route( 'kea_activities/v1', '/json_post2/(?P<slug>\S+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'special_get_json_for_ad_hoc_projects_via_slug'),
+            'permission_callback' => function () {
+                return __return_true();
+            } 
+            
+        ) );
+
         register_rest_route( 'kea_activities/v1', '/json_post/(?P<post_id>\d+)/(?P<key>\d+)', array(
             'methods' => 'GET',
             'callback' => array($this, 'special_get_json_for_ad_hoc_projects'),
@@ -350,6 +360,8 @@ class KeaActivities
             } 
             
         ) );
+
+       
     }
 
     /*
@@ -362,6 +374,60 @@ class KeaActivities
 
         $key = $request['key'];
         $post_id = $request['post_id'];
+
+        $sql = $this->wpdb->prepare( "SELECT * FROM {$this->kea_table_name1} WHERE kea_activity_post_id = %d", $post_id );
+        $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
+        $ex = $results[0];
+        
+       
+
+        $ex_json = json_decode($ex->kea_activity_post_json);
+        
+     //   var_dump($results[0]);
+       
+
+        if ($key == $ex->kea_activity_with_key_key)
+        {
+            $ex_json->mode = "withkey";
+        }
+        else
+        {
+            function lose_answers($q)
+            {
+                
+              
+                $q->answer = preg_replace('/[^\|]/', "", $q->answer);
+                return $q;
+            }
+
+            $ex_json->mode = "withoutkey";
+            
+            $questions = $ex_json->questions;
+            $questionsWithoutAnswers = array_map('lose_answers', $questions);
+            $ex_json->questions = $questionsWithoutAnswers;
+        }
+
+        $ex_json->success = true;
+        return $ex_json;
+    }
+
+    public function special_get_json_for_ad_hoc_projects_via_slug($request)
+    {
+
+       
+        $slug = $request['slug'];
+        var_dump($slug);
+        $post = get_page_by_path($slug);
+        var_dump($post);
+        exit;
+
+        
+
+        if ($post) {
+            $post_id = $page->ID;
+        } else {
+            return null;
+        }
 
         $sql = $this->wpdb->prepare( "SELECT * FROM {$this->kea_table_name1} WHERE kea_activity_post_id = %d", $post_id );
         $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
