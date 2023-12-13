@@ -22,6 +22,7 @@ class KeaActivities
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->kea_table_name1 = $this->wpdb->prefix . "kea_activity"; 
+        $this->posts_table = $this->wpdb->prefix . "posts"; 
         // register actions
         add_action('init', array($this, 'kea_activity_custom_post_type'));
         add_action( 'rest_after_insert_kea_activity', array($this, 'save_activity_meta' ));
@@ -411,56 +412,40 @@ class KeaActivities
         return $ex_json;
     }
 
+    //always returns with answer key as we do not have a 'key' on the request from KEA
     public function special_get_json_for_ad_hoc_projects_via_slug($request)
     {
-
        
         $slug = $request['slug'];
-        var_dump($slug);
-        $post = get_page_by_path($slug);
-        var_dump($post);
-        exit;
+       
+ 
+        //this relies on post_name being unique though it is not enforfced in the DB!!!! TODO - a process to check
+        $sql = $this->wpdb->prepare( "SELECT a.* FROM {$this->kea_table_name1} as a INNER JOIN {$this->posts_table} as p
+            ON a.kea_activity_post_id = p.ID WHERE p.post_name = %s", $slug );
 
-        
+        $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
 
-        if ($post) {
-            $post_id = $page->ID;
-        } else {
-            return null;
+
+        if (empty($results))
+        {
+            $result = new stdClass();
+            $result->success = false;
+            return $result;
+
         }
 
-        $sql = $this->wpdb->prepare( "SELECT * FROM {$this->kea_table_name1} WHERE kea_activity_post_id = %d", $post_id );
-        $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
         $ex = $results[0];
         
-       
-
-        $ex_json = json_decode($ex->kea_activity_post_json);
         
-     //   var_dump($results[0]);
-       
+        
+        $ex_json = json_decode($ex->kea_activity_post_json);
+  
+        
+    
 
-        if ($key == $ex->kea_activity_with_key_key)
-        {
-            $ex_json->mode = "withkey";
-        }
-        else
-        {
-            function lose_answers($q)
-            {
-                
-              
-                $q->answer = preg_replace('/[^\|]/', "", $q->answer);
-                return $q;
-            }
-
-            $ex_json->mode = "withoutkey";
-            
-            $questions = $ex_json->questions;
-            $questionsWithoutAnswers = array_map('lose_answers', $questions);
-            $ex_json->questions = $questionsWithoutAnswers;
-        }
-
+        $ex_json->mode = "withkey";
+        
+    
         $ex_json->success = true;
         return $ex_json;
     }
