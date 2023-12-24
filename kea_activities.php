@@ -51,8 +51,11 @@ class KeaActivities
     public function get_json_from_xml_string($xml_string, $encode)
     {
      
+        
         $xml = new SimpleXMLElement($xml_string);
-        $activity_type = (string) $xml->activity['type'];
+        $activity_type = (string) $xml['type'];
+
+      
         //fixup historic data
         if (empty($activity_type) )
         {
@@ -128,6 +131,7 @@ class KeaActivities
     private function get_json_from_xml_multiplechoice($xml, $encode, $activity_type)
     {
 
+
         $activity = (string) $xml->activity;
         $legacy_name = (string) $xml->legacyName;
         $legacy_name = strip_tags($legacy_name);
@@ -170,7 +174,6 @@ class KeaActivities
             $question_obj->questionNumber = (string) $questionNode['questionNumber'];
 
             $answers = $questionNode->xpath("answers");
-            //var_dump($answers);die();
             $question_obj->answers = array();
             foreach ($answers[0] as $answer)
             {
@@ -285,6 +288,8 @@ class KeaActivities
         addTerm($ages_bands_values, $ages_bands);
         addTerm($levels_values, $levels);
 
+
+
         $json = $this->get_json_from_xml_string($post_xml_meta, false);
         $json->labels = $labels;
 
@@ -295,8 +300,6 @@ class KeaActivities
     
         $json_string = json_encode($json);
        
-
-          //var_dump($json_string);
 
         /*
          wp replace -> mysql replace
@@ -384,8 +387,7 @@ class KeaActivities
 
         $ex_json = json_decode($ex->kea_activity_post_json);
         
-     //   var_dump($results[0]);
-       
+      
 
         if ($key == $ex->kea_activity_with_key_key)
         {
