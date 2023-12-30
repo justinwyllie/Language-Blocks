@@ -1,7 +1,7 @@
 const settings = {
     domain:
     {
-        type: "slashes", /* query or slashes */
+        type: "query", /* query or slashes */
         domainForUsers: "https://justinwyllie.github.io",
     },
     site: "repititor",

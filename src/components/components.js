@@ -322,6 +322,7 @@ const LinkPanel = () => {
 
     let linkWithKey;
     let linkWithoutKey;
+    console.log("settings.domain.type", settings.domain.type );
     if (settings.domain.type == "query")
     {
         linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
