@@ -383,7 +383,7 @@ class KeaActivities
         $results = $this->wpdb->get_results( $sql ); //TODO handle error array of objects
         $ex = $results[0];
         
-       
+        
 
         $ex_json = json_decode($ex->kea_activity_post_json);
         
@@ -404,6 +404,7 @@ class KeaActivities
             }
 
             $ex_json->mode = "withoutkey";
+            $ex_json->post_id = $post_id;
             
             $questions = $ex_json->questions;
             $questionsWithoutAnswers = array_map('lose_answers', $questions);
