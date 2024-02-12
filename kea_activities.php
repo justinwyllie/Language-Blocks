@@ -29,6 +29,10 @@ class KeaActivities
         add_action( 'init', array($this, 'kea_activity_register_post_meta' ));
         register_activation_hook( __FILE__, array($this,'kea_activity_activated' )); 
         add_filter( 'rest_prepare_activity', array($this, 'get_kea_activity_posts'));
+        add_filter('manage_kea_activity_posts_columns', array($this, 'kea_activitiy_add_type_column'));
+
+        add_action('manage_kea_activity_posts_custom_column', array($this, 'kea_activity_populate_type_column'), 10, 2);
+
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
@@ -896,6 +900,29 @@ class KeaActivities
 
         $response->data['title']['rendered'] = strip_tags($response->data['title']['rendered']);
         return $response;
+    }
+
+    /*
+        _kea_activity_type meta to appear as a column in posts lists in the admin panel
+    */
+    public function kea_activitiy_add_type_column($columns)
+    {
+        $new_columns = array_merge(array_slice($columns, 0, 2, true), array('activity_type' => __('Activity Type', 'kea')),
+            array_slice($columns, 2, count($columns) - 1, true));
+        return $new_columns;
+    }
+
+    public function kea_activity_populate_type_column($column, $post_id)
+    {
+           
+            if ($column == 'activity_type')
+            {
+                $activity_type = get_post_meta($post_id, '_kea_activity_type', true);
+                if (!empty($activity_type)) {
+                    echo '<span>'; _e($activity_type, 'kea'); echo '</span>';
+                }
+            }
+    
     }
             
    
