@@ -1,10 +1,10 @@
 const settings = {
     domain:
     {
-        type: "query", /* query or slashes */
-        domainForUsers: "https://justinwyllie.github.io",
+        type: "slashes", /* query or slashes */
+        domainForUsers: "https://onlinerepititor.ru",
     },
-    site: "repititor",
+    site: "repititor", /* or kea ??? */
     defaultUserLang: "en"
 }
 
