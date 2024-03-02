@@ -2,7 +2,7 @@
 /*
 Plugin Name: KEA_Activities
 Plugin URI: https://kazanenglishacademy.com/plugins
-Description: Plugin to register all the exercise post types
+Description: Plugin to register all the exercise post types and manage them
 Version: 1.0
 Author: Justin Wyllie
 Author URI:https://kazanenglishacademy.com/plugins
@@ -37,6 +37,8 @@ class KeaActivities
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
+
+        add_action( 'admin_menu', array( $this, 'add_page_for_managing_activities' ) );
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
@@ -924,8 +926,90 @@ class KeaActivities
             }
     
     }
-            
-   
+
+    /*
+    * only for admins. adds a page where admin can (initially) duplicate posts to other users
+    * add_menu_page( string $page_title, string $menu_title, string $capability, string $menu_slug, callable $callback = ”, string $icon_url = ”, int|float $position = null )
+    */
+    public function add_page_for_managing_activities()
+    {
+        add_menu_page()
+    }
+
+    public function call_copy_post_to_another_user()
+    {
+        copy_post_to_another_user(2999, 4);
+    }
+
+
+    public function copy_post_to_another_user($post_id, $new_user_id)
+    {
+        global $wpdb;
+
+        $old_post = get_post($post_id);
+        if (!$old_post) {
+            // Invalid post ID, return early.
+            return 0;
+        }
+
+        $title = $old_post->post_title;
+
+        // Create new post array.
+        $new_post = [
+            'post_title'  => $title,
+            'post_name'   => sanitize_title($title),
+            'post_status' => 'publish',
+            'post_type'   => $old_post->post_type,
+            'post_author' => $new_user_id
+        ];
+
+        // Insert new post.
+        $new_post_id = wp_insert_post($new_post);
+
+        // Copy post meta.
+        $post_meta = get_post_custom($post_id);
+        if (empty($post_meta) || $post_meta == '')
+        {
+            echo "For post id " . $post_id . " no meta was found or post id not valid";
+            if ($post_meta == '')
+            {
+                echo "exiting";
+                die();
+            }
+        }
+
+        var_dump("Meta", $post_meta);
+
+        /*
+        * _terms has all terms e.g. adverbs nb terms are not taxonomies which are e.g. grammar
+        * _terms_taxonomy links terms to their taxonomy and manaages the hierarchies of terms
+        * _term_relationships links e.g. posts to the taxonomy/terms from _terms_taxonomy
+        */
+
+
+        foreach ($post_meta as $key => $values) {
+            foreach ($values as $value) {
+                add_post_meta($new_post_id, $key, maybe_unserialize($value));
+            }
+        }
+
+        // Copy post taxonomies.
+        $taxonomies = get_post_taxonomies($post_id); //gets terms registered to this post type OR used by this specific post? from ? _term_relationships and _terms??
+
+        var_dump("Taxonomies", $taxonomies);
+        echo $wpdb->last_query;
+
+        foreach ($taxonomies as $taxonomy) {
+            $term_ids = wp_get_object_terms($post_id, $taxonomy, ['fields' => 'ids']); //gets the term id for e.g. 'adjectives'? from _terms?
+            echo $wpdb->last_query;
+            wp_set_object_terms($new_post_id, $term_ids, $taxonomy); //sets into term_relationships new post id and term id??
+        }
+
+        // Return new post ID.
+        return $new_post_id;
+        }
+                
+    
 }
 
 $kea_activities2 = new KeaActivities();
