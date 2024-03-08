@@ -352,7 +352,7 @@ class KeaActivities
     //TODO restrict this see CORS doc
     public function json_rest_route()
     {
-
+        
         register_rest_route( 'kea_activities/v1', '/json_post2/(?P<slug>\S+)', array(
             'methods' => 'GET',
             'callback' => array($this, 'special_get_json_for_ad_hoc_projects_via_slug'),
