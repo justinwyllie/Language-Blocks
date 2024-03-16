@@ -37,6 +37,9 @@ class KeaActivities
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
+        //add_action('admin_init', array($this, 'fix_post_roles'));
+        add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
+
 
       
    
@@ -52,6 +55,60 @@ class KeaActivities
         );
 
     } 
+    
+    public function error_log($object)
+    {
+
+        ob_start();                   
+        var_dump( $object );           
+        $contents = ob_get_contents(); 
+        ob_end_clean();               
+        error_log( $contents );       
+    }
+
+    /*
+    * this is pretty brutal. makes no distinction re. post tyoes
+    * says: if this is admin page and user is not admin and we are getting posts
+    * then modify the posts query so if user cannot edit others posts which will be true if e.g. author 
+    * then add a only this user id to the query which gets the list of posts to display
+    * there is no capability for viewing posts in the edit list  - so we cannot simply take away a capability 
+ 
+    */
+    public function limit_posts_for_current_author($query)
+    {
+
+        
+        global $pagenow;
+
+        if( 'edit.php' != $pagenow || !$query->is_admin )
+            return $query;
+
+        if( !current_user_can( 'edit_others_posts' ) ) {
+            global $user_ID;
+            $query->set('author', $user_ID );
+        }
+
+
+        $this->error_log($query);
+        return $query;
+        
+
+    }
+
+
+
+    //there is no cap about viewing posts in the admin list
+    public function fix_post_roles()
+    {
+
+
+        //$role = get_role('author');
+        //$caps = $role->capabilities;
+        //error_log(print_r($caps, true));
+        //$role->add_cap('read_posts', false);
+        //global $wp_roles;
+        //$wp_roles->remove_cap( 'author', 'delete_posts' );
+    }
 
 
     public function get_json_from_xml_string($xml_string, $encode)
