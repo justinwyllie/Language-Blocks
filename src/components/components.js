@@ -295,7 +295,7 @@ const LinkPanel = () => {
 
 
         //TDDO - not sure about the structure of this - will we always have meta by this point if it exists?
-        //or do i need to useSelect?
+        //or do i need to useSelect? https://wordpress.org/support/topic/difference-between-useentityprop-and-geteditedpostattribute/ ??
     if ( ((meta._with_key_meta == '') || (meta._with_key_meta == undefined)) 
         || ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))) 
     {

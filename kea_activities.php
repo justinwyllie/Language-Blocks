@@ -89,7 +89,7 @@ class KeaActivities
         }
 
 
-        $this->error_log($query);
+       
         return $query;
         
 
