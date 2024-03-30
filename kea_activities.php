@@ -315,10 +315,7 @@ class KeaActivities
 
         //var_dump("_without_key_gap_fill_meta", $post_without_key_meta);
 
-        //this was obtained in rest_prepare_activity_gap_fill and sent to f/e via meta for display : 
-        //we get it now from there and not from post and database so we are sure we have one seen by user
-        $author_email = $post_meta["_author_email"][0]; 
-       
+
         //array of term objs or false if none
         //as on the fe it would be nice to do this dynamically TODO
         $grammar_terms = get_the_terms($post, "grammar");
@@ -385,7 +382,6 @@ class KeaActivities
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 
-            'kea_activity_author_email' => $author_email,
             'kea_activity_without_key_key' => $post_without_key_meta
             
         ), array( '%d', '%s', '%s', '%d', '%d' ,'%s', '%d')); 
@@ -571,18 +567,6 @@ class KeaActivities
         } 
         ) );
 
-        register_post_meta( 'kea_activity', '_author_email', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string', 
-             ),
-            'auth_callback' => function() {
-            return current_user_can( 'edit_posts' );
-            /* (callable) Optional. A function or method to call when 
-            performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
-        } 
-        ) );
-
         //this registers a meta field for this post type and also makes it show in rest
         register_post_meta( 'kea_activity', '_with_key_meta', array(
             'show_in_rest' => array(
@@ -625,7 +609,6 @@ class KeaActivities
             kea_activity_post_author_id bigint NOT NULL,
             kea_activity_with_key_key bigint NOT NULL,
             kea_activity_without_key_key bigint NOT NULL,
-            kea_activity_author_email varchar(100) NOT NULL,
             PRIMARY KEY  kea_activity_id (kea_activity_id),
             UNIQUE (kea_activity_post_id)
         ) $charset_collate;";
