@@ -50,7 +50,7 @@ class KeaActivities
             'manage_terms'  => 'delete_others_pages',
             'edit_terms'    => 'delete_others_pages',
             'delete_terms'  => 'delete_others_pages',
-            'assign_term'  => 'edit_posts'
+            'assign_terms'  => 'edit_posts'
             
         );
 
