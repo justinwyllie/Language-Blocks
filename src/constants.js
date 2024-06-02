@@ -2,7 +2,7 @@ const settings = {
     domain:
     {
         type: "slashes", /* query or slashes */
-        domainForUsers: "https://onlinerepititor.ru",
+        domainForUsers: "https://dev.onlinerepititor.ru",
     },
     site: "repititor", /* or kea ??? */
     defaultUserLang: "en"
@@ -10,19 +10,9 @@ const settings = {
 
 const SHOWLOGIN = true;
 
-const LABELS =  {
-    ru: 
-    {
-        copied_to_clipboard: {nominative: "copied to clipboard"}
-    },
-    en:
-    {
-        copied_to_clipboard: {nominative: "copied to clipboard"}
-    }
-}
+
 
 export {
     settings,
-    LABELS,
     SHOWLOGIN
 }

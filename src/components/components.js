@@ -12,7 +12,8 @@ import { useState, useRef } from 'react';
 import Overlay from 'react-bootstrap/Overlay';
 import Tooltip from 'react-bootstrap/Tooltip';
 
-import { LABELS, settings } from '../constants';
+import { settings } from '../constants';
+import { LABELS } from '../translations';
 import { CapitalizeFirstLetter } from "../helpers";
 
 
