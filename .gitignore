@@ -8,6 +8,8 @@ Desktop.ini
 node_modules
 build/*.*
 
+scripts/settings.js
+
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 

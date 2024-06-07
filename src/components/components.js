@@ -12,7 +12,7 @@ import { useState, useRef } from 'react';
 import Overlay from 'react-bootstrap/Overlay';
 import Tooltip from 'react-bootstrap/Tooltip';
 
-import { settings } from '../constants';
+const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
 import { CapitalizeFirstLetter } from "../helpers";
 

@@ -5,9 +5,9 @@ import { useSelect } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
 import { Formik, FieldArray  } from 'formik';
 import { Instruction, GapFillQuestion, LinkPanel, AuthorPanel} from './components';
-import { settings } from "../constants";
-import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 
+import { useBlockProps, RichText } from '@wordpress/block-editor'; 
+const settings  = window.kea_language_blocks.settings;
 
 
 

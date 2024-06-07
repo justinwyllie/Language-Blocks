@@ -653,12 +653,17 @@ class KeaActivities
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
         );
         */
+
+        wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), "1");
+
+        $deps = $asset_file['dependencies'];
+        $deps[] = 'settings';
       
         
         wp_register_script(
             'activity-script',
             plugins_url( 'build/index.js', __FILE__ ), 
-            $asset_file['dependencies'],
+            $deps,
             $asset_file['version']
         );
         /*

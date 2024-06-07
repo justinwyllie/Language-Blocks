@@ -7,9 +7,11 @@ import { useSelect } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
 import { Formik, FieldArray , useFormikContext } from 'formik';
 import { Instruction, MultipleChoiceQuestion, LinkPanel, AuthorPanel} from './components';
-import { settings } from "../constants";
+
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 import _ from 'underscore';
+
+const settings = window.kea_language_blocks.settings;
 
 
 const MultipleChoice = ({postType}) =>
