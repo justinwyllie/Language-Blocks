@@ -545,6 +545,15 @@ const GapFill = ({postType}) =>
                     <h3>Questions</h3>
                     <p>To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
                         Answers in second box separated by |. Variants can be expressed like this: is not:isn't|</p>
+                        <p class="mb-4">
+                            In sentences with more than one gap variants must be consistent. For example:<br />
+                            Did:Have|take:taken (correct)<br />
+                            Did:Have|taken:take (not correct - wrong order)<br />
+                            Have:Did|read| (not correct - number of variants must match)<br />
+                            Have:Did|read:read| (correct - note; you have to repeat the variants for consistency)
+                           
+                        </p>
+
                 </Col>
             </Row>
 
