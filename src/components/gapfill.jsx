@@ -549,8 +549,8 @@ const GapFill = ({postType}) =>
                             In sentences with more than one gap variants must be consistent. For example:<br />
                             Did:Have|take:taken (correct)<br />
                             Did:Have|taken:take (not correct - wrong order)<br />
-                            Have:Did|read| (not correct - number of variants must match)<br />
-                            Have:Did|read:read| (correct - note; you have to repeat the variants for consistency)
+                            Have:Did|put| (not correct - number of variants must match)<br />
+                            Have:Did|cut:cut| (correct - note; you have to repeat the variants for consistency)
                            
                         </p>
 
