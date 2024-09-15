@@ -3,7 +3,7 @@ import { useBlockProps } from '@wordpress/block-editor';
 
 import { useSelect } from '@wordpress/data';
 
-import {  LinkPanel, AuthorPanel} from './components/components';
+import {  LinkPanel, AuthorPanel } from './components/components';
 import { registerPlugin } from '@wordpress/plugins';
 const { __ } = wp.i18n; //TODO check
 
@@ -74,6 +74,7 @@ registerPlugin( 'kea-grammar-links-meta', {
 		return(<LinkPanel />);
 	}
 } );
+
 
 
  
