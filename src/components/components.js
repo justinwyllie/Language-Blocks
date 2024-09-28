@@ -296,11 +296,13 @@ const LinkPanel = () => {
 
 
 
-
-        //TDDO - not sure about the structure of this - will we always have meta by this point if it exists?
+    
+        //TDDO - not sure about the structure of this - will we always have meta by this point if it exists? maybe use the vals not the meta in the links
         //or do i need to useSelect? https://wordpress.org/support/topic/difference-between-useentityprop-and-geteditedpostattribute/ ??
+        //will rerun if meta changes. if meta value not preloaded from backend will set here then rerun. _ means protected
     if ( ((meta._with_key_meta == '') || (meta._with_key_meta == undefined)) 
-        || ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))) 
+        || ((meta._without_key_meta == '') || (meta._without_key_meta == undefined) )
+        || ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined)  )) 
     {
 
             let vals = getRandom();
@@ -316,16 +318,17 @@ const LinkPanel = () => {
                     
                     setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
             }
-        
+
+            if ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined))
+            {
+                setMeta( { ...meta, _link_for_assigments:  settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString() } );
+            }
+           
     }
-
-  
-
-  
 
     let linkWithKey;
     let linkWithoutKey;
-    console.log("settings.domain.type", settings.domain.type );
+    
     if (settings.domain.type == "query")
     {
         linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
@@ -334,10 +337,11 @@ const LinkPanel = () => {
     else
     {
         linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_meta;
-        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
+        //linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
+        linkWithoutKey = meta._link_for_assigments;
     }
 
-
+    
 
     /*
     const { editPost } = useDispatch( 'core/editor', [ postMeta._kea_vocab_item_ru_meta, 
