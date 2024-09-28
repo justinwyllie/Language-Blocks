@@ -293,13 +293,14 @@ const LinkPanel = () => {
 
    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
     
-
+    console.log("test", meta);
 
 
     
         //TDDO - not sure about the structure of this - will we always have meta by this point if it exists? maybe use the vals not the meta in the links
         //or do i need to useSelect? https://wordpress.org/support/topic/difference-between-useentityprop-and-geteditedpostattribute/ ??
-        //will rerun if meta changes. if meta value not preloaded from backend will set here then rerun. _ means protected
+        //will rerun if meta changes. if meta value not preloaded from backend will set here then rerun. _ means po
+        //these once set are not recreated
     if ( ((meta._with_key_meta == '') || (meta._with_key_meta == undefined)) 
         || ((meta._without_key_meta == '') || (meta._without_key_meta == undefined) )
         || ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined)  )) 
@@ -318,7 +319,7 @@ const LinkPanel = () => {
                     
                     setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
             }
-
+            
             if ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined))
             {
                 setMeta( { ...meta, _link_for_assigments:  settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString() } );
