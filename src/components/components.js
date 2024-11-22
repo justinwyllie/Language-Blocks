@@ -230,7 +230,7 @@ const TipTool = (props) => {
 const LinkPanel = () => {
 
 
-    
+    console.log("link panel rendered");
     const [show1, setShow1] = useState(false);
     const [show2, setShow2] = useState(false);
     const target = useRef(null);
@@ -270,12 +270,11 @@ const LinkPanel = () => {
 
     //https://developer.wordpress.org/block-editor/reference-guides/data/data-core-editor/
     //useSelect monitors store value and if it changes will update slug causing rerender
-    //this is reliable. the issue is if user manually updates it this will invalidate old slugs and old links will be invalidated
-    //so - unless we block that - and you can't just hide the slug part only the whole panel - it is best maybe not to rely on slug?
+    
     const slug = useSelect(
         ( select ) => select( 'core/editor' ).getEditedPostSlug()
     );
-    
+    //https://developer.wordpress.org/news/2024/03/28/how-to-work-effectively-with-the-useselect-hook/ TODO
     const postId = useSelect(
         ( select ) => select( 'core/editor' ).getCurrentPostId()
     );
@@ -290,58 +289,86 @@ const LinkPanel = () => {
         return arraySet;
     
    }
-
+   //gets it from the store. (does it make an endpoint request if it is not in the store?) don't think it subsrcibes to updates
    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
+   //or https://developer.wordpress.org/block-editor/reference-guides/data/data-core-editor/#geteditedpostattribute?
     
-    console.log("test", meta);
+    console.log("meta", meta);
+
+     
+    //new meta is only saved when the post is 'published' and this uses and ajax reqyest to wp sending updated data
+    //so if user does not save the ex links are invalid  -  TODO - how to know if post has been saved and meta in backend?
 
 
-    
-        //TDDO - not sure about the structure of this - will we always have meta by this point if it exists? maybe use the vals not the meta in the links
-        //or do i need to useSelect? https://wordpress.org/support/topic/difference-between-useentityprop-and-geteditedpostattribute/ ??
-        //will rerun if meta changes. if meta value not preloaded from backend will set here then rerun. _ means po
-        //these once set are not recreated
-    if ( ((meta._with_key_meta == '') || (meta._with_key_meta == undefined)) 
-        || ((meta._without_key_meta == '') || (meta._without_key_meta == undefined) )
-        || ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined)  )) 
-    {
-
-            let vals = getRandom();
-
-            if ((meta._with_key_meta == '') || (meta._with_key_meta == undefined))
-            {
-                    
-                    setMeta( { ...meta, _with_key_meta: vals[0].toString()} );
-            }
-
-            if ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))
-            {
-                    
-                    setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
-            }
-            
-            if ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined))
-            {
-                setMeta( { ...meta, _link_for_assigments:  settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString() } );
-            }
-           
-    }
-
+    let vals = getRandom();
     let linkWithKey;
     let linkWithoutKey;
-    
-    if (settings.domain.type == "query")
+    const saveMessage = __("Save Post to get link");
+
+    if ((meta._with_key_meta == '') || (meta._with_key_meta == undefined))
     {
-        linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
-        linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_meta;
+            console.log("A");
+            //is this only actually saved when the post is saved? yes. but settting it causes a rerender. 
+            setMeta( { ...meta, _with_key_meta: vals[0].toString()} );
+            if (settings.domain.type == "query")
+            {
+                linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + vals[0].toString();
+            }
+            else
+            {
+                linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[0].toString();
+            }
+          
     }
     else
-    {
-        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_meta;
-        //linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
-        linkWithoutKey = meta._link_for_assigments;
+    {   console.log("A2");
+        if (settings.domain.type == "query")
+        {
+            linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
+        }
+        else
+        {
+            linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_meta;
+        }
     }
 
+    if ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))
+    {
+        console.log("B");
+        setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
+           
+        if (settings.domain.type == "query")
+        {
+            linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + vals[1].toString();
+        }
+        else
+        {
+            linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString();
+        }
+    }
+    else
+    {   console.log("B2");
+        if (settings.domain.type == "query")
+        {
+            linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_meta;
+        }
+        else
+        {
+            linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
+        }
+    
+    }
+
+    
+    if ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined))
+    {
+       //query strong not supported as only used in repi
+        setMeta( { ...meta, _link_for_assigments:  settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString() } );
+    }
+
+
+ 
+//linkWithoutKey = meta._link_for_assigments;
     
 
     /*

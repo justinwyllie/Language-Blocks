@@ -39,8 +39,7 @@ class KeaActivities
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
         //add_action('admin_init', array($this, 'fix_post_roles'));
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
-
-
+    
       
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
@@ -94,6 +93,7 @@ class KeaActivities
         
 
     }
+
 
 
 
@@ -578,6 +578,7 @@ class KeaActivities
         
         } 
         ) );
+
 
         //this registers a meta field for this post type and also makes it show in rest
         register_post_meta( 'kea_activity', '_without_key_meta', array(
