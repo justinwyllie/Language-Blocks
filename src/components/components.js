@@ -305,7 +305,8 @@ const LinkPanel = () => {
     let linkWithoutKey;
     const saveMessage = __("Save Post to get link");
 
-    if ((meta._with_key_meta == '') || (meta._with_key_meta == undefined))
+    if (    (! meta.hasOwnProperty("_with_key_meta"))  || (   meta.hasOwnProperty("_with_key_meta") &&
+        ((meta._with_key_meta == '') || (typeof meta._with_key_meta == "undefined"))   )   )
     {
             console.log("A");
             //is this only actually saved when the post is saved? yes. but settting it causes a rerender. 
@@ -332,10 +333,12 @@ const LinkPanel = () => {
         }
     }
 
-    if ((meta._without_key_meta == '') || (meta._without_key_meta == undefined))
+    if (    (! meta.hasOwnProperty("_without_key_meta"))  || (   meta.hasOwnProperty("_without_key_meta") &&
+    ((meta._without_key_meta == '') || (typeof meta._without_key_meta == "undefined"))   )   )
     {
         console.log("B");
         setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
+        
            
         if (settings.domain.type == "query")
         {
@@ -345,6 +348,7 @@ const LinkPanel = () => {
         {
             linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString();
         }
+        
     }
     else
     {   console.log("B2");
@@ -359,12 +363,7 @@ const LinkPanel = () => {
     
     }
 
-    
-    if ((meta._link_for_assigments == '') || (meta._link_for_assigments == undefined))
-    {
-       //query strong not supported as only used in repi
-        setMeta( { ...meta, _link_for_assigments:  settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString() } );
-    }
+
 
 
  

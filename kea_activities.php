@@ -574,7 +574,7 @@ class KeaActivities
                 'type' => 'string',  //it doesn't in fact accept number or integer
             ),
             'auth_callback' => function() {
-            return current_user_can( 'edit_posts' );
+            return current_user_can( 'edit_posts' ); //TODO check perms
         
         } 
         ) );
@@ -593,17 +593,7 @@ class KeaActivities
             } 
         ) );
 
-        register_post_meta( 'kea_activity', '_link_for_assigments', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string', //it doesn't in fact accept number or integer
     
-            ),
-            'auth_callback' => function() {
-            return current_user_can( 'edit_posts' );
-
-            } 
-        ) );
     }
 
     //TODO this is untested because we have manually run alter table statements.
