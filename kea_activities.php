@@ -312,6 +312,7 @@ class KeaActivities
 
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
         $post_without_key_meta = intval($post_meta["_without_key_meta"][0]); 
+        $post_assignment_key_meta = intval($post_meta["_assignment_key_meta"][0]); 
 
         //var_dump("_without_key_gap_fill_meta", $post_without_key_meta);
 
@@ -382,9 +383,10 @@ class KeaActivities
             'kea_activity_post_json' => $json_string, 
             'kea_activity_post_author_id' => $author_id, 
             'kea_activity_with_key_key' => $post_with_key_meta, 
-            'kea_activity_without_key_key' => $post_without_key_meta
+            'kea_activity_without_key_key' => $post_without_key_meta,
+            'kea_activity_assignment_key' => $post_assignment_key_meta,
             
-        ), array( '%d', '%s', '%s', '%d', '%d' ,'%s', '%d')); 
+        ), array( '%d', '%s', '%s', '%d', '%d' ,'%s', '%d', '%d')); 
 
 
         if ($result === false)
@@ -593,6 +595,18 @@ class KeaActivities
             } 
         ) );
 
+        register_post_meta( 'kea_activity', '_assignment_key_meta', array(
+            'show_in_rest' => array(
+                'single' => true,
+                'type' => 'string', //it doesn't in fact accept number or integer
+    
+            ),
+            'auth_callback' => function() {
+            return current_user_can( 'edit_posts' );
+
+            } 
+        ) );
+
     
     }
 
@@ -625,6 +639,24 @@ class KeaActivities
         }
 
         add_option( 'kea_activity_db_version', $db_version );
+
+        if (get_option('kea_activity_db_version') < 2.1)
+        {//dbDelta does not work with IF NOT EXISTS - it handles this for you. /wp-admin/includes/upgrade.php : this will result in an ALTER table statement
+            $sql_update_1 = "CREATE TABLE $this->kea_table_name1 (
+                kea_activity_id bigint NOT NULL AUTO_INCREMENT,
+                kea_activity_post_id bigint NOT NULL,
+                kea_activity_ex_type ENUM('gapfill', 'multiplechoice') NOT NULL,
+                kea_activity_post_json text NOT NULL,
+                kea_activity_post_author_id bigint NOT NULL,
+                kea_activity_with_key_key bigint NOT NULL,
+                kea_activity_without_key_key bigint NOT NULL,
+                kea_activity_assignment_key bigint NOT NULL DEFAULT 0,
+                PRIMARY KEY  kea_activity_id (kea_activity_id),
+                UNIQUE (kea_activity_post_id)
+            ) $charset_collate;";
+            $result = dbDelta( $sql_update_1 );
+            update_option( 'kea_activity_db_version', 2.1);
+        }
     }
 
 

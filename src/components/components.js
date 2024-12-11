@@ -282,9 +282,9 @@ const LinkPanel = () => {
   
 
 
-   let getRandom = () =>
+   const getRandom = () =>
    {
-        const arraySet = new Uint32Array(2);
+        const arraySet = new Uint32Array(3);
         self.crypto.getRandomValues(arraySet);
         return arraySet;
     
@@ -296,7 +296,7 @@ const LinkPanel = () => {
     console.log("meta", meta);
 
      
-    //new meta is only saved when the post is 'published' and this uses and ajax reqyest to wp sending updated data
+    //new meta is only saved when the post is 'published' and this uses an ajax reqyest to wp sending updated data
     //so if user does not save the ex links are invalid  -  TODO - how to know if post has been saved and meta in backend?
 
 
@@ -361,6 +361,13 @@ const LinkPanel = () => {
             linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
         }
     
+    }
+
+    if (    (! meta.hasOwnProperty("_assignment_key_meta"))  || (   meta.hasOwnProperty("_assignment_key_meta") &&
+    ((meta._assignment_key_meta == '') || (typeof meta._assignment_key_meta == "undefined"))   )   )
+    {
+        console.log("_assignment_key_meta created",vals[2].toString() );
+        setMeta( { ...meta, _assignment_key_meta:  vals[2].toString() } );
     }
 
 
