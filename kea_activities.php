@@ -616,6 +616,8 @@ class KeaActivities
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
         
         $db_version = '1.1';
+        add_option( 'kea_activity_db_version', $db_version );
+        
         $charset_collate = $this->wpdb->get_charset_collate();
 
         $sql = "CREATE TABLE IF NOT EXISTS $this->kea_table_name1 (
@@ -638,7 +640,7 @@ class KeaActivities
             die;
         }
 
-        add_option( 'kea_activity_db_version', $db_version );
+        
 
         if (get_option('kea_activity_db_version') < 2.1)
         {//dbDelta does not work with IF NOT EXISTS - it handles this for you. /wp-admin/includes/upgrade.php : this will result in an ALTER table statement
