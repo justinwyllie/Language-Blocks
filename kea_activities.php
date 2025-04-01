@@ -76,15 +76,19 @@ class KeaActivities
     public function limit_posts_for_current_author($query)
     {
 
+        $this->error_log("HERE----------------------------------------------------------------------------------HERE");
         
         global $pagenow;
 
         if( 'edit.php' != $pagenow || !$query->is_admin )
             return $query;
 
+            $this->error_log("HERE2----------------------------------------------------------------------------------HERE2");
+
         if( !current_user_can( 'edit_others_posts' ) ) {
             global $user_ID;
             $query->set('author', $user_ID );
+            $this->error_log("HERE3----------------------------------------------------------------------------------HERE3".$user_ID);
         }
 
 
@@ -275,7 +279,7 @@ class KeaActivities
                     'rest_base'    => 'kea_activity',
                     'has_archive' => true,
                     'supports' => array( 'title', 'editor', 'custom-fields', 'revisions', 'author' ),
-                    'rewrite'     => array( 'slug' => 'gap_fill' )
+                    'rewrite'     => array( 'slug' => 'gapfill' )
                     //'taxonomies'  => array( 'category', 'post_tag' )
             )
         );
@@ -313,8 +317,6 @@ class KeaActivities
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
         $post_without_key_meta = intval($post_meta["_without_key_meta"][0]); 
         $post_assignment_key_meta = intval($post_meta["_assignment_key_meta"][0]); 
-
-        //var_dump("_without_key_gap_fill_meta", $post_without_key_meta);
 
 
         //array of term objs or false if none
@@ -703,11 +705,7 @@ class KeaActivities
             $deps,
             $asset_file['version']
         );
-        /*
-        wp_enqueue_script('activity_gap_fill_script');
-        wp_enqueue_style('activity_gap_fill-editor');
-        wp_enqueue_style('activity_gap_fill-editor-front');
-        */
+
         //
         register_block_type( 'activities/activity-gap-fill', array(
             'api_version' => 2,
