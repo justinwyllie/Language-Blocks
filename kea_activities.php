@@ -76,19 +76,19 @@ class KeaActivities
     public function limit_posts_for_current_author($query)
     {
 
-        $this->error_log("HERE----------------------------------------------------------------------------------HERE");
+     
         
         global $pagenow;
 
         if( 'edit.php' != $pagenow || !$query->is_admin )
             return $query;
 
-            $this->error_log("HERE2----------------------------------------------------------------------------------HERE2");
+       
 
         if( !current_user_can( 'edit_others_posts' ) ) {
             global $user_ID;
             $query->set('author', $user_ID );
-            $this->error_log("HERE3----------------------------------------------------------------------------------HERE3".$user_ID);
+            
         }
 
 
