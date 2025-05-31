@@ -679,10 +679,11 @@ class KeaActivities
         wp_register_style(
             'activity-editor',
             $css,
-            array( 'wp-edit-blocks' ),
+            array( 'wp-edit-blocks', 'wp-admin' ),
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
         );
         wp_enqueue_style("activity-editor");
+     
 
         /*
         wp_register_style(
