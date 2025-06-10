@@ -542,30 +542,29 @@ class KeaActivities
 
         
 
-        //this registers a meta field for this post type and also makes it show in rest
+        //todo - this should be called _kea_activity_xml
         register_post_meta( 'kea_activity', '_kea_activity_meta', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string', 
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => true, 
                 'prepare_callback' => function ( $value ) {
                     $json = $this->maybe_convert_xml_to_json2($value);
                     return $json;
                 },
-            ),
+            
             'auth_callback' => function() {
-            return current_user_can( 'edit_posts' );
+            return current_user_can( 'edit_published_posts' );
             /* (callable) Optional. A function or method to call when 
             performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
         } 
-        ) );
+        )) ;
 
         register_post_meta( 'kea_activity', '_kea_activity_type', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string', 
-             ),
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => true, 
             'auth_callback' => function() {
-            return current_user_can( 'edit_posts' );
+            return current_user_can( 'edit_published_posts' );
             /* (callable) Optional. A function or method to call when 
             performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
         } 
@@ -573,12 +572,11 @@ class KeaActivities
 
         //this registers a meta field for this post type and also makes it show in rest
         register_post_meta( 'kea_activity', '_with_key_meta', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string',  //it doesn't in fact accept number or integer
-            ),
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => true, 
             'auth_callback' => function() {
-            return current_user_can( 'edit_posts' ); //TODO check perms
+            return current_user_can( 'edit_published_posts' ); //TODO check perms
         
         } 
         ) );
@@ -586,23 +584,29 @@ class KeaActivities
 
         //this registers a meta field for this post type and also makes it show in rest
         register_post_meta( 'kea_activity', '_without_key_meta', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string', //it doesn't in fact accept number or integer
-    
-            ),
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => true, 
+            'auth_callback' => function() {
+            return current_user_can( 'edit_published_posts' );
+
+            } 
+        ) ); 
+
+        register_post_meta( 'kea_activity', '_assignment_key_meta', array(
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => true,  
             'auth_callback' => function() {
             return current_user_can( 'edit_posts' );
 
             } 
         ) );
 
-        register_post_meta( 'kea_activity', '_assignment_key_meta', array(
-            'show_in_rest' => array(
-                'single' => true,
-                'type' => 'string', //it doesn't in fact accept number or integer
-    
-            ),
+        register_post_meta( 'kea_activity', 'test', array(
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => true,  
             'auth_callback' => function() {
             return current_user_can( 'edit_posts' );
 

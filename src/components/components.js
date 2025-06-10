@@ -289,9 +289,9 @@ const LinkPanel = () => {
         return arraySet;
     
    }
-   //gets it from the store. (does it make an endpoint request if it is not in the store?) don't think it subsrcibes to updates
+   
    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
-   //or https://developer.wordpress.org/block-editor/reference-guides/data/data-core-editor/#geteditedpostattribute?
+
     
     console.log("meta", meta);
 
@@ -367,12 +367,21 @@ const LinkPanel = () => {
     ((meta._assignment_key_meta == '') || (typeof meta._assignment_key_meta == "undefined"))   )   )
     {
         console.log("_assignment_key_meta created",vals[2].toString() );
-        setMeta( { ...meta, _assignment_key_meta:  vals[2].toString() } );
+        setMeta( { ...meta, _assignment_key_meta:  vals[2].toString()} );
+       
     }
 
-
-
-
+    async function saveMetaOnly(postId, metaKey, metaValue) {
+        await apiFetch({
+          path: `/wp/v2/posts/${postId}`,
+          method: 'POST',
+          data: {
+            meta: {
+              [metaKey]: metaValue
+            }
+          }
+        });
+    }
  
 //linkWithoutKey = meta._link_for_assigments;
     
@@ -384,6 +393,7 @@ const LinkPanel = () => {
         //https://developer.wordpress.org/block-editor/reference-guides/slotfills/plugin-document-setting-panel/
         return(<PluginDocumentSettingPanel title={ __( 'Links', 'kea') } initialOpen="true">
 			<PanelRow>
+          
 				<div className="">
                     <p className="kea-emp1">{ __( 'Exercise with Key:', 'kea' ) }</p>
                   
