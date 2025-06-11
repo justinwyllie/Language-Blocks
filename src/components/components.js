@@ -4,8 +4,8 @@ import Form from 'react-bootstrap/Form';
 import { Field, ErrorMessage, FieldArray } from 'formik';
 import { Button} from 'react-bootstrap';
 
-import { useSelect }  from '@wordpress/data';
-import { useEntityProp } from '@wordpress/core-data';
+import { useSelect, useDispatch }  from '@wordpress/data';
+import { useEntityProp, store as coreStore } from '@wordpress/core-data';
 import { PanelRow } from '@wordpress/components';
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post'; 
 import { useState, useRef } from 'react';
@@ -16,7 +16,9 @@ const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
 import { CapitalizeFirstLetter } from "../helpers";
 
-
+//import { useDispatch } from '@wordpress/data'; 
+//import { store as coreStore } from '@wordpress/core-data';
+//const { saveEditedEntityRecord } = useDispatch( coreStore );
 
 
 const { __ } = wp.i18n; //TODO check
@@ -89,7 +91,7 @@ const GapFillQuestion = ({idx, remove}) => {
 
 const MultipleChoiceQuestionAnswer = ({idx, idx2}) => {
 
-    //console.log("MultipleChoiceQuestionAnswer", idx, idx2,  errors);
+ 
     let placeholder = "choice";
     if (idx2 == 0)
     {
@@ -230,7 +232,7 @@ const TipTool = (props) => {
 const LinkPanel = () => {
 
 
-    console.log("link panel rendered");
+  
     const [show1, setShow1] = useState(false);
     const [show2, setShow2] = useState(false);
     const target = useRef(null);
@@ -279,7 +281,19 @@ const LinkPanel = () => {
         ( select ) => select( 'core/editor' ).getCurrentPostId()
     );
 
-  
+    const  updateAndSaveMeta = async (keyItem, newValue) => {
+        const { saveEditedEntityRecord } = useDispatch( coreStore );
+ 
+        setMeta( { ...meta, [keyItem]:  newValue} );
+   
+        try {
+            await  saveEditedEntityRecord('postType', 'kea_activity', postId);
+            console.log('Meta saved successfully!');
+        } catch (error) {
+            console.error('Save failed:', error);
+        }
+        
+    };
 
 
    const getRandom = () =>
@@ -308,9 +322,7 @@ const LinkPanel = () => {
     if (    (! meta.hasOwnProperty("_with_key_meta"))  || (   meta.hasOwnProperty("_with_key_meta") &&
         ((meta._with_key_meta == '') || (typeof meta._with_key_meta == "undefined"))   )   )
     {
-            console.log("A");
-            //is this only actually saved when the post is saved? yes. but settting it causes a rerender. 
-            setMeta( { ...meta, _with_key_meta: vals[0].toString()} );
+            updateAndSaveMeta("_with_key_meta", vals[0].toString());
             if (settings.domain.type == "query")
             {
                 linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + vals[0].toString();
@@ -322,7 +334,7 @@ const LinkPanel = () => {
           
     }
     else
-    {   console.log("A2");
+    {   
         if (settings.domain.type == "query")
         {
             linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
@@ -336,9 +348,8 @@ const LinkPanel = () => {
     if (    (! meta.hasOwnProperty("_without_key_meta"))  || (   meta.hasOwnProperty("_without_key_meta") &&
     ((meta._without_key_meta == '') || (typeof meta._without_key_meta == "undefined"))   )   )
     {
-        console.log("B");
-        setMeta( { ...meta, _without_key_meta:  vals[1].toString() } );
-        
+
+        updateAndSaveMeta("_without_key_meta", vals[1].toString());
            
         if (settings.domain.type == "query")
         {
@@ -351,7 +362,7 @@ const LinkPanel = () => {
         
     }
     else
-    {   console.log("B2");
+    {   
         if (settings.domain.type == "query")
         {
             linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_meta;
@@ -366,22 +377,10 @@ const LinkPanel = () => {
     if (    (! meta.hasOwnProperty("_assignment_key_meta"))  || (   meta.hasOwnProperty("_assignment_key_meta") &&
     ((meta._assignment_key_meta == '') || (typeof meta._assignment_key_meta == "undefined"))   )   )
     {
-        console.log("_assignment_key_meta created",vals[2].toString() );
-        setMeta( { ...meta, _assignment_key_meta:  vals[2].toString()} );
-       
+        updateAndSaveMeta("_assignment_key_meta", vals[2].toString());
     }
 
-    async function saveMetaOnly(postId, metaKey, metaValue) {
-        await apiFetch({
-          path: `/wp/v2/posts/${postId}`,
-          method: 'POST',
-          data: {
-            meta: {
-              [metaKey]: metaValue
-            }
-          }
-        });
-    }
+
  
 //linkWithoutKey = meta._link_for_assigments;
     
