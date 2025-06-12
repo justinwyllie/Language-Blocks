@@ -306,12 +306,7 @@ const LinkPanel = () => {
    
    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
 
-    
-    console.log("meta", meta);
-
-     
-    //new meta is only saved when the post is 'published' and this uses an ajax reqyest to wp sending updated data
-    //so if user does not save the ex links are invalid  -  TODO - how to know if post has been saved and meta in backend?
+   console.log("META", meta);
 
 
     let vals = getRandom();
