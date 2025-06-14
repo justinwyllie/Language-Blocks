@@ -23,6 +23,17 @@ const GapFill = ({postType}) =>
     const supportedLangs = [defaultLang, ...additionalLangs];
     const metaFieldValue = meta[ '_kea_activity_meta' ]; 
 
+    /*
+    const { postTitle } = useSelect(
+        ( select ) => ( {
+            postTitle: select('core/editor').getEditedPostAttribute('title')
+        } ),
+        []
+    );
+    */
+
+
+
     //validate form, if ok build XML (second validation step - test for valid
     //valid XML - call setMeta to update the meta field with the XML
     const processForm = (values) =>
@@ -42,8 +53,9 @@ const GapFill = ({postType}) =>
         legacyNameNode.appendChild(legacyNameValueNode);
         xmlDoc.getElementsByTagName("activity")[0].appendChild(legacyNameNode);
 
+        const postTitle = wp.data.select('core/editor').getEditedPostAttribute('title');
         let titleNode = xmlDoc.createElement("title");
-        let titleValueNode = xmlDoc.createTextNode(values.title);
+        let titleValueNode = xmlDoc.createTextNode(postTitle);
         titleNode.appendChild(titleValueNode);
         xmlDoc.getElementsByTagName("activity")[0].appendChild(titleNode);
 
@@ -83,14 +95,9 @@ const GapFill = ({postType}) =>
         let s = new XMLSerializer();
         let newXmlStr = s.serializeToString(xmlDoc);
         values.rawXML = newXmlStr;
-    
 
-        //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
-        //this seems to cause a re-render of the component. does it?
-        //but does not save anything to the backend - that takes saving the whole post
-        //via the button on the page?
-       
         setMeta( { ...meta, _kea_activity_meta: newXmlStr, _kea_activity_type: "gapfill" } );
+        //todo maaybe use saveeditiedentityrecord to save this without an additional press of the big Save button - see components.js in this project
         
         
     }
@@ -110,7 +117,7 @@ const GapFill = ({postType}) =>
     */
 
     const grammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100})
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100}) 
 
     );
 
@@ -178,7 +185,6 @@ const GapFill = ({postType}) =>
                 //initialValues.ageGroup = 0;
                 //initialValues.level = 0;
                 initialValues.legacyName = '';
-                initialValues.title = '';
                 initialValues.models = '';
                 initialValues.explanation = '';
                 initialValues.questions = [];
@@ -211,15 +217,7 @@ const GapFill = ({postType}) =>
                     initialValues.legacyName = '';  
                 }
 
-                let titleNodes = xmlDoc.getElementsByTagName("title");
-                if ((titleNodes.length > 0))
-                {
-                    initialValues.title = titleNodes[0].childNodes[0].nodeValue;     
-                }
-                else
-                {
-                    initialValues.title = '';
-                }
+                
 
                 let modelsNodes = xmlDoc.getElementsByTagName("models");
                 if ((modelsNodes.length > 0) && (modelsNodes[0].childNodes.length > 0))
@@ -300,14 +298,14 @@ const GapFill = ({postType}) =>
             setInitialValues();
         }
         
-        
+    console.log("rendering form");
     return <div>
                 
     <Formik
         initialValues={initialValues}
 
         validate={values => {
-            console.log("validate", values);
+          
             let errors = {};
            
             /*
@@ -318,9 +316,7 @@ const GapFill = ({postType}) =>
                 errors.level = "Required"; 
             }
             */
-            if ((values.title == "") || (values.title.length <= 5)) {
-                errors.title = "Required and must be > 5 chars"; 
-            }
+
             //TODO could valdiate for correct format ___ and |
            
             //https://formik.org/docs/guides/arrays
@@ -418,6 +414,7 @@ const GapFill = ({postType}) =>
         }}
             
     >
+
         {({
             values,
             errors,
@@ -433,25 +430,7 @@ const GapFill = ({postType}) =>
             
         <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
             
-
-            <Form.Group as={Row}>
-                <Form.Label column md={2}>Title</Form.Label>
-                <Col md={10}>
-                    <Form.Control  name="title" id="title"
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.title}
-                        isInvalid={!!errors.title && !!touched.title}
-                     
-                    ></Form.Control>
-
-                    {errors.title && touched.title ? 
-                        <div className="invalid-feedback">
-                        {errors.title}
-                        </div> : null
-                    }
-                </Col>
-            </Form.Group>
+   
 
             <Form.Group as={Row}>
                 <Form.Label column sm={2}>Legacy Name (optional)</Form.Label>
