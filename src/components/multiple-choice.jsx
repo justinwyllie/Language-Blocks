@@ -4,15 +4,16 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Alert from 'react-bootstrap/Alert';
 import { useSelect } from '@wordpress/data';
+import { useRef } from '@wordpress/element';
 import { useEntityProp } from '@wordpress/core-data';
 import { Formik, FieldArray , useFormikContext } from 'formik';
 import { Instruction, MultipleChoiceQuestion, LinkPanel, AuthorPanel} from './components';
-
+import { LABELS } from '../translations';
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 import _ from 'underscore';
 
 const settings = window.kea_language_blocks.settings;
-
+const POST_TITLE_LENGTH = 5;
 
 const MultipleChoice = ({postType}) =>
 {
@@ -32,7 +33,13 @@ const MultipleChoice = ({postType}) =>
         formSubmitting  = flag; 
     }
 
-
+    const { postTitle } = useSelect(
+        ( select ) => ( {
+            postTitle: select('core/editor').getEditedPostAttribute('title')
+        } ),
+        []
+    );
+    const alertRef = useRef();
 
 
     //validate form, if ok build XML (second validation step - test for valid
@@ -54,7 +61,6 @@ const MultipleChoice = ({postType}) =>
         legacyNameNode.appendChild(legacyNameValueNode);
         xmlDoc.getElementsByTagName("activity")[0].appendChild(legacyNameNode);
 
-        const postTitle = wp.data.select('core/editor').getEditedPostAttribute('title');
         let titleNode = xmlDoc.createElement("title");
         let titleValueNode = xmlDoc.createTextNode(postTitle);
         titleNode.appendChild(titleValueNode);
@@ -199,15 +205,19 @@ const MultipleChoice = ({postType}) =>
     
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
 
-    const ErrorMessage = () =>
+    const ErrorMessage = ({postTitle}) =>
     {
         const { isValid } = useFormikContext();
-        if (isValid) 
+      
+        if (isValid && (postTitle.length >= POST_TITLE_LENGTH))
+        {   
             return <></>
+        }
         else
-            return <Alert variant="danger">Please check the form</Alert>
+        {
+            return <Alert variant="danger">{LABELS[settings.defaultUserLang]['please_check_the_form']['nominative']}</Alert>;
+        }
     };
-   
     
     function setInitialValues() {
             
@@ -359,349 +369,357 @@ const MultipleChoice = ({postType}) =>
         
 
 
-    return <div>
-                
-    <Formik
-        initialValues={initialValues}
-
-        validate={values => {
+    return <div ref={alertRef}>
+        {(postTitle.length < POST_TITLE_LENGTH) ? <div className="field-error">{LABELS[settings.defaultUserLang]['minimum_length_title']['nominative']}</div> : ''}  
             
-            
-            if (formSubmitting == true)
-            {
-                return {};
-            }
-            
-            let errors = {};
-           
-            /*
-            if (values.ageGroup == 0) {
-                errors.ageGroup = "Required"; 
-            }
-            if (values.level == 0) {
-                errors.level = "Required"; 
-            }
-            */
-    
-            //TODO could valdiate for correct format ___ and |
-           
-            //https://formik.org/docs/guides/arrays
-            //todo how to do my array of questions https://formik.org/docs/api/fieldarray
+        <Formik
+            initialValues={initialValues}
 
-            if (settings.site == "repititor")
-            {
-                let instructionsError = true;
-                let instructionsCount = 0;
-                values.instructions.forEach((item, idx) =>
-                {
-                    
-                    if (item.text != '')
-                    {
-                        instructionsError = false;
-                    }
-
-                    instructionsCount = idx;
-                });
-
-                if (instructionsError) {
-                    errors.instructions = new Array();
-                    errors.instructions[instructionsCount] = {"lang": '', "text": "At least one language must have instructions"};
-                }
-            }
-            else
-            {
-                values.instructions.forEach((item, idx) =>
-                {
-                    if (item.lang == defaultLang)
-                    {
-                        if (item.text == '')
-                        {
-                            errors.instructions = new Array();
-                            errors.instructions[idx] = {"lang": '', "text": "Required"};
-                        }
-                    }
-                });
-
-            }
-           
-            
-           
-            //let errorObj = {"question": '', "answers": []};
-            values.questions.forEach((item, idx) =>
-            {
+            validate={values => {
                 
                 
-                //questions
-                if (values.questions[idx].question == '')
+                if (formSubmitting == true)
                 {
-                    if (errors.questions == undefined)
-                    {
-                        errors.questions = new Array();
-                    }
-                    if (errors.questions[idx] == undefined)
-                    {
-                        errors.questions[idx] = {question: '', answers: []};
-                    }
-                  
-                    errors.questions[idx].question = "Required";
+                    return {};
                 }
                 
-
-                //answers
-                for (let i = 0;  i < 4; i++)
-                    {
-                        if (values.questions[idx].answers[i] == undefined || values.questions[idx].answers[i] == '' )
-                        {
-                            if (errors.questions == undefined)
-                            {
-                                errors.questions = new Array();
-                            }
-                            if (errors.questions[idx] == undefined)
-                            {
-                                errors.questions[idx] = {question: '', answers: []};
-                            }
-                            errors.questions[idx].answers[i] = "Please enter a value";
-                        }
-                        
+                let errors = {};
+            
+                /*
+                if (values.ageGroup == 0) {
+                    errors.ageGroup = "Required"; 
                 }
-
-                
-            })
-            globalErrors = errors;
-            return errors;
-        }}
+                if (values.level == 0) {
+                    errors.level = "Required"; 
+                }
+                */
         
-        onSubmit={(values, formikBag) => {
+                //TODO could valdiate for correct format ___ and |
+            
+                //https://formik.org/docs/guides/arrays
+                //todo how to do my array of questions https://formik.org/docs/api/fieldarray
 
-            //this is only called if validation passes?
-         
-            setFormSubmitting(false);//can we use isSubmitting? maybe from context?
-            formikBag.validateForm();
-          
-            //TEST ONLY  
-            let touched = {}
-            if (!_.isEmpty(globalErrors) )
-            {
-                if (globalErrors.title != undefined)
+                if (settings.site == "repititor")
                 {
-                    touched.title = true;
-                }
-                if (globalErrors.instructions != undefined)
-                {
-                    touched.instructions = Array();
-                    globalErrors.instructions.forEach((instruction, idx) => {
-                        touched.instructions[idx] =  {lang: '', text: true}; 
+                    let instructionsError = true;
+                    let instructionsCount = 0;
+                    values.instructions.forEach((item, idx) =>
+                    {
+                        
+                        if (item.text != '')
+                        {
+                            instructionsError = false;
+                        }
+
+                        instructionsCount = idx;
                     });
-                }
-                if (globalErrors.questions != undefined)
-                {
-                    touched.questions = [];
-                    globalErrors.questions.forEach((item, idx) => {
-                        touched.questions.push({question: true, answers: [true, true, true, true]});
-                    });
-                }
-            }
 
-            formikBag.setTouched(touched);
-            
-            if (_.isEmpty(globalErrors))
-            {
-                processForm(values);
-            }
-    
-            
-        }}
-            
-    >
-        {({
-            values,
-            errors,
-            touched,
-            handleChange,
-            setFieldValue,
-            handleBlur,
-            handleSubmit,
-            isSubmitting,
-            setFieldTouched,
-            setTouched,
-            validateForm,
-            isValid
-     
-        }) => (
-         
-       
-            
-        <Form  onSubmit={(e) => {
-
-            setFormSubmitting(true);
-            handleSubmit(e)
-            }
-            } name="activty" id="activity" className="">
-
-         
-            <ErrorMessage></ErrorMessage>
-
-
-            <Form.Group as={Row}>
-                <Form.Label column sm={2}>Legacy Name (optional)</Form.Label>
-                <Col md={10}>
-                    <Form.Control md={10} name="legacyName" id="legacyName"
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        value={values.legacyName}
-                        isInvalid={!!errors.legacyName && !!touched.legacyName}
-                    ></Form.Control>
-                    {errors.legacyName && touched.legacyName ? 
-                        <div className="invalid-feedback">
-                        {errors.legacyName}
-                        </div> : null
+                    if (instructionsError) {
+                        errors.instructions = new Array();
+                        errors.instructions[instructionsCount] = {"lang": '', "text": "At least one language must have instructions"};
                     }
-                </Col>
-            </Form.Group>
+                }
+                else
+                {
+                    values.instructions.forEach((item, idx) =>
+                    {
+                        if (item.lang == defaultLang)
+                        {
+                            if (item.text == '')
+                            {
+                                errors.instructions = new Array();
+                                errors.instructions[idx] = {"lang": '', "text": "Required"};
+                            }
+                        }
+                    });
+
+                }
+            
+                
+            
+                //let errorObj = {"question": '', "answers": []};
+                values.questions.forEach((item, idx) =>
+                {
+                    
+                    
+                    //questions
+                    if (values.questions[idx].question == '')
+                    {
+                        if (errors.questions == undefined)
+                        {
+                            errors.questions = new Array();
+                        }
+                        if (errors.questions[idx] == undefined)
+                        {
+                            errors.questions[idx] = {question: '', answers: []};
+                        }
+                    
+                        errors.questions[idx].question = "Required";
+                    }
+                    
+
+                    //answers
+                    for (let i = 0;  i < 4; i++)
+                        {
+                            if (values.questions[idx].answers[i] == undefined || values.questions[idx].answers[i] == '' )
+                            {
+                                if (errors.questions == undefined)
+                                {
+                                    errors.questions = new Array();
+                                }
+                                if (errors.questions[idx] == undefined)
+                                {
+                                    errors.questions[idx] = {question: '', answers: []};
+                                }
+                                errors.questions[idx].answers[i] = "Please enter a value";
+                            }
+                            
+                    }
+
+                    
+                })
+                globalErrors = errors;
+                return errors;
+            }}
+            
+            onSubmit={(values, formikBag) => {
+
+              
+                //TODO - what is all this???? it looks like we are repeating the validation ? TODO what does 'TEST ONLY' mean? can we just get rid of this?
+                setFormSubmitting(false);//can we use isSubmitting? maybe from context? TODO yes
+                formikBag.validateForm();
+            
+                //TEST ONLY  
+                let touched = {}
+                if (!_.isEmpty(globalErrors) )
+                {
+                    if (globalErrors.title != undefined)
+                    {
+                        touched.title = true;
+                    }
+                    if (globalErrors.instructions != undefined)
+                    {
+                        touched.instructions = Array();
+                        globalErrors.instructions.forEach((instruction, idx) => {
+                            touched.instructions[idx] =  {lang: '', text: true}; 
+                        });
+                    }
+                    if (globalErrors.questions != undefined)
+                    {
+                        touched.questions = [];
+                        globalErrors.questions.forEach((item, idx) => {
+                            touched.questions.push({question: true, answers: [true, true, true, true]});
+                        });
+                    }
+                }
+
+                formikBag.setTouched(touched);
+                
+                if (_.isEmpty(globalErrors))
+                {
+                    if (postTitle.length < POST_TITLE_LENGTH )
+                    {
+                       alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' });
+                    } 
+                    else 
+                    {
+                        processForm(values);
+                    }
+                }
+        
+                
+            }}
+                
+        >
+            {({
+                values,
+                errors,
+                touched,
+                handleChange,
+                setFieldValue,
+                handleBlur,
+                handleSubmit,
+                isSubmitting,
+                setFieldTouched,
+                setTouched,
+                validateForm,
+                isValid
+        
+            }) => (
+            
+        
+                
+            <Form  onSubmit={(e) => {
+
+                setFormSubmitting(true);
+                handleSubmit(e)
+                }
+                } name="activty" id="activity" className="">
+
+            
+                <ErrorMessage postTitle={postTitle}></ErrorMessage>
 
 
-            <Form.Group as={Row}> 
-                    <Col>
-                        <h3>Instructions</h3>
+                <Form.Group as={Row}>
+                    <Form.Label column sm={2}>Legacy Name (optional)</Form.Label>
+                    <Col md={10}>
+                        <Form.Control md={10} name="legacyName" id="legacyName"
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            value={values.legacyName}
+                            isInvalid={!!errors.legacyName && !!touched.legacyName}
+                        ></Form.Control>
+                        {errors.legacyName && touched.legacyName ? 
+                            <div className="invalid-feedback">
+                            {errors.legacyName}
+                            </div> : null
+                        }
                     </Col>
-            </Form.Group>        
-
-            <div>     
-                {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
-                            <Instruction instruction={instruction} idx={idx} />
-                )}     
-            </div>
-
-            <Form.Group as={Row}> 
-                    <Col>
-                        <h3>Models</h3>
-                    </Col>
-            </Form.Group>   
-
-            <Form.Group as={Row}>
-                <Col md={2}>
-                    
-                </Col>
-                <Col md={10}>
-                    
-                    
-                    <RichText name="models" id="models"
-                        className="rich-input-control mt-3"
-                        tagName="div" 
-                        value={ values.models } 
-                        allowedFormats={ [ 'core/bold', 'core/italic' ] } 
-                        onChange={ ( content ) => {
-                            setFieldValue("models", content);
-                        } } 
-                         
-                      />
-
-                </Col>
-            </Form.Group>
-
-            <Form.Group as={Row}> 
-                    <Col>
-                        <h3>Explanation</h3>
-                    </Col>
-            </Form.Group>   
-
-            <Form.Group as={Row}>
-                <Col md={2}>
-                    
-                </Col>
-                <Col md={10}>
-                    
-                    
-                    <RichText name="explanation" id="explanation"
-                        className="rich-input-control mt-3"
-                        tagName="div" 
-                        value={ values.explanation } 
-                        allowedFormats={ [ 'core/bold', 'core/italic' ] } 
-                        onChange={ ( content ) => {
-                            setFieldValue("explanation", content);
-                        } } 
-                         
-                      />
-
-                </Col>
-            </Form.Group>
+                </Form.Group>
 
 
+                <Form.Group as={Row}> 
+                        <Col>
+                            <h3>Instructions</h3>
+                        </Col>
+                </Form.Group>        
 
-            <Row>
-                <Col>
-                    <h3>Questions</h3>
-                    <p>Write the question in the question box. Then put 4 variants in the 4 answer boxes. The first box should contain the <span class="font-italic">correct</span> variant. 
-                     The order of the answers in the drop-down presented to the user will be randomised. 
-                        </p>
-                </Col>
-            </Row>
-
-            <FieldArray name="questions" validateOnChange={true}>
-            {({ insert, remove, push }) => (
                 <div>     
-                    {values.questions.length > 0 && values.questions.map( (item, idx) =>            
-                        <MultipleChoiceQuestion idx={idx} 
-                            insert={insert}
-                            remove={remove}
-                            touched={touched} 
-                            >
-                        </MultipleChoiceQuestion>)
-                    }
-                    <div className="text-right margin-top-10">
-                        <button
-                            className="secondary btn btn-primary"
-                            type="button"
-                            onClick={() => push({ question: '', answers: [] })}>
-                        +
-                        </button>
-                    </div>
+                    {values.instructions.length > 0 && values.instructions.map((instruction, idx) =>           
+                                <Instruction instruction={instruction} idx={idx} />
+                    )}     
                 </div>
-            )}
-            </FieldArray>
-               
-            <Form.Group as={Row}>
-                <Col md={12}>
-                        {/*<Button onClick={() => addQuestion() }>+</Button>*/}
-                </Col>
-            </Form.Group>
 
-            <Form.Group as={Row}>
-                <Col sm={{ span: 10, offset: 0 }}>
-                    <div className="px-1 py-1 mt-3 mb-3">
-                        {userLabels.map((item, i) => {
-                            return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
-                        })}
+                <Form.Group as={Row}> 
+                        <Col>
+                            <h3>Models</h3>
+                        </Col>
+                </Form.Group>   
+
+                <Form.Group as={Row}>
+                    <Col md={2}>
+                        
+                    </Col>
+                    <Col md={10}>
+                        
+                        
+                        <RichText name="models" id="models"
+                            className="rich-input-control mt-3"
+                            tagName="div" 
+                            value={ values.models } 
+                            allowedFormats={ [ 'core/bold', 'core/italic' ] } 
+                            onChange={ ( content ) => {
+                                setFieldValue("models", content);
+                            } } 
+                            
+                        />
+
+                    </Col>
+                </Form.Group>
+
+                <Form.Group as={Row}> 
+                        <Col>
+                            <h3>Explanation</h3>
+                        </Col>
+                </Form.Group>   
+
+                <Form.Group as={Row}>
+                    <Col md={2}>
+                        
+                    </Col>
+                    <Col md={10}>
+                        
+                        
+                        <RichText name="explanation" id="explanation"
+                            className="rich-input-control mt-3"
+                            tagName="div" 
+                            value={ values.explanation } 
+                            allowedFormats={ [ 'core/bold', 'core/italic' ] } 
+                            onChange={ ( content ) => {
+                                setFieldValue("explanation", content);
+                            } } 
+                            
+                        />
+
+                    </Col>
+                </Form.Group>
+
+
+
+                <Row>
+                    <Col>
+                        <h3>Questions</h3>
+                        <p>Write the question in the question box. Then put 4 variants in the 4 answer boxes. The first box should contain the <span class="font-italic">correct</span> variant. 
+                        The order of the answers in the drop-down presented to the user will be randomised. 
+                            </p>
+                    </Col>
+                </Row>
+
+                <FieldArray name="questions" validateOnChange={true}>
+                {({ insert, remove, push }) => (
+                    <div>     
+                        {values.questions.length > 0 && values.questions.map( (item, idx) =>            
+                            <MultipleChoiceQuestion idx={idx} 
+                                insert={insert}
+                                remove={remove}
+                                touched={touched} 
+                                >
+                            </MultipleChoiceQuestion>)
+                        }
+                        <div className="text-right margin-top-10">
+                            <button
+                                className="secondary btn btn-primary"
+                                type="button"
+                                onClick={() => push({ question: '', answers: [] })}>
+                            +
+                            </button>
+                        </div>
                     </div>
-                </Col>
-            </Form.Group> 
+                )}
+                </FieldArray>
+                
+                <Form.Group as={Row}>
+                    <Col md={12}>
+                            {/*<Button onClick={() => addQuestion() }>+</Button>*/}
+                    </Col>
+                </Form.Group>
 
-            <Form.Group as={Row}>
-                <Col md={12}>
-                  
-                    <Form.Label>Activity XML</Form.Label>
-                    <Form.Control as="textarea" id="rawXML" name="rawXML" rows={6}
-                        readOnly value={ values.rawXML }></Form.Control>
-                  
-                </Col>
-            </Form.Group>
-           
+                <Form.Group as={Row}>
+                    <Col sm={{ span: 10, offset: 0 }}>
+                        <div className="px-1 py-1 mt-3 mb-3">
+                            {userLabels.map((item, i) => {
+                                return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
+                            })}
+                        </div>
+                    </Col>
+                </Form.Group> 
 
+                <Form.Group as={Row}>
+                    <Col md={12}>
+                    
+                        <Form.Label>Activity XML</Form.Label>
+                        <Form.Control as="textarea" id="rawXML" name="rawXML" rows={6}
+                            readOnly value={ values.rawXML }></Form.Control>
+                    
+                    </Col>
+                </Form.Group>
             
-            <Form.Group as={Row}>
-                <Col sm={{ span: 10, offset: 0 }}>
-                    <button id="activityButton" role="link" type="submit" >
-                        Update
-                    </button>
-                </Col>
-            </Form.Group> 
 
-       
+                
+                <Form.Group as={Row}>
+                    <Col sm={{ span: 10, offset: 0 }}>
+                        <button id="activityButton" role="link" type="submit" >
+                            Update
+                        </button>
+                    </Col>
+                </Form.Group> 
 
-            
-        </Form>
-        )}
-    </Formik>
+        
+
+                
+            </Form>
+            )}
+        </Formik>
    
 
 </div>
