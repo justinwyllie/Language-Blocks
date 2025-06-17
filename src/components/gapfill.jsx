@@ -424,7 +424,7 @@ const GapFill = ({postType}) =>
 
                 if (postTitle.length < POST_TITLE_LENGTH )
                 {
-                   alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' });
+                   alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' }); //TODO maybe hanlde no element found?
                 } 
                 else 
                 {
