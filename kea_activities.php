@@ -29,8 +29,8 @@ class KeaActivities
         add_action( 'init', array($this, 'kea_activity_register_post_meta' ));
         register_activation_hook( __FILE__, array($this,'kea_activity_activated' )); 
         add_filter( 'rest_prepare_activity', array($this, 'get_kea_activity_posts'));
-        add_filter('manage_kea_activity_posts_columns', array($this, 'kea_activitiy_add_type_column'));
 
+        add_filter('manage_kea_activity_posts_columns', array($this, 'kea_activitiy_add_type_column'));
         add_action('manage_kea_activity_posts_custom_column', array($this, 'kea_activity_populate_type_column'), 10, 2);
 
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
