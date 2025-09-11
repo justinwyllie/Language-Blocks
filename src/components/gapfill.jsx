@@ -119,17 +119,23 @@ const GapFill = ({postType}) =>
         then do everything dynamically but....
         for now we have to hardcode the taxonomies for labels. 
     */
-
+        
+    //without view default seems to be edit?    
+    //100 is a wp limit TODO ID 167 MUST BE ALL as this is used as a look up for the terms 
+    //https://chat.deepseek.com/a/chat/s/c63caebe-1646-4150-97cf-0e24ea6ad7fe
+/*
     const grammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100}) 
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100, context: "view", call: 'kea'}) 
 
-    );
+    ); */
 
    const russianGrammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100})
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100, context: "view", call: 'kea'})
                  
     );
-
+    
+    const grammarTaxonomy = [];
+    
     const terms = [];
     let userLabels = [];
  
@@ -146,10 +152,13 @@ const GapFill = ({postType}) =>
         }))
     }
 
+
     //detect user changing taxonomy terms
-    //i think this weill get the latest unsaved values    
+    //i think this will get the latest unsaved values   - it subscribes
+    //just gets you ids though
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
+    
     
     grammarTerms.forEach((item) => {
         userLabels.push(terms[item]);
@@ -157,6 +166,14 @@ const GapFill = ({postType}) =>
     russianGrammarTerms.forEach((item) => {
         userLabels.push(terms[item]);
     });
+   
+
+
+
+
+
+
+
      
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
 

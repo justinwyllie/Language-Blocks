@@ -153,12 +153,12 @@ const MultipleChoice = ({postType}) =>
     */
 
     const grammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100})
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100, context: "view", call: 'kea'}) 
 
-    );
+    ); 
 
    const russianGrammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100})
+    ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100, context: "view", call: 'kea'})
                  
     );
 

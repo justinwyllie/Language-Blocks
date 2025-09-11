@@ -39,12 +39,13 @@ class KeaActivities
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
         //add_action('admin_init', array($this, 'fix_post_roles'));
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
-    
+        add_filter( 'rest_grammar_terms_query', array($this, 'modify_grammar_terms_per_page'), 10, 2 );
+
       
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
-        //
+        //delete_others_pages = editor   edit_posts = contrib
         $this->caps =  array(
             'manage_terms'  => 'delete_others_pages',
             'edit_terms'    => 'delete_others_pages',
@@ -64,6 +65,22 @@ class KeaActivities
         ob_end_clean();               
         error_log( $contents );       
     }
+
+    public function modify_grammar_terms_per_page( $args, $request ) {
+        
+        error_log("---------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--");
+        $this->error_log($args);
+        die();
+        
+        // Only modify queries in the admin context
+       // if ( $request->get_param( 'context' ) === 'edit' ) {
+            $args['posts_per_page'] = 10; // Change to your desired number
+       // }
+
+       
+        return $args;
+    }
+   
 
     /*
     * this is pretty brutal. makes no distinction re. post tyoes
