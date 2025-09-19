@@ -123,18 +123,19 @@ const GapFill = ({postType}) =>
     //without view default seems to be edit?    
     //100 is a wp limit TODO ID 167 MUST BE ALL as this is used as a look up for the terms 
     //https://chat.deepseek.com/a/chat/s/c63caebe-1646-4150-97cf-0e24ea6ad7fe
-/*
-    const grammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 100, context: "view", call: 'kea'}) 
+    //these are used to set up the look up to get the term name given the id from entityprop which is why we need all.
 
-    ); */
+    const grammarTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'}) 
+
+    ); 
 
    const russianGrammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 100, context: "view", call: 'kea'})
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 1000, context: "view", call: 'kea'})
                  
     );
     
-    const grammarTaxonomy = [];
+   
     
     const terms = [];
     let userLabels = [];

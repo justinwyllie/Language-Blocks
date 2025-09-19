@@ -39,9 +39,10 @@ class KeaActivities
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
         //add_action('admin_init', array($this, 'fix_post_roles'));
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
-        add_filter( 'rest_grammar_terms_query', array($this, 'modify_grammar_terms_per_page'), 10, 2 );
 
-      
+
+        add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
+        add_filter( 'rest_russian_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
@@ -66,19 +67,24 @@ class KeaActivities
         error_log( $contents );       
     }
 
-    public function modify_grammar_terms_per_page( $args, $request ) {
-        
-        error_log("---------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--");
-        $this->error_log($args);
-        die();
-        
-        // Only modify queries in the admin context
-       // if ( $request->get_param( 'context' ) === 'edit' ) {
-            $args['posts_per_page'] = 10; // Change to your desired number
-       // }
+    //? does this effect the default call from the frontpage when react/wp renders the custom taxonomy box on a post?
+    //it should allow it but would still need to modify the built in react/wp call
+    public function increase_grammar_terms_per_page_limit($query_params, $taxonomy )
+    {
+        if ( isset( $query_params['per_page'] ) ) {
+            //TODO could use wp_count_terms to set this to the existing number, but then would need to get this in the front-end as well. for now 1000. 
+            $query_params['per_page']['maximum'] = 1000; 
+        }
+        return $query_params;
+    }
 
-       
-        return $args;
+    public function increase_russian_grammar_terms_per_page_limit($query_params, $taxonomy )
+    {
+        if ( isset( $query_params['per_page'] ) ) {
+            //TODO could use wp_count_terms to set this to the existing number, but then would need to get this in the front-end as well. for now 1000. 
+            $query_params['per_page']['maximum'] = 1000; 
+        }
+        return $query_params;
     }
    
 
