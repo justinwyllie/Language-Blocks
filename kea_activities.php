@@ -34,6 +34,7 @@ class KeaActivities
         add_action('manage_kea_activity_posts_custom_column', array($this, 'kea_activity_populate_type_column'), 10, 2);
 
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
+        add_action( 'set_object_terms', array( $this, 'block_non_permitted_working_with_cats' ), 10, 6 );
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
@@ -43,6 +44,7 @@ class KeaActivities
 
         add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
         add_filter( 'rest_russian_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
+
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
@@ -56,6 +58,8 @@ class KeaActivities
         );
 
     } 
+
+
     
     public function error_log($object)
     {
@@ -85,6 +89,25 @@ class KeaActivities
             $query_params['per_page']['maximum'] = 1000; 
         }
         return $query_params;
+    }
+
+    //TODO copied from kea_repi 
+    private function is_admin_by_user_id($user_id)
+    {
+        if (  user_can($user_id, 'activate_plugins') )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+    //TODO copied from kea_repi 
+    private function can_create_and_manage_activities_by_id($user_id)
+    {
+        return $this->is_admin_by_user_id($user_id);
     }
    
 
@@ -122,7 +145,42 @@ class KeaActivities
     }
 
 
+    //we don't register the post type with category - but, just in case
+    public function block_non_permitted_working_with_cats($object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids )
+    {
+        if ( 'category' !== $taxonomy ) {
+            return;
+        }
 
+        
+
+        foreach ($terms as $term_id)
+        {
+            $term = get_term($term_id);
+            if ($term && !is_wp_error($term)) {
+                $term_name = $term->name;
+                
+                if (strtolower($term_name) == 'master')
+                {
+                    if (!$this->can_create_and_manage_activities_by_id(get_current_user_id()))
+                        {
+                            remove_action( 'set_object_terms', array( $this, 'block_non_permitted_working_with_cats' ), 10 );
+                            error_log("removing an illicit attempt to set category term by non creator");
+                            
+                            // Revert to the old terms that were stored in $old_tt_ids
+                            wp_set_object_terms( $object_id, $old_tt_ids, $taxonomy, false );
+                                    
+                            // Add the action back for future operations
+                            add_action( 'set_object_terms', array( $this, 'block_non_permitted_working_with_cats' ), 10, 6 );
+                        }
+                }
+
+            }
+        }
+
+        
+        
+    }
 
     //there is no cap about viewing posts in the admin list
     public function fix_post_roles()
@@ -291,7 +349,38 @@ class KeaActivities
 
     public function kea_activity_custom_post_type() {
 
-        register_post_type('kea_activity',
+
+        if ($this->can_create_and_manage_activities_by_id(get_current_user_id()))
+        {
+            register_post_type('kea_activity',
+                array(
+                    'labels'      => array(
+                        'name'          => __('Activities', 'kea'),
+                        'singular_name' => __('Activities', 'kea'),
+                    ),
+                        'public'      => true,
+                        'show_in_rest' => true,
+                        'rest_base'    => 'kea_activity',
+                        'has_archive' => true,
+                        'supports' => array( 'title', 'editor', 'custom-fields', 'revisions', 'author' ),
+                        'rewrite'     => array( 'slug' => 'gapfill' ),
+                        'taxonomies'  => array( 'category' )
+                )
+            );
+
+            wp_insert_term(
+                'Master',  // Term name
+                'category',         // Taxonomy
+                array(
+                    'description' => 'Source Activity',
+                    'slug'        => 'master', 
+                    'parent'      => 0 
+                )
+            );
+        }
+        else
+        {
+            register_post_type('kea_activity',
             array(
                 'labels'      => array(
                     'name'          => __('Activities', 'kea'),
@@ -302,13 +391,17 @@ class KeaActivities
                     'rest_base'    => 'kea_activity',
                     'has_archive' => true,
                     'supports' => array( 'title', 'editor', 'custom-fields', 'revisions', 'author' ),
-                    'rewrite'     => array( 'slug' => 'gapfill' )
-                    //'taxonomies'  => array( 'category', 'post_tag' )
+                    'rewrite'     => array( 'slug' => 'gapfill' ),
+   
             )
         );
+        }
 
-       
+        
+      
     }
+
+
 
     public function save_activity_meta($post)
     {
