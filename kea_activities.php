@@ -34,7 +34,7 @@ class KeaActivities
         add_action('manage_kea_activity_posts_custom_column', array($this, 'kea_activity_populate_type_column'), 10, 2);
 
         add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
-        add_action( 'set_object_terms', array( $this, 'block_non_permitted_working_with_cats' ), 10, 6 );
+        //add_action( 'set_object_terms', array( $this, 'block_non_permitted_working_with_cats' ), 10, 6 );
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
@@ -146,7 +146,8 @@ class KeaActivities
 
 
     //we don't register the post type with category - but, just in case
-    public function block_non_permitted_working_with_cats($object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids )
+    //see kea_activities_repi revert_master_category_assignment
+    public function block_non_permitted_working_with_catsXXX($object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids )
     {
         if ( 'category' !== $taxonomy ) {
             return;
