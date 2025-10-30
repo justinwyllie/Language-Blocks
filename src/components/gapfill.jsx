@@ -89,7 +89,7 @@ const GapFill = ({postType}) =>
         {
             let qNode = xmlDoc.createElement("q"+i);
             qNode.setAttribute("questionNumber", (i + 1));
-            qNode.setAttribute("answer", item.answer);
+            qNode.setAttribute("answer", item.answer.trimEnd());
             let qValueNode = xmlDoc.createTextNode(item.question);
             qNode.appendChild(qValueNode);
             questionsNode.appendChild(qNode);
