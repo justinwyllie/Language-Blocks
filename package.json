@@ -10,10 +10,8 @@
   },
   "author": "Justin Wyllie",
   "license": "UNLICENSED",
-  "devDependencies": {
-    "@wordpress/scripts": "^23.6.0"
-  },
   "dependencies": {
+    "@wordpress/scripts": "^30.27.0",
     "bootstrap": "^5.1.3",
     "formik": "^2.2.9",
     "react-bootstrap": "^2.8.0",
