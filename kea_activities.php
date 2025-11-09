@@ -407,6 +407,8 @@ class KeaActivities
     public function save_activity_meta($post)
     {
 
+        error_log("save_activity_meta called");
+
         $post_id = $post->ID;
         $author_id = get_post_field( 'post_author', $post_id );
         
@@ -481,21 +483,22 @@ class KeaActivities
         $json_string = json_encode($json);
        
 
-        /*
-         wp replace -> mysql replace
-         REPLACE works exactly like INSERT, except that if an old row in the table has the same 
-         value as a new row for a PRIMARY KEY or a UNIQUE index, the old row is deleted before the new 
-         row is inserted. See Section 13.2.7, “INSERT Statement”.
-         https://dev.mysql.com/doc/refman/8.0/en/replace.html 
-         TODO maybe matter to use INSERT INTO UPDATE ON DUPLICATE though it looks like might have to build query manually for that
-         */
-                                 
-       
-        //TODO it is not post type - it is activity type
+      
 
         
+       //experimental
+       update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string));
        
-         
+        /*
+        wp replace -> mysql replace
+        REPLACE works exactly like INSERT, except that if an old row in the table has the same 
+        value as a new row for a PRIMARY KEY or a UNIQUE index, the old row is deleted before the new 
+        row is inserted. See Section 13.2.7, “INSERT Statement”.
+        https://dev.mysql.com/doc/refman/8.0/en/replace.html 
+        TODO maybe matter to use INSERT INTO UPDATE ON DUPLICATE though it looks like might have to build query manually for that
+        */
+                                
+
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
             'kea_activity_ex_type' => $activity_type, 
