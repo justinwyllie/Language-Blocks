@@ -280,7 +280,8 @@ const LinkPanel = () => {
     const postId = useSelect(
         ( select ) => select( 'core/editor' ).getCurrentPostId()
     );
-
+    
+    //persists
     const  updateAndSaveMeta = async (keyItem, newValue) => {
         const { saveEditedEntityRecord } = useDispatch( coreStore );
  
@@ -305,9 +306,6 @@ const LinkPanel = () => {
    }
    
    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
-
-   console.log("META", meta);
-
 
     let vals = getRandom();
     let linkWithKey;

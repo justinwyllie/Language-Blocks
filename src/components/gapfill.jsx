@@ -13,6 +13,16 @@ const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
 
 
+const { lockPostSaving, unlockPostSaving } = useDispatch('core/editor');
+
+const { isSaving, isAutosaving } = useSelect(select => ({
+    isSaving: select('core/editor').isSavingPost(),
+    isAutosaving: select('core/editor').isAutosavingPost()
+}), []);
+
+console.log(isSaving, isAutosaving);
+
+
 
 const POST_TITLE_LENGTH = 5;
 
@@ -329,7 +339,7 @@ const GapFill = ({postType}) =>
             setInitialValues();
         }
         
-    console.log("rendering form");
+
     return <div ref={alertRef}>
         {(postTitle.length < POST_TITLE_LENGTH) ? <div className="field-error">{LABELS[settings.defaultUserLang]['minimum_length_title']['nominative']}</div> : ''}
         <Formik
@@ -434,7 +444,7 @@ const GapFill = ({postType}) =>
                 })
                 
                 
-                console.log("errors", errors);
+
                 return errors;
             }}
             
