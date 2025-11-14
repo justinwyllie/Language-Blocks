@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: KEA_Activities
-Plugin URI: https://kazanenglishacademy.com/plugins
+Plugin URI: https://kazanenglishacademy.com/pluginssave_activity_meta
 Description: Plugin to register all the exercise post types and manage them
 Version: 1.0
 Author: Justin Wyllie
@@ -668,16 +668,17 @@ class KeaActivities
             'single'       => true,       
             'show_in_rest' => true, 
                 'prepare_callback' => function ( $value ) {
-                    $json = $this->maybe_convert_xml_to_json2($value);
+                    $json = $this->maybe_convert_xml_to_json2($value); //i think this was for the student site on github which got its json from here? not sure used
                     return $json;
                 },
             
             'auth_callback' => function() {
             return current_user_can( 'edit_published_posts' );
-            /* (callable) Optional. A function or method to call when 
-            performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
+
         } 
         )) ;
+
+
 
         register_post_meta( 'kea_activity', '_kea_activity_type', array(
             'type'         => 'string',   
@@ -685,8 +686,7 @@ class KeaActivities
             'show_in_rest' => true, 
             'auth_callback' => function() {
             return current_user_can( 'edit_published_posts' );
-            /* (callable) Optional. A function or method to call when 
-            performing edit_post_meta, add_post_meta, and delete_post_meta capability checks. */
+      
         } 
         ) );
 
@@ -837,7 +837,19 @@ class KeaActivities
             'title' => 'Activity Gap Fill',
             'editor_style' => 'activity-editor',      
             'editor_script' => 'activity-script',
+            'render_callback' => 'render_activity_gap_fill_block',
+            'attributes' => array(
+                'formData' => array('type' => 'object', 'default' => array()),
+            )
         ) );
+
+        function render_activity_gap_fill_block($attributes, $content) {
+            // Return empty string - no frontend output
+            return '';
+            
+            // OR process the data server-side when needed
+            // return process_activity_data($attributes['formData']);
+        }
 
         register_block_type( 'activities/activity-multiple-choice', array(
             'api_version' => 2,

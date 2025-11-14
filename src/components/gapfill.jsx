@@ -12,6 +12,9 @@ import { useBlockProps, RichText } from '@wordpress/block-editor';
 const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
 
+import {  useEffect} from '@wordpress/element';
+
+/*
 
 const { lockPostSaving, unlockPostSaving } = useDispatch('core/editor');
 
@@ -22,11 +25,29 @@ const { isSaving, isAutosaving } = useSelect(select => ({
 
 console.log(isSaving, isAutosaving);
 
+  onChange={(e) => {
+              const newValue = e.target.value;
+              setFieldValue('title', newValue);
+              
+              // Update block attributes in real-time
+              setAttributes({ 
+                formData: { ...values, title: newValue }
+              });
+            }}
 
+?
+
+
+
+
+*/
+
+import { useDispatch } from '@wordpress/data';
+import { store as editorStore } from '@wordpress/editor'; // ← Missing import
 
 const POST_TITLE_LENGTH = 5;
 
-const GapFill = ({postType}) =>
+const GapFill = ({postType, setAttributes}) =>
 {
 
     const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
@@ -36,6 +57,51 @@ const GapFill = ({postType}) =>
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
     const metaFieldValue = meta[ '_kea_activity_meta' ]; 
+
+
+
+
+
+    const  isSaving  = useSelect(select => {
+        const saveState = select('core/editor').isSavingPost();
+        return saveState;
+        
+    }, []);
+
+
+    const { lockPostSaving, unlockPostSaving } = useDispatch(editorStore);
+
+    const DataLifter = ({isSaving, setAttribute}) =>
+    {
+        const { values } = useFormikContext();
+
+        //clould use useeffect values but doens't make much differene
+        console.log('in DataLifter', isSaving, values );
+        lockPostSaving('activities/activity-gap-fill');
+        setAttributes({formData: values});
+        //processForm(values); //every time! NO -- but we could set the values which is a json structure as the meta and do this xml conversion on the server
+        //except we use the xml meta for initial values - but that still works if we set it on the server. or better we can have a new meta key _kea_acitvity_form_data
+        //and this = initialValues without any processing
+
+        unlockPostSaving('activities/activity-gap-fill');
+
+        //new plan:
+        //use above to update meta _kea_acitvity_form_data which == values
+        //the initial values here becomes based on that - no need for XML conversion
+        //the _kea_activity_meta key (becomes _kea_activity_xml) is saved when the post saves on the backend see: not here
+        //add_action( 'rest_after_insert_kea_activity', array($this, 'save_activity_meta' ));
+        //the current conversion of the XML to json also happens on the backend - one fnc which takes the form values from here
+        //and converst to xml and json and saves both 
+
+
+        //otherwise - we use setAttributes here in some simple way to force wp to show save button and then we handle the save action and either figure out 
+        //how to intercept it or double save
+
+    }
+
+
+
+
 
    
     const { postTitle } = useSelect(
@@ -52,7 +118,7 @@ const GapFill = ({postType}) =>
     //valid XML - call setMeta to update the meta field with the XML
     const processForm = (values) =>
     {
-       
+        console.log("values in processForm", values);
         let parser = new DOMParser();
         let xml = '<?xml version="1.0" encoding="UTF-8"?><activity></activity>';
         let xmlDoc = parser.parseFromString(xml,"text/xml");
@@ -181,7 +247,7 @@ const GapFill = ({postType}) =>
 
 
 
-
+ 
 
 
 
@@ -344,6 +410,7 @@ const GapFill = ({postType}) =>
         {(postTitle.length < POST_TITLE_LENGTH) ? <div className="field-error">{LABELS[settings.defaultUserLang]['minimum_length_title']['nominative']}</div> : ''}
         <Formik
             initialValues={initialValues}
+            isSaving={isSaving}
 
             validate={values => {
             
@@ -475,10 +542,13 @@ const GapFill = ({postType}) =>
         
             }) => (
             
-                
+     
+
             <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
                 
                 <ErrorMessage postTitle={postTitle}></ErrorMessage>
+
+                <DataLifter isSaving={isSaving} setAttributes={setAttributes} />
     
 
                 <Form.Group as={Row}>

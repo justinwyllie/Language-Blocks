@@ -94,11 +94,10 @@ registerBlockType( 'activities/activity-gap-fill', {
     category: 'widgets', /* custom https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/#managing-block-categories */ 
     //we are bypassing attributes as we are saving just one block of xml to post meta not html string
     attributes: {
-		exampleText: {
-			type: 'string',
-            source: 'text',
-			default: ''
-		}
+		formData: {
+            type: 'object',
+            default: {}  // Just the data you care about
+        }
 	
 	},
 
@@ -131,15 +130,12 @@ registerBlockType( 'activities/activity-gap-fill', {
 
         return (
             <div { ...blockProps }>
-                <GapFill postType={postType}  ></GapFill>
+                <GapFill postType={postType} setAttributes={setAttributes} ></GapFill>
             </div>
         );
     },
  
-    // No information saved to the block
-    // Data is saved to post meta via the hook
-    //normally this would build the html using the set attributes? and return an html
-    //string to save - which is what is displayed on the f/e
+  
     save() {
         return null;
     },
