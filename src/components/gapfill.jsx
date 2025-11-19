@@ -14,33 +14,7 @@ import { LABELS } from '../translations';
 
 import {  useEffect} from '@wordpress/element';
 
-/*
 
-const { lockPostSaving, unlockPostSaving } = useDispatch('core/editor');
-
-const { isSaving, isAutosaving } = useSelect(select => ({
-    isSaving: select('core/editor').isSavingPost(),
-    isAutosaving: select('core/editor').isAutosavingPost()
-}), []);
-
-console.log(isSaving, isAutosaving);
-
-  onChange={(e) => {
-              const newValue = e.target.value;
-              setFieldValue('title', newValue);
-              
-              // Update block attributes in real-time
-              setAttributes({ 
-                formData: { ...values, title: newValue }
-              });
-            }}
-
-?
-
-
-
-
-*/
 
 import { useDispatch } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor'; // ← Missing import
@@ -62,28 +36,28 @@ const GapFill = ({postType, setAttributes}) =>
 
 
 
-    const  isSaving  = useSelect(select => {
-        const saveState = select('core/editor').isSavingPost();
-        return saveState;
-        
-    }, []);
 
 
     const { lockPostSaving, unlockPostSaving } = useDispatch(editorStore);
 
-    const DataLifter = ({isSaving, setAttribute}) =>
+    const DataLifter = ({ setAttributes }) =>
     {
+
         const { values } = useFormikContext();
 
-        //clould use useeffect values but doens't make much differene
-        console.log('in DataLifter', isSaving, values );
         lockPostSaving('activities/activity-gap-fill');
-        setAttributes({formData: values});
-        //processForm(values); //every time! NO -- but we could set the values which is a json structure as the meta and do this xml conversion on the server
-        //except we use the xml meta for initial values - but that still works if we set it on the server. or better we can have a new meta key _kea_acitvity_form_data
-        //and this = initialValues without any processing
-
+        setAttributes({formData: values});   
+        setAttributes({ activityType: 'gapfill'});
+        console.log('save values',values );
         unlockPostSaving('activities/activity-gap-fill');
+
+    
+
+        
+
+        //clould use useeffect values but doens't make much differene
+   
+  
 
         //new plan:
         //use above to update meta _kea_acitvity_form_data which == values
@@ -92,6 +66,8 @@ const GapFill = ({postType, setAttributes}) =>
         //add_action( 'rest_after_insert_kea_activity', array($this, 'save_activity_meta' ));
         //the current conversion of the XML to json also happens on the backend - one fnc which takes the form values from here
         //and converst to xml and json and saves both 
+
+        //don't forget in new world xml does not need to be in rest and from values
 
 
         //otherwise - we use setAttributes here in some simple way to force wp to show save button and then we handle the save action and either figure out 
@@ -288,7 +264,7 @@ const GapFill = ({postType, setAttributes}) =>
             if (metaFieldValue == "")
             {
                 
-                initialValues.type = postType;
+                initialValues.type = postType; //TODO - in node this gets converted to the value from the ex type col. gapfill or multiple choice
                 //initialValues.ageGroup = 0;
                 //initialValues.level = 0;
                 initialValues.legacyName = '';
@@ -410,7 +386,7 @@ const GapFill = ({postType, setAttributes}) =>
         {(postTitle.length < POST_TITLE_LENGTH) ? <div className="field-error">{LABELS[settings.defaultUserLang]['minimum_length_title']['nominative']}</div> : ''}
         <Formik
             initialValues={initialValues}
-            isSaving={isSaving}
+            
 
             validate={values => {
             
@@ -548,7 +524,7 @@ const GapFill = ({postType, setAttributes}) =>
                 
                 <ErrorMessage postTitle={postTitle}></ErrorMessage>
 
-                <DataLifter isSaving={isSaving} setAttributes={setAttributes} />
+                <DataLifter  setAttributes={setAttributes} />
     
 
                 <Form.Group as={Row}>

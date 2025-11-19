@@ -94,6 +94,10 @@ registerBlockType( 'activities/activity-gap-fill', {
     category: 'widgets', /* custom https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/#managing-block-categories */ 
     //we are bypassing attributes as we are saving just one block of xml to post meta not html string
     attributes: {
+        activityType: {
+            type: 'string'
+    
+        },
 		formData: {
             type: 'object',
             default: {}  // Just the data you care about
@@ -127,7 +131,7 @@ registerBlockType( 'activities/activity-gap-fill', {
         const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
         //TODO - does this make an ajax call or just get it from the data store
         
-
+console.log("postType", postType);
         return (
             <div { ...blockProps }>
                 <GapFill postType={postType} setAttributes={setAttributes} ></GapFill>
@@ -153,6 +157,7 @@ registerBlockType( 'activities/activity-multiple-choice', {
     //we are bypassing attributes as we are saving just one block of xml to post meta not html string
     //TODO remove this
     attributes: {
+        activityType: 'multiplechoice',
 		exampleText: {
 			type: 'string',
             source: 'text',

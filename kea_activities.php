@@ -68,7 +68,8 @@ class KeaActivities
         var_dump( $object );           
         $contents = ob_get_contents(); 
         ob_end_clean();               
-        error_log( $contents );       
+        error_log( $contents );  
+       
     }
 
     //? does this effect the default call from the frontpage when react/wp renders the custom taxonomy box on a post?
@@ -402,12 +403,113 @@ class KeaActivities
       
     }
 
+    private function convert_gapfill_form_data_to_json($form_data)
+    {
+        
+        $processed_json = new StdClass();
 
+        $processed_json->activity_type = $form_data['activity_type'];
+        $processed_json->legacy_name = $form_data['legacyName']; //TODO fix in client side
+        $processed_json->title = $form_data['title'];
+        $processed_json->models = $form_data['models'];
+        $processed_json->explanation = $form_data['explanation'];
+
+        $processed_json->instructions = new StdClass();
+
+
+ 
+
+        foreach ($form_data['instructions'] as $instruction) {
+            $lang = $instruction['lang'];
+            $text = $instruction['text'];
+            $processed_json->instructions->$lang = $text;
+        }
+
+        $processed_json->questions = [];
+        foreach ($form_data['questions'] as $index => $question)
+        {
+            $question['questionNumber'] = (string) ($index + 1);
+            $processed_json->questions[] = (object) $question;
+        }
+        
+        return $processed_json;
+    }
+
+    private function convert_gapfill_form_data_to_xml($formData)
+    {
+
+        
+
+        return 'xml';
+    }
+
+    private function convert_form_data($form_data)
+    {
+        $type = $form_data['activity_type'];
+        $converters = [
+            'gapfill' => [
+                'xml' => 'convert_gapfill_form_data_to_xml',
+                'json' => 'convert_gapfill_form_data_to_json'
+            ],
+            'multiplechoice' => [
+                'xml' => 'convert_multiplechoice_form_data_to_xml', 
+                'json' => 'convert_multiplechoice_form_data_to_json'
+            ]
+        ];
+        
+        if (isset($converters[$type])) {
+            $xml = $this->{$converters[$type]['xml']}($form_data);
+            $json = $this->{$converters[$type]['json']}($form_data);
+            return ['xml' => $xml, 'json' => $json];
+        } else {
+            return false;
+        }
+    }
 
     public function save_activity_meta($post)
     {
 
-        error_log("save_activity_meta called");
+        error_log("save_activity_meta called");//xxx
+
+       // $this->error_log($post);
+       // $this->error_log( $post->ID);
+      
+        $post_content = $post->post_content;
+       // $this->error_log($post_content);
+        $blocks = parse_blocks($post_content);
+        foreach ($blocks as $block) {
+            if ($block['blockName'] === 'activities/activity-gap-fill' || $block['blockName'] === 'activities/activity-multiple-choice') {
+           
+                
+                // Access your attributes
+                $attributes = $block['attrs']; // Direct access to attributes array
+                
+        
+                $form_data = $attributes['formData'] ?? null;
+                $activity_type = $attributes['activityType'];
+                
+                if ($form_data) {
+    
+                    $form_data['title'] = $post->post_title;
+                    $form_data['activity_type'] = $activity_type;
+                   
+                    $formatted_data = $this->convert_form_data($form_data);
+                    
+                   
+                    
+                    
+
+                    break;
+                }
+            }
+        };
+
+
+        if (empty($form_data))
+        {
+            die("Error saving data - please contact support");//TDODO - how to send a json error. can we copy from the standard rest error?
+
+        }
 
         $post_id = $post->ID;
         $author_id = get_post_field( 'post_author', $post_id );
@@ -470,11 +572,12 @@ class KeaActivities
         addTerm($ages_bands_values, $ages_bands);
         addTerm($levels_values, $levels);
 
-
-
         $json = $this->get_json_from_xml_string($post_xml_meta, false);
+        var_dump($json);
+        $new_json = $formatted_data['json'];
+        var_dump($new_json);
+        
         $json->labels = $labels;
-
         $json->ages_bands = $ages_bands;
         $json->levels = $levels;
         
@@ -486,8 +589,8 @@ class KeaActivities
       
 
         
-       //experimental
-       update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string));
+       //experimental now on attributes
+       //update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string));
        
         /*
         wp replace -> mysql replace
@@ -840,6 +943,7 @@ class KeaActivities
             'render_callback' => 'render_activity_gap_fill_block',
             'attributes' => array(
                 'formData' => array('type' => 'object', 'default' => array()),
+                'activityType' => array('type' => 'string')
             )
         ) );
 
