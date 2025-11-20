@@ -134,7 +134,7 @@ registerBlockType( 'activities/activity-gap-fill', {
 console.log("postType", postType);
         return (
             <div { ...blockProps }>
-                <GapFill postType={postType} setAttributes={setAttributes} ></GapFill>
+                <GapFill postType={postType} setAttributes={setAttributes} attributes={attributes}></GapFill>
             </div>
         );
     },

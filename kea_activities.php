@@ -198,157 +198,6 @@ class KeaActivities
     }
 
 
-    public function get_json_from_xml_string($xml_string, $encode)
-    {
-     
-        
-        $xml = new SimpleXMLElement($xml_string);
-        $activity_type = (string) $xml['type'];
-
-      
-        //fixup historic data
-        if (empty($activity_type) )
-        {
-            $activity_type = "gapfill";
-        }
-        $call = "get_json_from_xml_" . $activity_type;
-        return call_user_func( array($this, $call), $xml, $encode, $activity_type);
-
-    }
-
-    
-    //called from outside of site e.g. via a rest call class is not instaniiated when 
-    //used to both return json and to save a json string in the 'special' table
-    private function get_json_from_xml_gapfill($xml, $encode, $activity_type)
-    {
-
-        
-        $activity = (string) $xml->activity;
-
-        $legacy_name = (string) $xml->legacyName;
-        $legacy_name = strip_tags($legacy_name);
-        $title = (string) $xml->title;
-        $title = strip_tags($title);
-        $models = (string) $xml->models;
-        $models = strip_tags($models, ['<em>','<strong>','<br>']);
-        $explanation = (string) $xml->explanation;
-        $explanation = strip_tags($explanation, ['<em>','<strong>','<br>']);
-        $instructions = $xml->instructions;
-        $questions = $xml->questions;
-    
-        $json_obj = new StdClass();
-        $json_obj->activity_type = $activity_type; 
-        $json_obj->legacy_name = $legacy_name; 
-        $json_obj->title = $title; 
-        $json_obj->models = $models; 
-        $json_obj->explanation = $explanation; 
-    
-        $json_obj->instructions = new StdClass();
-        $json_obj->questions = [];
-    
-        foreach ($xml->instructions->children() as $instruction)
-        {
-            $lang = $instruction['lang'];
-            $json_obj->instructions->$lang = (string) $instruction;
-            $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
-        }
-
-      
-        foreach ($xml->questions->children() as $question)
-        {
-            $question_obj = new StdClass();
-            $question_obj->question = (string) $question;
-            $question_obj->question = strip_tags($question_obj->question); 
-            $question_obj->answer = (string) $question['answer'];
-            $question_obj->answer = strip_tags($question_obj->answer);
-            $question_obj->questionNumber = (string) $question['questionNumber'];
-            $question_obj->questionNumber = strip_tags($question_obj->questionNumber);
-            $json_obj->questions[] = $question_obj;
-        }
-
-    
-        if ($encode)
-        {
-            return json_encode($json_obj);
-        }
-        else
-        {
-            return $json_obj;
-        }
-    
-    }
-
-    private function get_json_from_xml_multiplechoice($xml, $encode, $activity_type)
-    {
-
-
-        $activity = (string) $xml->activity;
-        $legacy_name = (string) $xml->legacyName;
-        $legacy_name = strip_tags($legacy_name);
-        $title = (string) $xml->title;
-        $title = strip_tags($title);
-        $models = (string) $xml->models;
-        $models = strip_tags($models, ['<em>','<strong>','<br>']);
-        $explanation = (string) $xml->explanation;
-        $explanation = strip_tags($explanation, ['<em>','<strong>','<br>']);
-        $instructions = $xml->instructions;
-        $questions = $xml->questions;
-    
-        $json_obj = new StdClass();
-        $json_obj->activity_type = $activity_type; 
-        $json_obj->legacy_name = $legacy_name; 
-        $json_obj->title = $title; 
-        $json_obj->models = $models; 
-        $json_obj->explanation = $explanation; 
-    
-        $json_obj->instructions = new StdClass();
-        $json_obj->questions = [];
-    
-        foreach ($xml->instructions->children() as $instruction)
-        {
-            $lang = $instruction['lang'];
-            $json_obj->instructions->$lang = (string) $instruction;
-            $json_obj->instructions->$lang = strip_tags($json_obj->instructions->$lang);
-        }
-
-   
-        foreach ($xml->questions->children() as $questionNode)
-        {
-            $question_obj = new StdClass();
-            $question = $questionNode->xpath("question");
-            
-            $question_obj->question = (string) $question[0];
-            $question_obj->question = strip_tags($question_obj->question); 
-            $question_obj->answers =  array();
-
-            $question_obj->questionNumber = (string) $questionNode['questionNumber'];
-
-            $answers = $questionNode->xpath("answers");
-            $question_obj->answers = array();
-            foreach ($answers[0] as $answer)
-            {
-                $variant = (string) $answer["variant"][0];
-                $text = (string) $answer;
-                $text = strip_tags($text);
-                $question_obj->answers += [$text => $variant];
-            }
-
-            $json_obj->questions[] = $question_obj;
-        }
-
-    
-    
-        if ($encode)
-        {
-            return json_encode($json_obj);
-        }
-        else
-        {
-            return $json_obj;
-        }
-    
-    }
-
     public function kea_activity_custom_post_type() {
 
 
@@ -435,12 +284,48 @@ class KeaActivities
         return $processed_json;
     }
 
-    private function convert_gapfill_form_data_to_xml($formData)
+    private function convert_gapfill_form_data_to_xml($form_data)
     {
-
         
+        $xmlDoc = new DOMDocument('1.0', 'UTF-8');
+        $xmlDoc->formatOutput = true;
+        
+        $rootNode = $xmlDoc->createElement('activity');
+        $rootNode->setAttribute('type', 'gapfill');
+        $xmlDoc->appendChild($rootNode);
 
-        return 'xml';
+        $legacyNameNode = $xmlDoc->createElement('legacyName', $form_data['legacyName']);
+        $rootNode->appendChild($legacyNameNode);
+
+        $titleNode = $xmlDoc->createElement('title', $form_data['title']);
+        $rootNode->appendChild($titleNode);
+        
+        $modelsNode = $xmlDoc->createElement('models', $form_data['models']);
+        $rootNode->appendChild($modelsNode);
+        
+        $explanationNode = $xmlDoc->createElement('explanation', $form_data['explanation']);
+        $rootNode->appendChild($explanationNode);
+        
+        $instructionsNode = $xmlDoc->createElement('instructions');
+        foreach ($form_data['instructions'] as $item) {
+            $iNode = $xmlDoc->createElement('instruction');
+            $iNode->setAttribute('lang', $item['lang']);
+            $iNode->appendChild($xmlDoc->createTextNode($item['text']));
+            $instructionsNode->appendChild($iNode);
+        }
+        $rootNode->appendChild($instructionsNode);
+        $questionsNode = $xmlDoc->createElement('questions');
+        foreach ($form_data['questions'] as $i => $item) {
+            $qNode = $xmlDoc->createElement('q' . $i);
+            $qNode->setAttribute('questionNumber', (string)($i + 1));
+            $qNode->setAttribute('answer', rtrim($item['answer']));
+            $qNode->appendChild($xmlDoc->createTextNode($item['question']));
+            $questionsNode->appendChild($qNode);
+        }
+        $rootNode->appendChild($questionsNode);
+        
+        return $xmlDoc->saveXML();
+
     }
 
     private function convert_form_data($form_data)
@@ -468,23 +353,13 @@ class KeaActivities
 
     public function save_activity_meta($post)
     {
-
-        error_log("save_activity_meta called");//xxx
-
-       // $this->error_log($post);
-       // $this->error_log( $post->ID);
       
         $post_content = $post->post_content;
-       // $this->error_log($post_content);
         $blocks = parse_blocks($post_content);
         foreach ($blocks as $block) {
             if ($block['blockName'] === 'activities/activity-gap-fill' || $block['blockName'] === 'activities/activity-multiple-choice') {
-           
-                
-                // Access your attributes
+
                 $attributes = $block['attrs']; // Direct access to attributes array
-                
-        
                 $form_data = $attributes['formData'] ?? null;
                 $activity_type = $attributes['activityType'];
                 
@@ -494,11 +369,6 @@ class KeaActivities
                     $form_data['activity_type'] = $activity_type;
                    
                     $formatted_data = $this->convert_form_data($form_data);
-                    
-                   
-                    
-                    
-
                     break;
                 }
             }
@@ -508,50 +378,36 @@ class KeaActivities
         if (empty($form_data))
         {
             die("Error saving data - please contact support");//TDODO - how to send a json error. can we copy from the standard rest error?
+            /*
+            return new WP_Error(
+                'save_post_custom_handler_error',
+                'Post title must be at least 10 characters long.',
+                array('status' => 400)
+            );
+            die(); */
 
         }
+
+
 
         $post_id = $post->ID;
         $author_id = get_post_field( 'post_author', $post_id );
-        
-        
-        /*
-            $author_first_name = get_the_author_meta("first_name", $author_id);
-            $author_last_name = get_the_author_meta("last_name", $author_id);
-            $author_name = $author_first_name + " " + $author_last_name;
-        */
-        $post_meta = get_post_meta($post_id); //from cache if poss or from db.
-        $post_xml_meta = $post_meta["_kea_activity_meta"][0];
-        if   (isset($post_meta["_kea_activity_type"]) ) {
-                $activity_type = $post_meta["_kea_activity_type"][0];
-        }
-        else
-        {
-            $activity_type = "gapfill"; //historical reasons
-        }
+        $post_meta = get_post_meta($post_id); 
 
-        if (empty($post_xml_meta))
-        {
-            return;
-        }
+        $xml_result = update_post_meta($post_id, '_kea_activity_xml', $formatted_data['xml']);
 
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
         $post_without_key_meta = intval($post_meta["_without_key_meta"][0]); 
         $post_assignment_key_meta = intval($post_meta["_assignment_key_meta"][0]); 
 
 
-        //array of term objs or false if none
-        //as on the fe it would be nice to do this dynamically TODO
         $grammar_terms = get_the_terms($post, "grammar");
         $russian_grammar_terms = get_the_terms($post, "russian_grammar");
         $ages_bands_values = get_the_terms($post, "ages_bands");
         $levels_values = get_the_terms($post, "levels");
-
-        
         $labels = array();
         $ages_bands = array();
         $levels = array();
-
         function addTerm($terms, &$target)
         {
             
@@ -565,32 +421,23 @@ class KeaActivities
             }
 
         }
-
         addTerm($grammar_terms,  $labels);
         addTerm($russian_grammar_terms, $labels);
-
         addTerm($ages_bands_values, $ages_bands);
         addTerm($levels_values, $levels);
 
-        $json = $this->get_json_from_xml_string($post_xml_meta, false);
-        var_dump($json);
+        //$json = $this->get_json_from_xml_string($post_xml_meta, false);
+
         $new_json = $formatted_data['json'];
-        var_dump($new_json);
-        
-        $json->labels = $labels;
-        $json->ages_bands = $ages_bands;
-        $json->levels = $levels;
-        
-     
-    
-        $json_string = json_encode($json);
-       
-
-      
+        $new_json->labels = $labels;
+        $new_json->ages_bands = $ages_bands;
+        $new_json->levels = $levels;
+        $json_string = json_encode($new_json);
 
         
-       //experimental now on attributes
-       //update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string));
+       //attributes is just the form, without taxonomy. so - could get it all with a query,
+       //but this is so we can get form-data+post-taxonomy in one simple query in node
+       update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
        
         /*
         wp replace -> mysql replace
@@ -600,8 +447,6 @@ class KeaActivities
         https://dev.mysql.com/doc/refman/8.0/en/replace.html 
         TODO maybe matter to use INSERT INTO UPDATE ON DUPLICATE though it looks like might have to build query manually for that
         */
-                                
-
         $result = $this->wpdb->replace($this->kea_table_name1, array(
             'kea_activity_post_id' => $post_id, 
             'kea_activity_ex_type' => $activity_type, 
@@ -616,7 +461,6 @@ class KeaActivities
 
         if ($result === false)
         {
-            //this prevents json being returned from rest and causes fe to produce a non-informative UI error
             //TODO - can we modify the rest json reponse to produce a custom UI error 
             die("Error saving data - please contact support");
             
@@ -739,42 +583,28 @@ class KeaActivities
         return $ex_json;
     }
 
-    public function maybe_convert_xml_to_json2($xml_string)
-    {
-        
-        if (isset($_GET['data']) && ($_GET['data'] == 'json'))
-        {
 
-            return $this->get_json_from_xml_string($xml_string, true); 
-        }
-        else
-        {
-            if (str_contains($xml_string, "<script"))
-            {
-                return "";
-            }
-            else
-            {
-                return $xml_string;
-            }
-        }
-    }
 
     
     public function kea_activity_register_post_meta() {
 
         
 
-        //todo - this should be called _kea_activity_xml
+        //todo - this is historical - now we use _kea_activity_xml but prior to Nov 25 we used this so historical data has this key
         register_post_meta( 'kea_activity', '_kea_activity_meta', array(
             'type'         => 'string',   
             'single'       => true,       
-            'show_in_rest' => true, 
-                'prepare_callback' => function ( $value ) {
-                    $json = $this->maybe_convert_xml_to_json2($value); //i think this was for the student site on github which got its json from here? not sure used
-                    return $json;
-                },
-            
+            'show_in_rest' => false, 
+            'auth_callback' => function() {
+            return current_user_can( 'edit_published_posts' );
+
+        } 
+        )) ;
+
+        register_post_meta( 'kea_activity', '_kea_activity_xml', array(
+            'type'         => 'string',   
+            'single'       => true,       
+            'show_in_rest' => false, 
             'auth_callback' => function() {
             return current_user_can( 'edit_published_posts' );
 
