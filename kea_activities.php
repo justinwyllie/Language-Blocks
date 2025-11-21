@@ -19,6 +19,9 @@ class KeaActivities
     public function __construct() 
     {
 
+        
+        $this->support_email = "tech-support@onlinerepititor.ru"; //shared with kea-repi TODO
+        $this->support_email_subject = "Error on web site " . $_SERVER['SERVER_NAME'] . " in script " . basename(__FILE__); //shared with kea-repi TODO
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->kea_table_name1 = $this->wpdb->prefix . "kea_activity"; 
@@ -39,7 +42,12 @@ class KeaActivities
         add_action( 'init', array($this, 'kea_activity_register_block' ));
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
         //add_action('admin_init', array($this, 'fix_post_roles'));
+
+
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
+
+        
+        add_filter('rest_pre_insert_kea_activity', array($this, 'validate_activity_title_length'), 10, 2);
 
 
         add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
@@ -59,7 +67,15 @@ class KeaActivities
 
     } 
 
+    //TODO shared with kea_repi
+    public function mail_error($message)
+    {
 
+        $headers = 'From: tech-support@onlinerepititor.ru' . "\r\n" .
+                'Reply-To: tech-support@onlinerepititor.ru' . "\r\n" .
+                'X-Mailer: PHP/' . phpversion();
+        mail($this->support_email, $this->support_email_subject, $message, $headers);
+    }
     
     public function error_log($object)
     {
@@ -143,6 +159,24 @@ class KeaActivities
         return $query;
         
 
+    }
+
+
+
+    public function validate_activity_title_length($prepared_post, $request) {
+        $min_length = POST_TITLE_LENGTH; // Set your desired maximum length
+        
+
+
+        if (isset($prepared_post->post_title) && strlen($prepared_post->post_title) <= $min_length) {
+            return new WP_Error(
+                'rest_title_too_short',
+                sprintf(__('Post title cannot be less than %d characters.'), $min_length, strlen($prepared_post->post_title)),
+                array('status' => 400)
+            );
+        }
+        
+        return $prepared_post;
     }
 
 
@@ -351,6 +385,9 @@ class KeaActivities
         }
     }
 
+    //after post save update the xml meta and the json meta and the xml meta and, for now, the json table (will be deleted. probably)
+    //if this falis then we have a post without the json meta (the key one)
+    
     public function save_activity_meta($post)
     {
       
@@ -374,27 +411,27 @@ class KeaActivities
             }
         };
 
+        $post_id = $post->ID;
 
-        if (empty($form_data))
+
+        if (empty($form_data) || 1==1)
         {
-            die("Error saving data - please contact support");//TDODO - how to send a json error. can we copy from the standard rest error?
-            /*
-            return new WP_Error(
-                'save_post_custom_handler_error',
-                'Post title must be at least 10 characters long.',
-                array('status' => 400)
-            );
-            die(); */
-
+            
+            $this->mail_error("In save_activity_meta it seems after an activity was saved the additional save of meta and json did not happen. $post_id");
+            return;
         }
 
 
 
-        $post_id = $post->ID;
+        
         $author_id = get_post_field( 'post_author', $post_id );
         $post_meta = get_post_meta($post_id); 
 
         $xml_result = update_post_meta($post_id, '_kea_activity_xml', $formatted_data['xml']);
+        if ($xml_result === false)
+        {
+            $this->mail_error("In save_activity_meta the additional save of xml meta  did not happen. $post_id");
+        }
 
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
         $post_without_key_meta = intval($post_meta["_without_key_meta"][0]); 
@@ -426,8 +463,6 @@ class KeaActivities
         addTerm($ages_bands_values, $ages_bands);
         addTerm($levels_values, $levels);
 
-        //$json = $this->get_json_from_xml_string($post_xml_meta, false);
-
         $new_json = $formatted_data['json'];
         $new_json->labels = $labels;
         $new_json->ages_bands = $ages_bands;
@@ -437,7 +472,11 @@ class KeaActivities
         
        //attributes is just the form, without taxonomy. so - could get it all with a query,
        //but this is so we can get form-data+post-taxonomy in one simple query in node
-       update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
+        $json_result = update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
+        if ($json_result === false)
+        {
+            $this->mail_error("In save_activity_meta the additional save of json meta  did not happen. $post_id");
+        }
        
         /*
         wp replace -> mysql replace
@@ -461,8 +500,8 @@ class KeaActivities
 
         if ($result === false)
         {
-            //TODO - can we modify the rest json reponse to produce a custom UI error 
-            die("Error saving data - please contact support");
+            $this->mail_error("In save_activity_meta the additional save of json to db did not happen [2]. $post_id");
+            return;
             
         }
 
@@ -751,18 +790,40 @@ class KeaActivities
         );
         */
 
-        wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), "1");
+
+        wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), time());
+
+        wp_localize_script('settings', 'kea_language_blocks', array(
+            'settings' => array(
+                'domain' => array(
+                    'type' => 'slashes',
+                    'domainForUsers' => DOMAIN_FOR_USERS,
+                ),
+                'site' => 'repititor',
+                'defaultUserLang' => 'en',
+                'page_title_length' => POST_TITLE_LENGTH
+            ),
+            'SHOWLOGIN' => true
+        ));
 
         $deps = $asset_file['dependencies'];
         $deps[] = 'settings';
+
+    
       
         
         wp_register_script(
             'activity-script',
             plugins_url( 'build/index.js', __FILE__ ), 
             $deps,
-            $asset_file['version']
+            $asset_file['version'],
+            time(),
+       
+    
+      
         );
+
+        
 
         //
         register_block_type( 'activities/activity-gap-fill', array(

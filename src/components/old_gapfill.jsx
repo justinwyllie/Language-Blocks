@@ -12,58 +12,30 @@ import { useBlockProps, RichText } from '@wordpress/block-editor';
 const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
 
-import {  useEffect} from '@wordpress/element';
+
+const { lockPostSaving, unlockPostSaving } = useDispatch('core/editor');
+
+const { isSaving, isAutosaving } = useSelect(select => ({
+    isSaving: select('core/editor').isSavingPost(),
+    isAutosaving: select('core/editor').isAutosavingPost()
+}), []);
+
+console.log(isSaving, isAutosaving);
 
 
 
-import { useDispatch } from '@wordpress/data';
-import { store as editorStore } from '@wordpress/editor'; // ← Missing import
+const POST_TITLE_LENGTH = 5;
 
-
-const POST_TITLE_LENGTH = window.kea_language_blocks.settings.page_title_length;
-
-
-
-const GapFill = ({postType, setAttributes, attributes}) =>
+const GapFill = ({postType}) =>
 {
+
     const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
     const initialValues = {}; 
     initialValues.set = false;
     const defaultLang = 'en';
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
-  
-
-  
-
-    const { lockPostSaving, unlockPostSaving } = useDispatch(editorStore);
-
-    const DataLifter = ({ setAttributes }) =>
-    {
-
-        const { values } = useFormikContext();
-
-        lockPostSaving('activities/activity-gap-fill');
-        setAttributes({formData: values});   
-        setAttributes({ activityType: 'gapfill'});
-        unlockPostSaving('activities/activity-gap-fill');
-
-        //new plan:
-        //TITLE  - in new world nothing prevents it being saved < limit, thoguh we do put up a message and try to scroll into view
-        //use above to update meta _kea_acitvity_form_data which == values
-        //the initial values here becomes based on that - no need for XML conversion
-        //the _kea_activity_meta key (becomes _kea_activity_xml) is saved when the post saves on the backend see: not here
-        //add_action( 'rest_after_insert_kea_activity', array($this, 'save_activity_meta' ));
-        //the current conversion of the XML to json also happens on the backend - one fnc which takes the form values from here
-        //and converst to xml and json and saves both 
-
-        //don't forget in new world xml does not need to be in rest and from values
-
-
-        //otherwise - we use setAttributes here in some simple way to force wp to show save button and then we handle the save action and either figure out 
-        //how to intercept it or double save
-
-    }
+    const metaFieldValue = meta[ '_kea_activity_meta' ]; 
 
    
     const { postTitle } = useSelect(
@@ -75,7 +47,94 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     const alertRef = useRef();
 
 
-    //see increase_grammar_terms_per_page_limit PHP
+
+    //validate form, if ok build XML (second validation step - test for valid
+    //valid XML - call setMeta to update the meta field with the XML
+    const processForm = (values) =>
+    {
+       
+        let parser = new DOMParser();
+        let xml = '<?xml version="1.0" encoding="UTF-8"?><activity></activity>';
+        let xmlDoc = parser.parseFromString(xml,"text/xml");
+
+        let rootNode = xmlDoc.getElementsByTagName("activity")[0];
+        rootNode.setAttribute("type", "gapfill");
+        //rootNode.setAttribute("ageGroup", values.ageGroup);
+        //rootNode.setAttribute("level", values.level);
+
+        let legacyNameNode = xmlDoc.createElement("legacyName");
+        let legacyNameValueNode = xmlDoc.createTextNode(values.legacyName);
+        legacyNameNode.appendChild(legacyNameValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(legacyNameNode);
+
+  
+        let titleNode = xmlDoc.createElement("title");
+        let titleValueNode = xmlDoc.createTextNode(postTitle);
+        titleNode.appendChild(titleValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(titleNode);
+
+        let modelsNode = xmlDoc.createElement("models");
+        let modelsValueNode = xmlDoc.createTextNode(values.models);
+        modelsNode.appendChild(modelsValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(modelsNode);
+
+        let explanationNode = xmlDoc.createElement("explanation");
+        let explanationValueNode = xmlDoc.createTextNode(values.explanation);
+        explanationNode.appendChild(explanationValueNode);
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(explanationNode);
+
+        let instructionsNode = xmlDoc.createElement("instructions");
+        values.instructions.forEach(function(item, i)
+        {
+            let iNode = xmlDoc.createElement("instruction");
+            iNode.setAttribute("lang", item.lang);
+            let iValueNode = xmlDoc.createTextNode(item.text);
+            iNode.appendChild(iValueNode);
+            instructionsNode.appendChild(iNode);
+        });
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(instructionsNode);
+
+        let questionsNode = xmlDoc.createElement("questions");
+        values.questions.forEach(function(item, i)
+        {
+            let qNode = xmlDoc.createElement("q"+i);
+            qNode.setAttribute("questionNumber", (i + 1));
+            qNode.setAttribute("answer", item.answer.trimEnd());
+            let qValueNode = xmlDoc.createTextNode(item.question);
+            qNode.appendChild(qValueNode);
+            questionsNode.appendChild(qNode);
+        });
+        xmlDoc.getElementsByTagName("activity")[0].appendChild(questionsNode);
+
+        let s = new XMLSerializer();
+        let newXmlStr = s.serializeToString(xmlDoc);
+        values.rawXML = newXmlStr;
+
+        setMeta( { ...meta, _kea_activity_meta: newXmlStr, _kea_activity_type: "gapfill" } );
+        //todo maaybe use saveeditiedentityrecord to save this without an additional press of the big Save button - see components.js in this project
+        
+        
+    }
+
+
+    /*  TODO
+        Ideally I would like to pick up taxonomies dynamically so I did not have to rebuild the f/e but this seems hard.
+        https://stackoverflow.com/questions/76573295/wordpress-gutenberg-or-react-useselect-for-dynamic-data
+
+         const availableTaxonomies = useSelect(
+        ( select ) => wp.data.select('core').getEntitiesConfig('taxonomy', {per_page: 100}),
+            []
+        );
+
+        then do everything dynamically but....
+        for now we have to hardcode the taxonomies for labels. 
+    */
+        
+    //without view default seems to be edit?    
+    //100 is a wp limit TODO ID 167 MUST BE ALL as this is used as a look up for the terms 
+    //https://chat.deepseek.com/a/chat/s/c63caebe-1646-4150-97cf-0e24ea6ad7fe
+    //these are used to set up the look up to get the term name given the id from entityprop which is why we need all.
+
     const grammarTaxonomy =  useSelect(
         ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'}) 
 
@@ -120,14 +179,18 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     });
    
 
+
+
+
+
+
+
      
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
 
     const ErrorMessage = ({postTitle}) =>
     {
         const { isValid } = useFormikContext();
-
-        console.log("test",postTitle.length, POST_TITLE_LENGTH);
       
         if (isValid && (postTitle.length >= POST_TITLE_LENGTH))
         {   
@@ -135,18 +198,33 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         }
         else
         {
-            if (postTitle.length < POST_TITLE_LENGTH)
-            {
-                alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' }); //TODO maybe hanlde no element found?
-            }
             return <Alert variant="danger">{LABELS[settings.defaultUserLang]['please_check_the_form']['nominative']}</Alert>;
         }
     };
-
+   
+   
     function setInitialValues() {
             
-            if (Object.keys(attributes['formData']).length === 0)
+            
+            //The hook useEntityProp can be used by the blocks to get or change meta values.
+            //in the register or to the backend? 
+            //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
+            
+            
+            //TODO get this from backend or make it configureable
+            //also make en default
+    
+            //is this a mistake? newValue is the event?
+            //this does the rest call to save the data?
+            
+            
+            //this is case of new activity?
+            if (metaFieldValue == "")
             {
+                
+                initialValues.type = postType;
+                //initialValues.ageGroup = 0;
+                //initialValues.level = 0;
                 initialValues.legacyName = '';
                 initialValues.models = '';
                 initialValues.explanation = '';
@@ -156,22 +234,106 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                 {
                     initialValues.instructions.push({lang: lang, text: ''});
                 }
+              
+                
             }
             else //set initialValues for form based on XML string loaded from postmeta
             {
+                
+                let parser = new DOMParser();
+                let xmlDoc = parser.parseFromString(metaFieldValue, "text/xml");
+                let rootNode = xmlDoc.getElementsByTagName("activity")[0];
+                initialValues.type = rootNode.getAttribute("type");
+                //initialValues.ageGroup = rootNode.getAttribute("ageGroup");
+                //initialValues.level = rootNode.getAttribute("level");
 
-                const currentFormData = attributes['formData'];
-                for (var field in currentFormData)
+                let legacyNameNodes = xmlDoc.getElementsByTagName("legacyName");
+                
+                if ((legacyNameNodes.length > 0) && (legacyNameNodes[0].childNodes.length > 0) )
                 {
-                    initialValues[field] = currentFormData[field];
+                    initialValues.legacyName = legacyNameNodes[0].childNodes[0].nodeValue; 
                 }
-            }
+                else
+                {
+                    initialValues.legacyName = '';  
+                }
 
+                
+
+                let modelsNodes = xmlDoc.getElementsByTagName("models");
+                if ((modelsNodes.length > 0) && (modelsNodes[0].childNodes.length > 0))
+                {
+                    initialValues.models = modelsNodes[0].childNodes[0].nodeValue;     
+                }
+                else
+                {
+                    initialValues.models = '';
+                }
+
+                let explanationNodes = xmlDoc.getElementsByTagName("explanation");
+                if ((explanationNodes.length > 0) && (explanationNodes[0].childNodes.length > 0))
+                {
+                    initialValues.explanation = explanationNodes[0].childNodes[0].nodeValue;     
+                }
+                else
+                {
+                    initialValues.explanation = '';
+                }
+
+
+
+                let questionNodes = xmlDoc.getElementsByTagName("questions");
+                
+                
+                if (questionNodes.length > 0)
+                {
+                    let theQuestionsNode = questionNodes[0];
+                    initialValues.questions = [];
+                    for (let el of theQuestionsNode.childNodes) { 
+                        let questionText = el.textContent;
+                        let answerText = el.getAttribute("answer");
+                        let question = {"question": questionText, "answer": answerText};
+                        initialValues.questions.push(question); 
+                    }
+                }
+                else
+                {
+                    initialValues.questions = [];        
+                }
+
+                let instructionsNodes = xmlDoc.getElementsByTagName("instructions");
+                let instructionsHolder = new Array();
+                if (instructionsNodes != null)
+                {
+                    let instructionNodes = instructionsNodes[0].childNodes;
+                    instructionNodes.forEach((el) => {
+                        const lang = el.getAttribute("lang");
+                        instructionsHolder[lang] = el.textContent;     
+                    });
+                }
+                initialValues.instructions = new Array();
+                
+                for (const lang of supportedLangs)
+                {
+                    if (lang in instructionsHolder)
+                    {   
+                        initialValues.instructions.push({lang: lang, text: instructionsHolder[lang]});    
+                    }
+                    else
+                    {
+                        initialValues.instructions.push({lang: lang, text: '' });   
+                    }
+                }
+
+                let s = new XMLSerializer();
+                let newXmlStr = s.serializeToString(xmlDoc);
+                initialValues.rawXML = newXmlStr;
+                
+
+            }
+            
             initialValues.set = true;
         }
-
-
-
         if (!initialValues.set)
         {
             setInitialValues();
@@ -182,7 +344,6 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         {(postTitle.length < POST_TITLE_LENGTH) ? <div className="field-error">{LABELS[settings.defaultUserLang]['minimum_length_title']['nominative']}</div> : ''}
         <Formik
             initialValues={initialValues}
-            
 
             validate={values => {
             
@@ -288,7 +449,15 @@ const GapFill = ({postType, setAttributes, attributes}) =>
             }}
             
             onSubmit={(values, errors) => {
-       
+
+                if (postTitle.length < POST_TITLE_LENGTH )
+                {
+                   alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' }); //TODO maybe hanlde no element found?
+                } 
+                else 
+                {
+                    processForm(values);
+                }
                 
             }}
                 
@@ -306,13 +475,10 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         
             }) => (
             
-     
-
+                
             <Form onSubmit={handleSubmit} name="activty" id="activity" className="">
                 
                 <ErrorMessage postTitle={postTitle}></ErrorMessage>
-
-                <DataLifter  setAttributes={setAttributes} />
     
 
                 <Form.Group as={Row}>
@@ -460,6 +626,28 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                     </Col>
                 </Form.Group> 
 
+                <Form.Group as={Row}>
+                    <Col md={12}>
+                    
+                        <Form.Label>Activity XML</Form.Label>
+                        <Form.Control as="textarea" id="rawXML" name="rawXML" rows={6}
+                            readOnly value={ values.rawXML }></Form.Control>
+                    
+                    </Col>
+                </Form.Group>
+            
+
+                
+                <Form.Group as={Row}>
+                    <Col sm={{ span: 10, offset: 0 }}>
+                        <button id="activityButton" role="link" type="submit" >
+                            Update
+                        </button>
+                    </Col>
+                </Form.Group> 
+
+        
+
                 
             </Form>
             )}
@@ -469,20 +657,6 @@ const GapFill = ({postType, setAttributes, attributes}) =>
 </div>
     
 }
-
-/*
-    <Form.Group as={Row}>
-        <Col md={12}>
-        
-            <Form.Label>Activity XML</Form.Label>
-            <Form.Control as="textarea" id="rawXML" name="rawXML" rows={6}
-                readOnly value={ values.rawXML }></Form.Control>
-        
-        </Col>
-    </Form.Group>
-*/
-            
-
 
 
 export {

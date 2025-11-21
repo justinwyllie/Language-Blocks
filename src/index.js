@@ -131,7 +131,7 @@ registerBlockType( 'activities/activity-gap-fill', {
         const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
         //TODO - does this make an ajax call or just get it from the data store
         
-console.log("postType", postType);
+
         return (
             <div { ...blockProps }>
                 <GapFill postType={postType} setAttributes={setAttributes} attributes={attributes}></GapFill>
