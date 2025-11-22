@@ -12,6 +12,37 @@ License: copyright Justin Wyllie
 
 
 
+include_once('migration.php');
+
+
+function fix_up()
+{
+
+    if (isset($_GET['fixup']))
+    {
+        if ($_GET['fixup'] == 1)
+        {
+            migrate_kea_activities_to_blocks_gapfill();
+        }
+
+        if ($_GET['fixup'] == 2)
+        {
+            //migrate_kea_activity_types_to_post_meta();
+        }
+
+        if ($_GET['fixup'] == 3)
+        {
+            //migrate_xml_activities_to_kea_table();
+        }
+
+
+        
+    }
+
+}
+fix_up();
+
+
 class KeaActivities
 {
     private $caps;
@@ -387,43 +418,59 @@ class KeaActivities
 
     //after post save update the xml meta and the json meta and the xml meta and, for now, the json table (will be deleted. probably)
     //if this falis then we have a post without the json meta (the key one)
-    
+    //TODO this puts activity_type into a meta field _kea_activity_type, the json table and the json meta - which is considered authoriative in the node?!
+    //it looks like we get it off the json from the table but if not there from the field in the json table.
+    //note that the teacher side gets it from the meta value
     public function save_activity_meta($post)
     {
       
         $post_content = $post->post_content;
-        $blocks = parse_blocks($post_content);
-        foreach ($blocks as $block) {
-            if ($block['blockName'] === 'activities/activity-gap-fill' || $block['blockName'] === 'activities/activity-multiple-choice') {
-
-                $attributes = $block['attrs']; // Direct access to attributes array
-                $form_data = $attributes['formData'] ?? null;
-                $activity_type = $attributes['activityType'];
-                
-                if ($form_data) {
-    
-                    $form_data['title'] = $post->post_title;
-                    $form_data['activity_type'] = $activity_type;
-                   
-                    $formatted_data = $this->convert_form_data($form_data);
-                    break;
-                }
-            }
-        };
-
         $post_id = $post->ID;
+        $blocks = parse_blocks($post_content);
+        if (count($blocks) < 1)
+        {
+            return;
+        }
 
 
-        if (empty($form_data) || 1==1)
+        $block = $blocks[0];
+       
+        if ($block['blockName'] === 'activities/activity-gap-fill' || $block['blockName'] === 'activities/activity-multiple-choice') {
+
+            $attributes = $block['attrs']; // Direct access to attributes array
+            $form_data = $attributes['formData'] ?? null;
+            $activity_type = $attributes['activityType'];
+
+            $activity_type_result = update_post_meta($post_id, '_kea_activity_type', $activity_type);
+            
+            
+            if ($form_data) {
+
+                $form_data['title'] = $post->post_title;
+                $form_data['activity_type'] = $activity_type;
+                
+                $formatted_data = $this->convert_form_data($form_data);
+                
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }
+    
+
+        if (empty($form_data))
         {
             
             $this->mail_error("In save_activity_meta it seems after an activity was saved the additional save of meta and json did not happen. $post_id");
             return;
         }
 
-
-
-        
+      
         $author_id = get_post_field( 'post_author', $post_id );
         $post_meta = get_post_meta($post_id); 
 
@@ -695,15 +742,7 @@ class KeaActivities
             } 
         ) );
 
-        register_post_meta( 'kea_activity', 'test', array(
-            'type'         => 'string',   
-            'single'       => true,       
-            'show_in_rest' => true,  
-            'auth_callback' => function() {
-            return current_user_can( 'edit_posts' );
 
-            } 
-        ) );
 
     
     }
