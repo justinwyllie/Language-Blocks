@@ -12,14 +12,12 @@ import { useBlockProps, RichText } from '@wordpress/block-editor';
 const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
 
-import {  useEffect} from '@wordpress/element';
+
 
 
 
 import { useDispatch } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor'; // ← Missing import
-
-
 const POST_TITLE_LENGTH = window.kea_language_blocks.settings.page_title_length;
 
 
@@ -47,21 +45,6 @@ console.log("ATTRIBUTES ARE", attributes);
         setAttributes({formData: values});   
         setAttributes({ activityType: 'gapfill'});
         unlockPostSaving('activities/activity-gap-fill');
-
-        //new plan:
-        //TITLE  - in new world nothing prevents it being saved < limit, thoguh we do put up a message and try to scroll into view
-        //use above to update meta _kea_acitvity_form_data which == values
-        //the initial values here becomes based on that - no need for XML conversion
-        //the _kea_activity_meta key (becomes _kea_activity_xml) is saved when the post saves on the backend see: not here
-        //add_action( 'rest_after_insert_kea_activity', array($this, 'save_activity_meta' ));
-        //the current conversion of the XML to json also happens on the backend - one fnc which takes the form values from here
-        //and converst to xml and json and saves both 
-
-        //don't forget in new world xml does not need to be in rest and from values
-
-
-        //otherwise - we use setAttributes here in some simple way to force wp to show save button and then we handle the save action and either figure out 
-        //how to intercept it or double save
 
     }
 
@@ -127,8 +110,6 @@ console.log("ATTRIBUTES ARE", attributes);
     {
         const { isValid } = useFormikContext();
 
-        console.log("test",postTitle.length, POST_TITLE_LENGTH);
-      
         if (isValid && (postTitle.length >= POST_TITLE_LENGTH))
         {   
             return <></>
@@ -159,7 +140,7 @@ console.log("ATTRIBUTES ARE", attributes);
                     initialValues.instructions.push({lang: lang, text: ''});
                 }
             }
-            else //set initialValues for form based on XML string loaded from postmeta
+            else 
             {
 
                 const currentFormData = attributes['formData'];

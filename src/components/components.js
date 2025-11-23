@@ -289,7 +289,7 @@ const LinkPanel = () => {
    
         try {
             await  saveEditedEntityRecord('postType', 'kea_activity', postId);
-            console.log('Meta saved successfully!');
+        
         } catch (error) {
             console.error('Save failed:', error);
         }

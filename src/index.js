@@ -157,12 +157,14 @@ registerBlockType( 'activities/activity-multiple-choice', {
     //we are bypassing attributes as we are saving just one block of xml to post meta not html string
     //TODO remove this
     attributes: {
-        activityType: 'multiplechoice',
-		exampleText: {
-			type: 'string',
-            source: 'text',
-			default: ''
-		}
+        activityType: {
+            type: 'string'
+    
+        },
+		formData: {
+            type: 'object',
+            default: {}  // Just the data you care about
+        }
 	
 	},
 
@@ -196,7 +198,7 @@ registerBlockType( 'activities/activity-multiple-choice', {
 
         return (
             <div { ...blockProps }>
-                <MultipleChoice postType={postType}></MultipleChoice>
+                <MultipleChoice postType={postType} setAttributes={setAttributes} attributes={attributes}></MultipleChoice>
             </div>
         );
     },

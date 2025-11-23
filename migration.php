@@ -7,7 +7,7 @@ function migrate_kea_activity_types_to_post_meta() {
         SELECT a.kea_activity_post_id, a.kea_activity_ex_type, p.ID
         FROM {$wpdb->prefix}kea_activity a
         INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID
-        WHERE a.kea_activity_ex_type IN ('gapfill', 'multiplechoice')
+        WHERE a.kea_activity_ex_type IN ('gapfill')
     ");
     
     if (empty($activities)) {
@@ -58,9 +58,10 @@ function migrate_kea_activities_to_blocks_gapfill() {
     $activities = $wpdb->get_results("
         SELECT a.kea_activity_post_id, a.kea_activity_post_json, p.post_content, p.ID
         FROM {$wpdb->prefix}kea_activity a
-        INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID AND p.ID = 1452
+        INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID 
         WHERE a.kea_activity_post_json != '' AND a.kea_activity_ex_type = 'gapfill' 
     ");
+    //AND p.ID = 1452
     
     if (empty($activities)) {
         error_log("No activities found to migrate");
@@ -327,5 +328,30 @@ function migrate_kea_activities_to_blocks_gapfill() {
     // Run the migration
     // migrate_xml_activities_to_kea_table();
 
-
+    function fix_up()
+    {
+    
+        if (isset($_GET['fixup']))
+        {
+            if ($_GET['fixup'] == 1)
+            {
+                //migrate_kea_activities_to_blocks_gapfill();
+            }
+    
+            if ($_GET['fixup'] == 2)
+            {
+                migrate_kea_activity_types_to_post_meta();
+            }
+    
+            if ($_GET['fixup'] == 3)
+            {
+                //migrate_xml_activities_to_kea_table();
+            }
+    
+    
+            
+        }
+    
+    }
+    fix_up();
 ?>

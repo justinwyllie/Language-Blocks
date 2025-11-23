@@ -13,9 +13,12 @@ import { useBlockProps, RichText } from '@wordpress/block-editor';
 import _ from 'underscore';
 
 const settings = window.kea_language_blocks.settings;
-const POST_TITLE_LENGTH = 5;
+import { useDispatch } from '@wordpress/data';
+import { store as editorStore } from '@wordpress/editor'; // ← Missing import
+const POST_TITLE_LENGTH = window.kea_language_blocks.settings.page_title_length;
 
-const MultipleChoice = ({postType}) =>
+
+const MultipleChoice = ({postType, setAttributes, attributes}) =>
 {
 
     const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
@@ -25,12 +28,30 @@ const MultipleChoice = ({postType}) =>
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
     const metaFieldValue = meta[ '_kea_activity_meta' ]; 
-    let globalErrors = {};
+  
    
     let formSubmitting = false;
     const setFormSubmitting = (flag) =>
     {
         formSubmitting  = flag; 
+    }
+
+   
+
+    const { lockPostSaving, unlockPostSaving } = useDispatch(editorStore);
+    
+    const DataLifter = ({ setAttributes }) =>
+    {
+
+        const { values } = useFormikContext();
+
+        console.log("form values", values);
+
+        lockPostSaving('activities/activity-multiple-choice');
+        setAttributes({formData: values});   
+        setAttributes({ activityType: 'multiplechoice'});
+        unlockPostSaving('activities/activity-multiple-choice');
+
     }
 
     const { postTitle } = useSelect(
@@ -42,115 +63,7 @@ const MultipleChoice = ({postType}) =>
     const alertRef = useRef();
 
 
-    //validate form, if ok build XML (second validation step - test for valid
-    //valid XML - call setMeta to update the meta field with the XML
-    const processForm = (values) =>
-    {
-       
-        let parser = new DOMParser();
-        let xml = '<?xml version="1.0" encoding="UTF-8"?><activity></activity>';
-        let xmlDoc = parser.parseFromString(xml,"text/xml");
 
-        let rootNode = xmlDoc.getElementsByTagName("activity")[0];
-        rootNode.setAttribute("type", "multiplechoice");
-        //rootNode.setAttribute("ageGroup", values.ageGroup);
-        //rootNode.setAttribute("level", values.level);
-
-        let legacyNameNode = xmlDoc.createElement("legacyName");
-        let legacyNameValueNode = xmlDoc.createTextNode(values.legacyName);
-        legacyNameNode.appendChild(legacyNameValueNode);
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(legacyNameNode);
-
-        let titleNode = xmlDoc.createElement("title");
-        let titleValueNode = xmlDoc.createTextNode(postTitle);
-        titleNode.appendChild(titleValueNode);
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(titleNode);
-
-        let modelsNode = xmlDoc.createElement("models");
-        let modelsValueNode = xmlDoc.createTextNode(values.models);
-        modelsNode.appendChild(modelsValueNode);
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(modelsNode);
-
-        let explanationNode = xmlDoc.createElement("explanation");
-        let explanationValueNode = xmlDoc.createTextNode(values.explanation);
-        explanationNode.appendChild(explanationValueNode);
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(explanationNode);
-
-        let instructionsNode = xmlDoc.createElement("instructions");
-        values.instructions.forEach(function(item, i)
-        {
-            let iNode = xmlDoc.createElement("instruction");
-            iNode.setAttribute("lang", item.lang);
-            let iValueNode = xmlDoc.createTextNode(item.text);
-            iNode.appendChild(iValueNode);
-            instructionsNode.appendChild(iNode);
-        });
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(instructionsNode);
-
-        let questionsNode = xmlDoc.createElement("questions");
-        values.questions.forEach(function(item, i)
-        {
-            let qNode = xmlDoc.createElement("q"+i);
-            qNode.setAttribute("questionNumber", (i + 1));
-
-            let questionNode = xmlDoc.createElement("question");
-            let questionNodeValue = xmlDoc.createTextNode(item.question);
-            questionNode.appendChild(questionNodeValue);
-            qNode.appendChild(questionNode);
-
-            let answersNode = xmlDoc.createElement("answers");
-
-
-            item.answers.forEach((answer, i2) => {
-                let answerNode = xmlDoc.createElement("answer");
-                if (i2 == 0)
-                {
-                    answerNode.setAttribute("variant", "correct");
-                }
-                else
-                {
-                    answerNode.setAttribute("variant", "incorrect");
-                }
-                let answerNodeValue = xmlDoc.createTextNode(answer);
-                answerNode.appendChild(answerNodeValue);
-                answersNode.appendChild(answerNode); 
-            });
-
-            qNode.appendChild(answersNode);
-            questionsNode.appendChild(qNode);
-            
-        });
-        xmlDoc.getElementsByTagName("activity")[0].appendChild(questionsNode );
-
-        let s = new XMLSerializer();
-        let newXmlStr = s.serializeToString(xmlDoc);
-        values.rawXML = newXmlStr;
-       
-    
-
-        //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
-        //this seems to cause a re-render of the component. does it?
-        //but does not save anything to the backend - that takes saving the whole post
-        //via the button on the page?
-        //console.log("setMeta");
-        console.log(" meta1", meta);
-        setMeta( { ...meta, _kea_activity_meta: newXmlStr, _kea_activity_type: "multiplechoice" } );
-        
-        
-    }
-
-    /*  TODO
-        Ideally I would like to pick up taxonomies dynamically so I did not have to rebuild the f/e but this seems hard.
-        https://stackoverflow.com/questions/76573295/wordpress-gutenberg-or-react-useselect-for-dynamic-data
-
-         const availableTaxonomies = useSelect(
-        ( select ) => wp.data.select('core').getEntitiesConfig('taxonomy', {per_page: 100}),
-            []
-        );
-
-        then do everything dynamically but....
-        for now we have to hardcode the taxonomies for labels. 
-    */
 
     const grammarTaxonomy =  useSelect(
         ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'}) 
@@ -215,6 +128,10 @@ const MultipleChoice = ({postType}) =>
         }
         else
         {
+            if (postTitle.length < POST_TITLE_LENGTH)
+            {
+                alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' }); //TODO maybe hanlde no element found?
+            }
             return <Alert variant="danger">{LABELS[settings.defaultUserLang]['please_check_the_form']['nominative']}</Alert>;
         }
     };
@@ -222,151 +139,40 @@ const MultipleChoice = ({postType}) =>
     function setInitialValues() {
             
             
-            //The hook useEntityProp can be used by the blocks to get or change meta values.
-            //in the register or to the backend? 
-            //https://developer.wordpress.org/block-editor/how-to-guides/metabox/meta-block-3-add/ 
-            
-            
-            //TODO get this from backend or make it configureable
-            //also make en default
-    
-            //is this a mistake? newValue is the event?
-            //this does the rest call to save the data?
-            
-            //https://github.com/jaredpalmer/formik/issues/445#issuecomment-366952762
-            //this is case of new activity?
-            if ( (metaFieldValue == "")   ||  (metaFieldValue == undefined) )
-            {
-            
-                initialValues.type = postType;
-                //initialValues.ageGroup = 0;
-                //initialValues.level = 0;
-                initialValues.legacyName = '';
-                initialValues.models = '';
-                initialValues.explanation = '';
-                //initialValues.questions = [{question: '', answers: ['', '','','']}];
-                //initialValues.questions = [{question: '', answers: []}];
-                initialValues.questions = [];
-                initialValues.instructions = [];
-                for (const lang of supportedLangs)
-                {
-                    initialValues.instructions.push({lang: lang, text: ''});
-                }
-              
-                
-            }
-            else //set initialValues for form based on XML string loaded from postmeta
-            {
-                
-                let parser = new DOMParser();
-                let xmlDoc = parser.parseFromString(metaFieldValue, "text/xml");
-                let rootNode = xmlDoc.getElementsByTagName("activity")[0];
-                initialValues.type = rootNode.getAttribute("type");
-                //initialValues.ageGroup = rootNode.getAttribute("ageGroup");
-                //initialValues.level = rootNode.getAttribute("level");
-
-                let legacyNameNodes = xmlDoc.getElementsByTagName("legacyName");
-                
-                if ((legacyNameNodes.length > 0) && (legacyNameNodes[0].childNodes.length > 0) )
-                {
-                    initialValues.legacyName = legacyNameNodes[0].childNodes[0].nodeValue; 
-                }
-                else
-                {
-                    initialValues.legacyName = '';  
-                }
-
-    
-
-                let modelsNodes = xmlDoc.getElementsByTagName("models");
-                if ((modelsNodes.length > 0) && (modelsNodes[0].childNodes.length > 0))
-                {
-                    initialValues.models = modelsNodes[0].childNodes[0].nodeValue;     
-                }
-                else
-                {
-                    initialValues.models = '';
-                }
-
-                let explanationNodes = xmlDoc.getElementsByTagName("explanation");
-                if ((explanationNodes.length > 0) && (explanationNodes[0].childNodes.length > 0))
-                {
-                    initialValues.explanation = explanationNodes[0].childNodes[0].nodeValue;     
-                }
-                else
-                {
-                    initialValues.explanation = '';
-                }
-
-
-
-                let questionNodes = xmlDoc.getElementsByTagName("questions");
-                
-                
-                if (questionNodes.length > 0)
-                {
-                    let theQuestionsNode = questionNodes[0];
-                    initialValues.questions = [];
-
-                    for (let el of theQuestionsNode.childNodes) { 
-
-                        //let questionNumber = el.getAttribute("questionNumber");
-                        let questionNode = el.getElementsByTagName("question")[0];
-                        let questionText = questionNode.textContent;
-                        let questionAndAnswers = {question: questionText, answers: []};
-
-                        let answerNodes = el.getElementsByTagName("answers");
-                        //TODO - we are assuming our array order has been preserved
-                        answerNodes[0].childNodes.forEach((answerNode) => {
-                            questionAndAnswers.answers.push(answerNode.textContent);
-                        });
-                   
-                        initialValues.questions.push(questionAndAnswers); 
-                    }
-                }
-                else
-                {
-                    initialValues.questions = [];        
-                }
-
-                let instructionsNodes = xmlDoc.getElementsByTagName("instructions");
-                let instructionsHolder = new Array();
-                if (instructionsNodes != null)
-                {
-                    let instructionNodes = instructionsNodes[0].childNodes;
-                    instructionNodes.forEach((el) => {
-                        const lang = el.getAttribute("lang");
-                        instructionsHolder[lang] = el.textContent;     
-                    });
-                }
-                initialValues.instructions = new Array();
-                
-                for (const lang of supportedLangs)
-                {
-                    if (lang in instructionsHolder)
-                    {   
-                        initialValues.instructions.push({lang: lang, text: instructionsHolder[lang]});    
-                    }
-                    else
-                    {
-                        initialValues.instructions.push({lang: lang, text: '' });   
-                    }
-                }
-
-                let s = new XMLSerializer();
-                let newXmlStr = s.serializeToString(xmlDoc);
-                initialValues.rawXML = newXmlStr;
-                
-
-            }
-            
-            initialValues.set = true;
-        }
-        if (!initialValues.set)
+        console.log("INIT ATTR", attributes);
+        //this is case of new activity?
+        if (Object.keys(attributes['formData']).length === 0)
         {
-            setInitialValues();
+        
+            initialValues.legacyName = '';
+            initialValues.models = '';
+            initialValues.explanation = '';
+            initialValues.questions = [];
+            initialValues.instructions = [];
+            for (const lang of supportedLangs)
+            {
+                initialValues.instructions.push({lang: lang, text: ''});
+            }
+            
+        }
+        else //set initialValues for form based on XML string loaded from postmeta
+        {
+            const currentFormData = attributes['formData'];
+            for (var field in currentFormData)
+            {
+                initialValues[field] = currentFormData[field];
+            }
+            
         }
         
+        initialValues.set = true;
+    }
+
+    if (!initialValues.set)
+    {
+        setInitialValues();
+    }
+    
 
 
     return <div ref={alertRef}>
@@ -478,54 +284,11 @@ const MultipleChoice = ({postType}) =>
 
                     
                 })
-                globalErrors = errors;
+             
                 return errors;
             }}
             
-            onSubmit={(values, formikBag) => {
-
-              
-                //TODO - what is all this???? it looks like we are repeating the validation ? TODO what does 'TEST ONLY' mean? can we just get rid of this?
-                setFormSubmitting(false);//can we use isSubmitting? maybe from context? TODO yes
-                formikBag.validateForm();
-            
-                //TEST ONLY  
-                let touched = {}
-                if (!_.isEmpty(globalErrors) )
-                {
-                    if (globalErrors.title != undefined)
-                    {
-                        touched.title = true;
-                    }
-                    if (globalErrors.instructions != undefined)
-                    {
-                        touched.instructions = Array();
-                        globalErrors.instructions.forEach((instruction, idx) => {
-                            touched.instructions[idx] =  {lang: '', text: true}; 
-                        });
-                    }
-                    if (globalErrors.questions != undefined)
-                    {
-                        touched.questions = [];
-                        globalErrors.questions.forEach((item, idx) => {
-                            touched.questions.push({question: true, answers: [true, true, true, true]});
-                        });
-                    }
-                }
-
-                formikBag.setTouched(touched);
-                
-                if (_.isEmpty(globalErrors))
-                {
-                    if (postTitle.length < POST_TITLE_LENGTH )
-                    {
-                       alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' });
-                    } 
-                    else 
-                    {
-                        processForm(values);
-                    }
-                }
+            onSubmit={() => {
         
                 
             }}
@@ -558,6 +321,8 @@ const MultipleChoice = ({postType}) =>
 
             
                 <ErrorMessage postTitle={postTitle}></ErrorMessage>
+
+                <DataLifter  setAttributes={setAttributes} />
 
 
                 <Form.Group as={Row}>
@@ -693,30 +458,7 @@ const MultipleChoice = ({postType}) =>
                         </div>
                     </Col>
                 </Form.Group> 
-
-                <Form.Group as={Row}>
-                    <Col md={12}>
-                    
-                        <Form.Label>Activity XML</Form.Label>
-                        <Form.Control as="textarea" id="rawXML" name="rawXML" rows={6}
-                            readOnly value={ values.rawXML }></Form.Control>
-                    
-                    </Col>
-                </Form.Group>
-            
-
-                
-                <Form.Group as={Row}>
-                    <Col sm={{ span: 10, offset: 0 }}>
-                        <button id="activityButton" role="link" type="submit" >
-                            Update
-                        </button>
-                    </Col>
-                </Form.Group> 
-
-        
-
-                
+                        
             </Form>
             )}
         </Formik>

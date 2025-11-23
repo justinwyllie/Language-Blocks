@@ -15,32 +15,7 @@ License: copyright Justin Wyllie
 include_once('migration.php');
 
 
-function fix_up()
-{
 
-    if (isset($_GET['fixup']))
-    {
-        if ($_GET['fixup'] == 1)
-        {
-            migrate_kea_activities_to_blocks_gapfill();
-        }
-
-        if ($_GET['fixup'] == 2)
-        {
-            //migrate_kea_activity_types_to_post_meta();
-        }
-
-        if ($_GET['fixup'] == 3)
-        {
-            //migrate_xml_activities_to_kea_table();
-        }
-
-
-        
-    }
-
-}
-fix_up();
 
 
 class KeaActivities
@@ -317,6 +292,8 @@ class KeaActivities
       
     }
 
+
+
     private function convert_gapfill_form_data_to_json($form_data)
     {
         
@@ -329,9 +306,6 @@ class KeaActivities
         $processed_json->explanation = $form_data['explanation'];
 
         $processed_json->instructions = new StdClass();
-
-
- 
 
         foreach ($form_data['instructions'] as $instruction) {
             $lang = $instruction['lang'];
@@ -347,6 +321,56 @@ class KeaActivities
         }
         
         return $processed_json;
+    }
+
+    private function convert_multiplechoice_form_data_to_json($form_data)
+    {
+       
+        $output = [
+            'legacy_name' => $form_data['legacyName'] ?? '',
+            'models' => $form_data['models'] ?? '',
+            'explanation' => $form_data['explanation'] ?? '',
+            'instructions' => new stdClass(), // Force object instead of array
+            'questions' => []
+        ];
+    
+        // Convert instructions to object
+        if (isset($form_data['instructions']) && is_array($form_data['instructions'])) {
+            $instructions_obj = new stdClass();
+            foreach ($form_data['instructions'] as $instruction) {
+                if (isset($instruction['lang']) && isset($instruction['text'])) {
+                    $instructions_obj->{$instruction['lang']} = $instruction['text'];
+                }
+            }
+            $output['instructions'] = $instructions_obj;
+        }
+    
+        // Convert questions
+        if (isset($form_data['questions']) && is_array($form_data['questions'])) {
+            $question_number = 1;
+            foreach ($form_data['questions'] as $question) {
+                if (isset($question['question']) && isset($question['answers']) && is_array($question['answers'])) {
+                    $converted_answers = new stdClass(); // Force object instead of array
+                    
+                    // Convert answers array to object with "correct"/"incorrect" values
+                    foreach ($question['answers'] as $index => $answer) {
+                        $converted_answers->{$answer} = ($index === 0) ? 'correct' : 'incorrect';
+                    }
+                    
+                    $output['questions'][] = [
+                        'question' => $question['question'],
+                        'answers' => $converted_answers,
+                        'questionNumber' => (string)$question_number
+                    ];
+                    
+                    $question_number++;
+                }
+            }
+        }
+    
+        return $output;
+        
+     
     }
 
     private function convert_gapfill_form_data_to_xml($form_data)
@@ -391,6 +415,11 @@ class KeaActivities
         
         return $xmlDoc->saveXML();
 
+    }
+
+    private function convert_multiplechoice_form_data_to_xml($form_data)
+    {
+        return 'xml';
     }
 
     private function convert_form_data($form_data)
@@ -444,17 +473,20 @@ class KeaActivities
             $activity_type_result = update_post_meta($post_id, '_kea_activity_type', $activity_type);
             
             
-            if ($form_data) {
+            if (!empty($form_data)) {
 
                 $form_data['title'] = $post->post_title;
                 $form_data['activity_type'] = $activity_type;
                 
                 $formatted_data = $this->convert_form_data($form_data);
+
+                var_dump(json_encode($formatted_data));exit;
                 
             }
             else
             {
-                return;
+                $this->mail_error("In save_activity_meta it seems after an activity was saved the additional save of meta and json did not happen. $post_id");
+                 return;
             }
         }
         else
@@ -463,12 +495,6 @@ class KeaActivities
         }
     
 
-        if (empty($form_data))
-        {
-            
-            $this->mail_error("In save_activity_meta it seems after an activity was saved the additional save of meta and json did not happen. $post_id");
-            return;
-        }
 
       
         $author_id = get_post_field( 'post_author', $post_id );
@@ -877,6 +903,7 @@ class KeaActivities
             )
         ) );
 
+        //TODO i think we can remove this
         function render_activity_gap_fill_block($attributes, $content) {
             // Return empty string - no frontend output
             return '';
@@ -890,6 +917,10 @@ class KeaActivities
             'title' => 'Activity Multiple Chocie',
             'editor_style' => 'activity-editor',      
             'editor_script' => 'activity-script',
+            'attributes' => array(
+                'formData' => array('type' => 'object', 'default' => array()),
+                'activityType' => array('type' => 'string')
+            )
         ) );
         
     }
