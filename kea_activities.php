@@ -325,52 +325,46 @@ class KeaActivities
 
     private function convert_multiplechoice_form_data_to_json($form_data)
     {
-       
-        $output = [
-            'legacy_name' => $form_data['legacyName'] ?? '',
-            'models' => $form_data['models'] ?? '',
-            'explanation' => $form_data['explanation'] ?? '',
-            'instructions' => new stdClass(), // Force object instead of array
-            'questions' => []
-        ];
-    
-        // Convert instructions to object
-        if (isset($form_data['instructions']) && is_array($form_data['instructions'])) {
-            $instructions_obj = new stdClass();
-            foreach ($form_data['instructions'] as $instruction) {
-                if (isset($instruction['lang']) && isset($instruction['text'])) {
-                    $instructions_obj->{$instruction['lang']} = $instruction['text'];
-                }
-            }
-            $output['instructions'] = $instructions_obj;
+
+        $processed_json = new StdClass();
+
+        $processed_json->activity_type = $form_data['activity_type'];
+        $processed_json->legacy_name = $form_data['legacyName']; //TODO fix in client side
+        $processed_json->title = $form_data['title'];
+        $processed_json->models = $form_data['models'];
+        $processed_json->explanation = $form_data['explanation'];
+
+        $processed_json->instructions = new StdClass();
+
+        foreach ($form_data['instructions'] as $instruction) {
+            $lang = $instruction['lang'];
+            $text = $instruction['text'];
+            $processed_json->instructions->$lang = $text;
         }
-    
-        // Convert questions
+
+
+        $processed_json->questions = [];
+
         if (isset($form_data['questions']) && is_array($form_data['questions'])) {
             $question_number = 1;
             foreach ($form_data['questions'] as $question) {
                 if (isset($question['question']) && isset($question['answers']) && is_array($question['answers'])) {
-                    $converted_answers = new stdClass(); // Force object instead of array
-                    
-                    // Convert answers array to object with "correct"/"incorrect" values
-                    foreach ($question['answers'] as $index => $answer) {
-                        $converted_answers->{$answer} = ($index === 0) ? 'correct' : 'incorrect';
-                    }
-                    
-                    $output['questions'][] = [
-                        'question' => $question['question'],
-                        'answers' => $converted_answers,
-                        'questionNumber' => (string)$question_number
-                    ];
-                    
+                    $new_question = new stdClass(); 
+
+                    $new_question->question = $question['question'];
+                    $new_question->questionNumber = $question_number;
                     $question_number++;
+                    $new_question->answers = new stdClass();
+                    foreach ($question['answers'] as $index => $answer) {
+                        $new_question->answers->{$answer} = ($index === 0) ? 'correct' : 'incorrect';
+                    }
+                    $processed_json->questions[] = $new_question;
                 }
             }
         }
+
+        return $processed_json;
     
-        return $output;
-        
-     
     }
 
     private function convert_gapfill_form_data_to_xml($form_data)
@@ -419,7 +413,62 @@ class KeaActivities
 
     private function convert_multiplechoice_form_data_to_xml($form_data)
     {
-        return 'xml';
+        $xmlDoc = new DOMDocument('1.0', 'UTF-8');
+        $xmlDoc->formatOutput = true;
+        
+        $rootNode = $xmlDoc->createElement('activity');
+        $rootNode->setAttribute('type', 'multiplechoice');
+        $xmlDoc->appendChild($rootNode);
+
+        $legacyNameNode = $xmlDoc->createElement('legacyName', $form_data['legacyName']);
+        $rootNode->appendChild($legacyNameNode);
+
+        $titleNode = $xmlDoc->createElement('title', $form_data['title']);
+        $rootNode->appendChild($titleNode);
+        
+        $modelsNode = $xmlDoc->createElement('models', $form_data['models']);
+        $rootNode->appendChild($modelsNode);
+        
+        $explanationNode = $xmlDoc->createElement('explanation', $form_data['explanation']);
+        $rootNode->appendChild($explanationNode);
+        
+        $instructionsNode = $xmlDoc->createElement('instructions');
+        foreach ($form_data['instructions'] as $item) {
+            $iNode = $xmlDoc->createElement('instruction');
+            $iNode->setAttribute('lang', $item['lang']);
+            $iNode->appendChild($xmlDoc->createTextNode($item['text']));
+            $instructionsNode->appendChild($iNode);
+        }
+        $rootNode->appendChild($instructionsNode);
+        
+        $questionsNode = $xmlDoc->createElement('questions');
+
+        foreach ($form_data['questions'] as $i => $item) {
+            $qNode = $xmlDoc->createElement('q' . $i);
+            $qNode->setAttribute('questionNumber', (string)($i + 1));
+            $question = $xmlDoc->createElement('question', $item['question']);
+            $answers = $xmlDoc->createElement('answers');
+            foreach($item['answers'] as $z => $answer)
+            {
+                $answerNode = $xmlDoc->createElement('answer', $answer);
+                if ($z === 0)
+                {
+                    $answerNode->setAttribute('variant', 'correct');
+                }
+                else
+                {
+                    $answerNode->setAttribute('variant', 'incorrect');
+                }
+                $answers->appendChild($answerNode);
+
+            }
+            $qNode->appendChild($question);
+            $qNode->appendChild($answers);
+            $questionsNode->appendChild($qNode);
+        }
+        $rootNode->appendChild($questionsNode);
+        
+        return $xmlDoc->saveXML();
     }
 
     private function convert_form_data($form_data)
@@ -479,9 +528,7 @@ class KeaActivities
                 $form_data['activity_type'] = $activity_type;
                 
                 $formatted_data = $this->convert_form_data($form_data);
-
-                var_dump(json_encode($formatted_data));exit;
-                
+ 
             }
             else
             {
