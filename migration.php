@@ -1,4 +1,61 @@
 <?php 
+
+function migrate_json_from_table_to__kea_activity_json()
+{
+
+    global $wpdb;
+    
+    // Get all activities that exist in both tables
+    $activities = $wpdb->get_results("
+        SELECT a.kea_activity_post_id, a.kea_activity_ex_type, a.kea_activity_post_json, p.ID
+        FROM {$wpdb->prefix}kea_activity a
+        INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID
+        WHERE a.kea_activity_ex_type IN ('gapfill', 'mulitplechoice' )
+    ");
+    
+    if (empty($activities)) {
+        error_log("No activities found to migrate activity types");
+        return;
+    }
+    
+    $migrated_count = 0;
+    $error_count = 0;
+    
+    foreach ($activities as $activity) {
+        try {
+            // Update post meta with the activity type
+            $result = update_post_meta(
+                $activity->ID, 
+                '_kea_activity_json', 
+                $activity->kea_activity_post_json
+            );
+            
+            if ($result !== false) {
+                $migrated_count++;
+                error_log("Successfully set _kea_activity_json for post ID: {$activity->ID} ");
+            } else {
+                throw new Exception("Failed to update post meta for post ID: {$activity->ID}");
+            }
+            
+        } catch (Exception $e) {
+            $error_count++;
+            error_log("Migration error for post ID {$activity->ID}: " . $e->getMessage());
+        }
+    }
+    
+    error_log("Activity type migration completed: {$migrated_count} successful, {$error_count} errors");
+    
+    return [
+        'success' => $migrated_count,
+        'errors' => $error_count
+    ];
+
+}
+
+
+
+
+
 function migrate_kea_activity_types_to_post_meta() {
     global $wpdb;
     
@@ -456,7 +513,12 @@ function migrate_kea_activities_to_blocks_gapfill() {
     
             if ($_GET['fixup'] == 4)
             {
-                migrate_kea_activities_to_blocks_multiplechoice();
+                //migrate_kea_activities_to_blocks_multiplechoice();
+            }
+
+            if ($_GET['fixup'] == 5)
+            {
+                migrate_json_from_table_to__kea_activity_json();
             }
 
             
