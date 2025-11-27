@@ -51,6 +51,112 @@ function migrate_kea_activity_types_to_post_meta() {
 // Run the migration
 // migrate_kea_activity_types_to_post_meta();
 
+function migrate_kea_activities_to_blocks_multiplechoice() {
+
+    global $wpdb;
+    $activities = $wpdb->get_results("
+    SELECT a.kea_activity_post_id, a.kea_activity_post_json, p.post_content, p.ID
+    FROM {$wpdb->prefix}kea_activity a
+    INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID 
+    WHERE a.kea_activity_post_json != '' AND a.kea_activity_ex_type = 'multiplechoice' ");
+
+    if (empty($activities)) {
+        error_log("No activities found to migrate");
+        return;
+    }
+
+    //AND p.ID = 4424
+
+    $migrated_count = 0;
+    $error_count = 0;
+
+    foreach ($activities as $activity) 
+    {
+        try {
+            $source_data = json_decode($activity->kea_activity_post_json, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid JSON source: ' . json_last_error_msg());
+            }
+            
+            $block_attributes = [
+                'activityType' => $source_data['activity_type'] ?? 'multiplechoice',
+                'formData' => [
+                    'set' => true,
+                    'legacyName' => $source_data['legacy_name'] ?? '',
+                    'models' => $source_data['models'] ?? '',
+                    'explanation' => $source_data['explanation'] ?? '',
+                    'questions' => [],
+                    'instructions' => []
+                ]
+            ];
+            
+            // Convert questions - extract just the answer keys in array format
+            if (isset($source_data['questions']) && is_array($source_data['questions'])) {
+                foreach ($source_data['questions'] as $question) {
+                    $converted_question = [
+                        'question' => str_replace('"', '\"', $question['question'] ?? ''),
+                        'answers' => []
+                    ];
+                    
+                    // Extract answer keys (A, B, C, D) into a simple array - this assumes the array order has been maintained even though it was an object
+                    //check this when we anually review exercises 
+                    if (isset($question['answers']) && is_array($question['answers'])) {
+                        $converted_question['answers'] = array_keys($question['answers']);
+                        foreach ($converted_question['answers'] as &$ans)
+                        {
+                            $ans = str_replace('"', '\"', $ans);
+                        }
+                    }
+                    
+                    $block_attributes['formData']['questions'][] = $converted_question;
+                }
+            }
+            
+            // Convert instructions from object to array format
+            if (isset($source_data['instructions']) && is_array($source_data['instructions'])) {
+                foreach ($source_data['instructions'] as $lang => $text) {
+                    $block_attributes['formData']['instructions'][] = [
+                        'lang' => $lang,
+                        'text' => $text
+                    ];
+                }
+            }
+
+            
+            
+            // Create the new block content
+            $block_json = json_encode($block_attributes, JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE);
+            $new_content = "<!-- wp:activities/activity-multiple-choice {$block_json} -->\n\n<!-- /wp:activities/activity-multiple-choice -->";
+            
+            // Update the post
+            $result = wp_update_post([
+                'ID' => $activity->ID,
+                'post_content' => $new_content
+            ]);
+            
+            if ($result && !is_wp_error($result)) {
+                $migrated_count++;
+                error_log("Successfully migrated post ID: {$activity->ID}");
+            } else {
+                throw new Exception("Failed to update post ID: {$activity->ID}");
+            }
+            
+
+            
+          
+        }    catch (Exception $e) {
+        $error_count++;
+        error_log("Migration error for post ID {$activity->ID}: " . $e->getMessage());
+        }
+
+
+
+    }
+
+    error_log("Migration completed: {$migrated_count} successful, {$error_count} errors");
+}
+
 function migrate_kea_activities_to_blocks_gapfill() {
     global $wpdb;
     error_log("fix up");
@@ -340,7 +446,7 @@ function migrate_kea_activities_to_blocks_gapfill() {
     
             if ($_GET['fixup'] == 2)
             {
-                migrate_kea_activity_types_to_post_meta();
+                //migrate_kea_activity_types_to_post_meta();
             }
     
             if ($_GET['fixup'] == 3)
@@ -348,6 +454,12 @@ function migrate_kea_activities_to_blocks_gapfill() {
                 //migrate_xml_activities_to_kea_table();
             }
     
+            if ($_GET['fixup'] == 4)
+            {
+                migrate_kea_activities_to_blocks_multiplechoice();
+            }
+
+            
     
             
         }
