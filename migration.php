@@ -1,5 +1,33 @@
 <?php 
 
+function identify_json_table_data_with_no_questions()
+{
+
+    global $wpdb;
+    $activities = $wpdb->get_results("
+    SELECT a.kea_activity_post_id, a.kea_activity_ex_type, a.kea_activity_post_json, p.ID
+    FROM {$wpdb->prefix}kea_activity a
+    INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID
+    WHERE a.kea_activity_ex_type IN ('gapfill', 'mulitplechoice' )
+");
+
+    foreach ($activities as $activity) {
+
+        
+        $ids = [];
+        $result = str_contains($activity->kea_activity_post_json, '"questions":[]');
+        
+        if ($result)
+        {
+            var_dump($activity->kea_activity_post_id);
+        }
+        
+
+
+    }
+
+}
+
 function migrate_json_from_table_to__kea_activity_json()
 {
 
@@ -64,7 +92,7 @@ function migrate_kea_activity_types_to_post_meta() {
         SELECT a.kea_activity_post_id, a.kea_activity_ex_type, p.ID
         FROM {$wpdb->prefix}kea_activity a
         INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID
-        WHERE a.kea_activity_ex_type IN ('gapfill')
+        WHERE a.kea_activity_ex_type IN ('gapfill', 'multiplechoice')
     ");
     
     if (empty($activities)) {
@@ -224,7 +252,7 @@ function migrate_kea_activities_to_blocks_gapfill() {
         INNER JOIN {$wpdb->posts} p ON a.kea_activity_post_id = p.ID 
         WHERE a.kea_activity_post_json != '' AND a.kea_activity_ex_type = 'gapfill' 
     ");
-    //AND p.ID = 1452
+    //A
     
     if (empty($activities)) {
         error_log("No activities found to migrate");
@@ -235,6 +263,10 @@ function migrate_kea_activities_to_blocks_gapfill() {
     $error_count = 0;
     
     foreach ($activities as $activity) {
+
+
+
+
         try {
             // Decode the source JSON
             $source_data = json_decode($activity->kea_activity_post_json, true);
@@ -379,7 +411,37 @@ function migrate_kea_activities_to_blocks_gapfill() {
     
     }
 
-    function migrate_xml_activities_to_kea_table() {
+    function migrate_old_xml_key_to_new_xml_key()
+    {
+
+        /*
+        INSERT INTO aguc4I_postmeta (post_id, meta_key, meta_value)
+SELECT post_id, '_kea_activity_xml', meta_value
+FROM aguc4I_postmeta
+WHERE meta_key = '_kea_activity_meta'
+AND post_id IN (
+    SELECT ID 
+    FROM aguc4I_posts 
+    WHERE post_type = 'kea_activity'
+);
+
+DELETE FROM aguc4I_postmeta 
+WHERE meta_key = '_kea_activity_meta'
+AND post_id IN (
+    SELECT ID 
+    FROM aguc4I_posts 
+    WHERE post_type = 'kea_activity'
+);
+
+
+*/
+
+    }
+
+    //this probably wiped out a lot of the json ??? but didn't run on test... but, if there was no xml data or void, this would have resulted in
+    //the empty json 
+    //? if opened an ex with new code before migration that would have wiped the json table data
+    function migrate_xml_activities_to_kea_tableXXX() {
         global $wpdb;
         
         // Get posts that have _kea_activity_meta but aren't in kea_activity table yet
@@ -518,7 +580,14 @@ function migrate_kea_activities_to_blocks_gapfill() {
 
             if ($_GET['fixup'] == 5)
             {
-                migrate_json_from_table_to__kea_activity_json();
+               
+               //migrate_kea_activities_to_blocks_gapfill();
+               //migrate_kea_activities_to_blocks_multiplechoice();
+               //migrate_old_xml_key_to_new_xml_key();
+              // migrate_kea_activity_types_to_post_meta();
+              //  migrate_json_from_table_to__kea_activity_json();
+              //identify_json_table_data_with_no_questions();
+
             }
 
             

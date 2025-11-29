@@ -49,6 +49,8 @@ class KeaActivities
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
         //add_action('admin_init', array($this, 'fix_post_roles'));
 
+        add_action( 'admin_enqueue_scripts', array($this, 'register_plugin_scripts' ));
+
 
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
 
@@ -165,6 +167,16 @@ class KeaActivities
         return $query;
         
 
+    }
+
+    public function register_plugin_scripts()
+    {
+      
+        if (isset($_GET['page']) && $_GET['page'] === 'communication_settings') {
+            wp_register_script( 'bootstrap-js', plugins_url('/assets/bootstrap.min.js', __FILE__ ), array(  ), time()); 
+            wp_enqueue_script( 'bootstrap-js' );
+        }
+       
     }
 
 
