@@ -42,16 +42,21 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
     
     const DataLifter = ({ setAttributes }) =>
     {
-
-        const { values } = useFormikContext();
-
-        console.log("form values", values);
-
-        lockPostSaving('activities/activity-multiple-choice');
-        setAttributes({formData: values});   
-        setAttributes({ activityType: 'multiplechoice'});
-        unlockPostSaving('activities/activity-multiple-choice');
-
+        //every time form renders which s every time a value changes 
+        const { values, errors } = useFormikContext();
+        console.log("errors IS2", errors);
+ 
+        if (Object.keys(errors).length > 0)
+        {
+            lockPostSaving('activities/activity-multiple-choice');
+        }
+        else
+        {
+            setAttributes({formData: values});   
+            setAttributes({ activityType: 'gapfill'});
+            unlockPostSaving('activities/activity-multiple-choice');
+        }
+ 
     }
 
     const { postTitle } = useSelect(

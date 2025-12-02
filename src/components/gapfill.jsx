@@ -38,13 +38,21 @@ console.log("ATTRIBUTES ARE", attributes);
 
     const DataLifter = ({ setAttributes }) =>
     {
+        //every time form renders which s every time a value changes 
+        const { values, errors } = useFormikContext();
+        console.log("errors IS2", errors);
+      
+        if (Object.keys(errors).length > 0)
+        {
+            lockPostSaving('activities/activity-gap-fill');
+        }
+        else
+        {
+            setAttributes({formData: values});   
+            setAttributes({ activityType: 'gapfill'});
+            unlockPostSaving('activities/activity-gap-fill');
+        }
 
-        const { values } = useFormikContext();
-
-        lockPostSaving('activities/activity-gap-fill');
-        setAttributes({formData: values});   
-        setAttributes({ activityType: 'gapfill'});
-        unlockPostSaving('activities/activity-gap-fill');
 
     }
 
@@ -108,7 +116,9 @@ console.log("ATTRIBUTES ARE", attributes);
 
     const ErrorMessage = ({postTitle}) =>
     {
-        const { isValid } = useFormikContext();
+        const { isValid, errors } = useFormikContext();
+
+       
 
         if (isValid && (postTitle.length >= POST_TITLE_LENGTH))
         {   
@@ -168,7 +178,7 @@ console.log("ATTRIBUTES ARE", attributes);
             
 
             validate={values => {
-            
+                console.log("VALIDATE CALLED");
                 let errors = {};
             
                 /*
@@ -402,7 +412,7 @@ console.log("ATTRIBUTES ARE", attributes);
                     </Col>
                 </Row>
 
-                <FieldArray name="questions" validateOnChange={false}>
+                <FieldArray name="questions" validateOnChange={true}> 
                 {({ insert, remove, push }) => (
                     <div>     
                         {values.questions.length > 0 && values.questions.map( (item, idx) =>            
