@@ -312,7 +312,7 @@ console.log("ATTRIBUTES ARE", attributes);
                     <Form.Label column sm={2}>Legacy Name (optional)</Form.Label>
                     <Col md={10}>
                         <Form.Control md={10} name="legacyName" id="legacyName"
-                            onChange={handleChange}
+                            handleChange={handleChange}
                             onBlur={handleBlur}
                             value={values.legacyName}
                             isInvalid={!!errors.legacyName && !!touched.legacyName}

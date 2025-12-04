@@ -183,15 +183,13 @@ class KeaActivities
 
     public function validate_activity_title_length($prepared_post, $request) {
         $min_length = POST_TITLE_LENGTH; // Set your desired maximum length
-        
-        if (isset($prepared_post->post_title) && strlen($prepared_post->post_title) <= $min_length) {
 
-            //it already exists and meets the conditions. so if it hasn't changed and therefore $prepared_post->post_title is '' we won't invalidate
-            $post = get_post($prepared_post->ID);
-            if (!empty($post) && ($post->post_title >= $min_length))
-            {
-                return $prepared_post;
-            }
+        if (isset($prepared_post->post_status) && ($prepared_post->post_status  == 'draft'))
+        {
+            return $prepared_post;
+        }
+        
+        if (isset($prepared_post->post_title) && strlen($prepared_post->post_title) < $min_length) {
 
             return new WP_Error(
                 'rest_title_too_short',
@@ -199,7 +197,7 @@ class KeaActivities
                 array('status' => 400)
             );
         }
-        
+   
         return $prepared_post;
     }
 

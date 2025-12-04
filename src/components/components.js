@@ -45,7 +45,7 @@ const Instruction = ({instruction, idx}) => {
     </Row>)
 }
 
-const GapFillQuestion = ({idx, remove}) => {
+const GapFillQuestion = ({idx, remove, handleChange}) => {
         
     return (
     <div className="kea-additional-field-block"> 
@@ -70,6 +70,18 @@ const GapFillQuestion = ({idx, remove}) => {
                 <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.answer`}
                     placeholder="keywordAnswer"
                     type="text"
+                    onChange={
+                        (e) => {
+                            const val = e.target.value.trim();
+                            console.log("debug2", val);
+                            handleChange({
+                              target: {
+                                name: e.target.name,
+                                value: val
+                              }
+                            });
+                          }
+                    }
                 />
                 <ErrorMessage
                           name={`questions.${idx}.answer`}
@@ -238,7 +250,7 @@ const LinkPanel = () => {
     const target = useRef(null);
     const target2 = useRef(null);
     
-   
+    const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
 
 
    function copyToClipboard(e, toggle)
@@ -286,13 +298,15 @@ const LinkPanel = () => {
         const { saveEditedEntityRecord } = useDispatch( coreStore );
  
         setMeta( { ...meta, [keyItem]:  newValue} );
-   
+        /*
+        this should be saved when the post is saved. 
         try {
             await  saveEditedEntityRecord('postType', 'kea_activity', postId);
         
         } catch (error) {
             console.error('Save failed:', error);
         }
+        */
         
     };
 
@@ -305,7 +319,7 @@ const LinkPanel = () => {
     
    }
    
-   const [ meta, setMeta ] = useEntityProp( 'postType', 'kea_activity', 'meta' ); 
+   
 
     let vals = getRandom();
     let linkWithKey;
