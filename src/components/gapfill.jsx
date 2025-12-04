@@ -421,7 +421,9 @@ console.log("ATTRIBUTES ARE", attributes);
                                 remove={remove}
                                 values={values} 
                                 errors={errors} touched={touched} 
-                                handleChange={handleChange} handleBlur={handleBlur} 
+                                handleChange={handleChange}
+                                setFieldValue={setFieldValue} 
+                                handleBlur={handleBlur} 
                                 >
                             </GapFillQuestion>)
                         }

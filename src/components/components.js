@@ -45,7 +45,9 @@ const Instruction = ({instruction, idx}) => {
     </Row>)
 }
 
-const GapFillQuestion = ({idx, remove, handleChange}) => {
+const GapFillQuestion = ({idx, remove, handleChange, handleBlur, setFieldValue}) => {
+
+ 
         
     return (
     <div className="kea-additional-field-block"> 
@@ -70,18 +72,17 @@ const GapFillQuestion = ({idx, remove, handleChange}) => {
                 <Field className="kea-wide-field kea-question-field" name={`questions.${idx}.answer`}
                     placeholder="keywordAnswer"
                     type="text"
-                    onChange={
-                        (e) => {
-                            const val = e.target.value.trim();
-                            console.log("debug2", val);
-                            handleChange({
-                              target: {
-                                name: e.target.name,
-                                value: val
-                              }
-                            });
-                          }
-                    }
+                    onChange={handleChange}
+                    onBlur={(e) => {
+                        const trimmed = e.target.value.trim();
+                        if (trimmed !== e.target.value) {
+                            setFieldValue(
+                                `questions[${idx}].answer`, 
+                                trimmed
+                            );
+                        }
+                        handleBlur(e);
+                    }}
                 />
                 <ErrorMessage
                           name={`questions.${idx}.answer`}
