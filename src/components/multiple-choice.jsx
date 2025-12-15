@@ -53,7 +53,7 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
         else
         {
             setAttributes({formData: values});   
-            setAttributes({ activityType: 'gapfill'});
+            setAttributes({ activityType: 'multiplechoice'});
             unlockPostSaving('activities/activity-multiple-choice');
         }
  

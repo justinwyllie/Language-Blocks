@@ -526,7 +526,7 @@ class KeaActivities
             return;
         }
 
-
+        //activity_type - json, json table, attirbutes, and 
         $block = $blocks[0];
        
         if ($block['blockName'] === 'activities/activity-gap-fill' || $block['blockName'] === 'activities/activity-multiple-choice') {

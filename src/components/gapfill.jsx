@@ -31,9 +31,6 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     const additionalLangs = ['ru'];
     const supportedLangs = [defaultLang, ...additionalLangs];
   
-console.log("ATTRIBUTES ARE", attributes);
-  
-
     const { lockPostSaving, unlockPostSaving } = useDispatch(editorStore);
 
     const DataLifter = ({ setAttributes }) =>
