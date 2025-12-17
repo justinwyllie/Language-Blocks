@@ -534,7 +534,7 @@ class KeaActivities
             $attributes = $block['attrs']; // Direct access to attributes array
             $form_data = $attributes['formData'] ?? null;
             $activity_type = $attributes['activityType'];
-
+            //TODO - do we need to do this again?
             $activity_type_result = update_post_meta($post_id, '_kea_activity_type', $activity_type);
             
             
@@ -572,6 +572,7 @@ class KeaActivities
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
         $post_without_key_meta = intval($post_meta["_without_key_meta"][0]); 
         $post_assignment_key_meta = intval($post_meta["_assignment_key_meta"][0]); 
+
 
 
         $grammar_terms = get_the_terms($post, "grammar");
