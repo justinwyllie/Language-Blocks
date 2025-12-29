@@ -908,19 +908,15 @@ class KeaActivities
             filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
         );
         wp_enqueue_style("activity-editor");
+
+        //TODO be careful with the dependency here if we decide to load 'activity-editor' only on admin side
+        //also if we don't need this dependency i.e. bootstrap CSS we could move this to the theme where it belongs
+        wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array('activity-editor'), filemtime( plugin_dir_path( __FILE__ ) . '/assets/styles.css'));
      
+      
+  
 
-        /*
-        wp_register_style(
-            'activity-gap-fill-editor',
-            plugins_url( 'build/index.css', __FILE__ ),
-            array( 'wp-edit-blocks'),
-            filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
-        );
-        */
-
-
-        wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), time());
+        wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), filemtime( plugin_dir_path( __FILE__ ) . '/scripts/settings.js'));
 
         wp_localize_script('settings', 'kea_language_blocks', array(
             'settings' => array(
