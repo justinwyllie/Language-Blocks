@@ -26,7 +26,7 @@ class KeaActivities
     {
 
         
-        $this->support_email = "tech-support@onlinerepititor.ru"; //shared with kea-repi TODO
+        $this->support_email = SUPPORT_EMAIL;
         $this->support_email_subject = "Error on web site " . $_SERVER['SERVER_NAME'] . " in script " . basename(__FILE__); //shared with kea-repi TODO
         global $wpdb;
         $this->wpdb = $wpdb;
@@ -79,8 +79,11 @@ class KeaActivities
     public function mail_error($message)
     {
 
-        $headers = 'From: tech-support@onlinerepititor.ru' . "\r\n" .
-                'Reply-To: tech-support@onlinerepititor.ru' . "\r\n" .
+
+        $no_reply = DO_NOT_REPLY_EMAIL;
+
+        $headers = "From: $no_reply" . "\r\n" .
+                    "Reply-To: $no_reply" . "\r\n" .
                 'X-Mailer: PHP/' . phpversion();
         mail($this->support_email, $this->support_email_subject, $message, $headers);
     }
