@@ -267,7 +267,8 @@ class KeaActivities
                     'labels'      => array(
                         'name'          => __('Activities', 'kea'),
                         'singular_name' => __('Activities', 'kea'),
-                    ),
+                        'menu_name' => 'Задания', 
+                    ),             
                         'public'      => true,
                         'show_in_rest' => true,
                         'rest_base'    => 'kea_activity',
@@ -295,6 +296,7 @@ class KeaActivities
                 'labels'      => array(
                     'name'          => __('Activities', 'kea'),
                     'singular_name' => __('Activities', 'kea'),
+                    'menu_name' => 'Задания', 
                 ),
                     'public'      => true,
                     'show_in_rest' => true,
@@ -983,6 +985,34 @@ class KeaActivities
             'attributes' => array(
                 'formData' => array('type' => 'object', 'default' => array()),
                 'activityType' => array('type' => 'string')
+            )
+        ) );
+
+
+        
+        function render_simple_breadcrumb_block($attributes, $content) {
+          
+            $wrapper_attributes = get_block_wrapper_attributes();
+    
+            $output = '<div ' . $wrapper_attributes . '>';
+            $output .= '<nav aria-label="breadcrumb">';
+            $output .= '<ol class="breadcrumb">';
+            $output .= '<li class="breadcrumb-item"><a href="' . esc_url(home_url('/')) . '">Home</a></li>';
+            $output .= '<li class="breadcrumb-item active" aria-current="page">' . get_the_title() . '</li>';
+            $output .= '</ol></nav>';
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        register_block_type( 'activities/breadcrumbs', array(
+            'api_version' => 2,
+            'title' => 'Breadcrumbs (top-level only)',
+            'editor_style' => 'activity-editor',      
+            'editor_script' => 'activity-script',
+            'render_callback' => 'render_simple_breadcrumb_block',
+            'attributes' => array(
+               
             )
         ) );
         

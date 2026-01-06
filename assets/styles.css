@@ -9,3 +9,11 @@
     width: 100%;
     height: 200px;
 }
+
+body.wp-theme-online-repititor-admin-theme p
+{
+    font-size: var(--bs-body-font-size) !important; 
+    line-height: var(--bs-body-line-height) !important; 
+    margin: 0 0 1rem !important; 
+}
+

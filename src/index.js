@@ -211,3 +211,50 @@ registerBlockType( 'activities/activity-multiple-choice', {
         return null;
     },
 } );
+
+
+
+
+registerBlockType( 'activities/breadcrumbs', {
+    apiVersion: 2,
+    title: 'Breadcrumbs (top-level only)',
+    icon: 'admin-site',
+    category: 'widgets', 
+    attributes: {
+   
+    },
+
+
+    edit: ( { setAttributes, attributes } ) => {
+        
+        const { postType, postTitle } = useSelect((select) => {
+            const { getCurrentPostType, getEditedPostAttribute } = select('core/editor');
+            return {
+                postType: getCurrentPostType(),
+                postTitle: getEditedPostAttribute('title')
+            };
+        }, []);
+
+     
+        const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
+            //TODO!
+
+        return (
+            <nav aria-label="breadcrumb" className="wp-block">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <a href="/">Home</a>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        {postTitle || 'Current Page'}
+                    </li>
+                </ol>
+            </nav>
+        )
+    },
+ 
+  
+    save() {
+        return null;
+    },
+} );
