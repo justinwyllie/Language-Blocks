@@ -265,7 +265,7 @@ class KeaActivities
             register_post_type('kea_activity',
                 array(
                     'labels'      => array(
-                        'name'          => __('Activities', 'kea'),
+                        'name'          => __('Задания', 'kea'),
                         'singular_name' => __('Activities', 'kea'),
                         'menu_name' => 'Задания', 
                     ),             
@@ -294,10 +294,12 @@ class KeaActivities
             register_post_type('kea_activity',
             array(
                 'labels'      => array(
-                    'name'          => __('Activities', 'kea'),
+                    'name'          => __('Задания', 'kea'),
                     'singular_name' => __('Activities', 'kea'),
+               
                     'menu_name' => 'Задания', 
                 ),
+         
                     'public'      => true,
                     'show_in_rest' => true,
                     'rest_base'    => 'kea_activity',

@@ -64,10 +64,23 @@ input.kea-wide-field, textarea.kea-wide-field
 
 .kea-pointer
 {
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
+
+/* for theme front page */
 ol.breadcrumb
 {
     margin-left: 0em !important;
+}
+
+
+#reg-email-marker
+{
+    display: none;
+}
+
+#reg-email-marker.invalid
+{
+    display: block;
 }
