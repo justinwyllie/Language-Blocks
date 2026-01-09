@@ -917,8 +917,9 @@ class KeaActivities
         wp_enqueue_style("activity-editor");
 
         //TODO be careful with the dependency here if we decide to load 'activity-editor' only on admin side
-        //also if we don't need this dependency i.e. bootstrap CSS we could move this to the theme where it belongs
-        wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array('activity-editor'), filemtime( plugin_dir_path( __FILE__ ) . '/assets/styles.css'));
+        //also if we don't need this dependency i.e. bootstrap CSS we could move this to the theme where it belongs 
+        //TODO - take the CSS which is in the file and put it in the custom.scss file - it can be part of the build.
+        wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array('activity-editor'), filemtime( plugin_dir_path( __FILE__ ) . 'assets/styles.css'));
      
       
   
