@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: KEA_Activities
-Plugin URI: https://kazanenglishacademy.com/pluginssave_activity_meta
+Plugin URI: https://kazanenglishacademy.com/plugins
 Description: Plugin to register all the exercise post types and manage them
 Version: 1.0
 Author: Justin Wyllie
