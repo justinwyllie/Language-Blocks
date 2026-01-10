@@ -8,7 +8,7 @@ Desktop.ini
 node_modules
 build/*.*
 
-scripts/settings.js
+
 wp-config.php
 
 # Recycle Bin used on file shares
