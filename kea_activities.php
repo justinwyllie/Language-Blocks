@@ -25,9 +25,17 @@ class KeaActivities
     public function __construct() 
     {
 
-        
+        if (isset( $_SERVER['SERVER_NAME']))
+        {
+            $server = $_SERVER['SERVER_NAME'];
+        }
+        else
+        {
+            $server = '-';
+        }
+
         $this->support_email = SUPPORT_EMAIL;
-        $this->support_email_subject = "Error on web site " . $_SERVER['SERVER_NAME'] . " in script " . basename(__FILE__); //shared with kea-repi TODO
+        $this->support_email_subject = "Error on web site " . $server . " in script " . basename(__FILE__); //shared with kea-repi TODO
         global $wpdb;
         $this->wpdb = $wpdb;
         $this->kea_table_name1 = $this->wpdb->prefix . "kea_activity"; 
