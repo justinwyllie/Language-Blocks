@@ -75,7 +75,7 @@ class KeaActivities
 
     } 
 
-    //TODO shared with kea_repi
+    //TODO shared with kea_repi TODO - use PHPMailer to control all headers this will probaby fail 
     public function mail_error($message)
     {
 
@@ -573,7 +573,7 @@ class KeaActivities
         $xml_result = update_post_meta($post_id, '_kea_activity_xml', $formatted_data['xml']);
         if ($xml_result === false)
         {
-            $this->mail_error("In save_activity_meta the additional save of xml meta  did not happen. $post_id");
+            $this->mail_error("In save_activity_meta the additional save of xml meta  did not happen or was the same!. $post_id");
         }
 
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
@@ -619,7 +619,7 @@ class KeaActivities
         $json_result = update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
         if ($json_result === false)
         {
-            $this->mail_error("In save_activity_meta the additional save of json meta  did not happen. $post_id");
+            $this->mail_error("In save_activity_meta the additional save of json meta  did not happen or was the same!. $post_id");
         }
        
         /*
