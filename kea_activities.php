@@ -21,6 +21,11 @@ License: copyright Justin Wyllie
 class KeaActivities
 {
     private $caps;
+    public $support_email;
+    public $support_email_subject;
+    public $wpdb;
+    public $kea_table_name1;
+    public $posts_table;
    
     public function __construct() 
     {
