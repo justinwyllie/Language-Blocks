@@ -89,17 +89,61 @@ class KeaActivities
     } 
 
     //TODO shared with kea_repi TODO - use PHPMailer to control all headers this will probaby fail 
+  
     public function mail_error($message)
     {
+        
 
+
+        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            // WordPress hasn't loaded it yet
+            require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+            require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+            require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+        }
+
+        $phpmailer = new PHPMailer\PHPMailer\PHPMailer(true);
 
         $no_reply = DO_NOT_REPLY_EMAIL;
+        $password = DO_NOT_REPLY_EMAIL_PASSWORD;
 
-        $headers = "From: $no_reply" . "\r\n" .
-                    "Reply-To: $no_reply" . "\r\n" .
-                'X-Mailer: PHP/' . phpversion();
-        mail($this->support_email, $this->support_email_subject, $message, $headers);
+        $domain = $_SERVER['HTTP_HOST'];
+        $message = "On $domain : \n\n" . $message;
+
+        try
+        {
+
+            $phpmailer->isSMTP(); 
+            $phpmailer->Host = 'localhost'; 
+            $phpmailer->SMTPAuth = true;
+
+            $phpmailer->Username = $no_reply;
+            $phpmailer->Password = $password;
+            $phpmailer->SMTPSecure = ''; 
+            $phpmailer->Port = 25;  
+       
+            $phpmailer->setFrom($no_reply, 'Online Repititor');
+            $phpmailer->Sender = $no_reply; 
+            $phpmailer->addAddress($this->support_email);
+            $phpmailer->Subject = $this->support_email_subject;
+            $phpmailer->Body = $message;
+            if ($phpmailer->send()) 
+            {
+                error_log('Email sent successfully');
+            } 
+            else 
+            {
+                $this->error_log2( $phpmailer->ErrorInfo );
+            }
+        }
+        catch(Exception $e)
+        {
+            $this->error_log2( $e->getMessage());
+        }
+
     }
+
+
     
     public function error_log($object)
     {
