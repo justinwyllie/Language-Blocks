@@ -626,11 +626,19 @@ class KeaActivities
       
         $author_id = get_post_field( 'post_author', $post_id );
         $post_meta = get_post_meta($post_id); 
+       
 
         $xml_result = update_post_meta($post_id, '_kea_activity_xml', $formatted_data['xml']);
+   
         if ($xml_result === false)
         {
-            $this->mail_error("In save_activity_meta the additional save of xml meta  did not happen or was the same!. $post_id");
+            if (array_key_exists('_kea_activity_xml', $post_meta) && (md5($post_meta['_kea_activity_xml'][0]) != md5($formatted_data['xml'])))
+            {
+                $msg = "In save_activity_meta the additional save of xml meta  led to error. $post_id";
+                $this->mail_error($msg);
+                error_log($msg);
+            }
+            
         }
 
         $post_with_key_meta = intval($post_meta["_with_key_meta"][0]);
@@ -670,13 +678,17 @@ class KeaActivities
         $new_json->levels = $levels;
         $json_string = json_encode($new_json);
 
-        
-       //attributes is just the form, without taxonomy. so - could get it all with a query,
-       //but this is so we can get form-data+post-taxonomy in one simple query in node
+      
+       //currently we put the ready to render an ex json in the db and the meta key. currenrly node consumes the db. i *think* we migrated all exes to meta in case
         $json_result = update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
         if ($json_result === false)
         {
-            $this->mail_error("In save_activity_meta the additional save of json meta  did not happen or was the same!. $post_id");
+             if (array_key_exists('_kea_activity_json', $post_meta) && (md5($post_meta['_kea_activity_json'][0]) != md5($formatted_data['json'])))
+            {
+                $msg = "In save_activity_meta the additional save of json meta  led to error. $post_id";
+                $this->mail_error($msg);
+                error_log($msg);
+            }
         }
        
         /*
