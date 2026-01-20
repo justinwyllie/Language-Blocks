@@ -89,7 +89,7 @@ ol.breadcrumb
     display: block;
 }
 
-body.wp-theme-online-repititor-admin-theme p
+body.wp-theme-online-repititor-admin-theme p:not(.alert)
 {
     font-size: var(--bs-body-font-size) !important; 
     line-height: var(--bs-body-line-height) !important; 
