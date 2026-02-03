@@ -64,7 +64,7 @@ class KeaActivities
 
         add_action( 'admin_enqueue_scripts', array($this, 'register_plugin_scripts' ));
 
-
+      
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
 
         
@@ -236,6 +236,8 @@ class KeaActivities
             wp_register_script( 'bootstrap-js', plugins_url('/assets/bootstrap.min.js', __FILE__ ), array(  ), time()); 
             wp_enqueue_script( 'bootstrap-js' );
         }
+
+        $this->load_scripts_css_admin_pages();
        
     }
 
@@ -964,67 +966,71 @@ class KeaActivities
         }
     }
 
-
-
-
-    //gap fill block
-    public function kea_activity_register_block() {
-
-        // automatically load dependencies and version
-        $asset_file = include( plugin_dir_path( __FILE__ ) . 'build/index.asset.php');
+    public function load_scripts_css_admin_pages()
+    {
+          // automatically load dependencies and version
+          $asset_file = include( plugin_dir_path( __FILE__ ) . 'build/index.asset.php');
     
-        $css = "/wp-content/plugins/kea_activities/build/index.css";
-        //wp_enqueue_style("kea_activities_css",  $css, array(), wp_get_theme()->get( 'Version' )  );
-
-
-        wp_register_style(
-            'activity-editor',
-            $css,
-            array( 'wp-edit-blocks', 'wp-admin' ),
-            filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
-        );
-        wp_enqueue_style("activity-editor");
-
-        //TODO be careful with the dependency here if we decide to load 'activity-editor' only on admin side
-        //also if we don't need this dependency i.e. bootstrap CSS we could move this to the theme where it belongs 
-        //TODO - take the CSS which is in the file and put it in the custom.scss file - it can be part of the build.
-        wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array('activity-editor'), filemtime( plugin_dir_path( __FILE__ ) . 'assets/styles.css'));
-     
-      
+          $css = "/wp-content/plugins/kea_activities/build/index.css";
+          //wp_enqueue_style("kea_activities_css",  $css, array(), wp_get_theme()->get( 'Version' )  );
   
-
-        wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), filemtime( plugin_dir_path( __FILE__ ) . '/scripts/settings.js'));
-
-        wp_localize_script('settings', 'kea_language_blocks', array(
-            'settings' => array(
-                'domain' => array(
-                    'type' => 'slashes',
-                    'domainForUsers' => DOMAIN_FOR_USERS,
-                ),
-                'site' => 'repititor',
-                'defaultUserLang' => 'en',
-                'page_title_length' => POST_TITLE_LENGTH
-            ),
-            'SHOWLOGIN' => true
-        ));
-
-        $deps = $asset_file['dependencies'];
-        $deps[] = 'settings';
-
-    
+  
+          wp_register_style(
+              'activity-editor',
+              $css,
+              array( 'wp-edit-blocks', 'wp-admin' ),
+              filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
+          );
+          wp_enqueue_style("activity-editor");
+  
+          //TODO be careful with the dependency here if we decide to load 'activity-editor' only on admin side
+          //also if we don't need this dependency i.e. bootstrap CSS we could move this to the theme where it belongs 
+          //TODO - take the CSS which is in the file and put it in the custom.scss file - it can be part of the build.
+          wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array('activity-editor'), filemtime( plugin_dir_path( __FILE__ ) . 'assets/styles.css'));
+       
+   
+  
+          wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), filemtime( plugin_dir_path( __FILE__ ) . '/scripts/settings.js'));
+  
+          wp_localize_script('settings', 'kea_language_blocks', array(
+              'settings' => array(
+                  'domain' => array(
+                      'type' => 'slashes',
+                      'domainForUsers' => DOMAIN_FOR_USERS,
+                  ),
+                  'site' => 'repititor',
+                  'defaultUserLang' => 'en',
+                  'page_title_length' => POST_TITLE_LENGTH
+              ),
+              'SHOWLOGIN' => true
+          ));
+  
+          $deps = $asset_file['dependencies'];
+          $deps[] = 'settings';
+  
       
         
-        wp_register_script(
-            'activity-script',
-            plugins_url( 'build/index.js', __FILE__ ), 
-            $deps,
-            $asset_file['version'],
-            time(),
-       
-    
+          
+          wp_register_script(
+              'activity-script',
+              plugins_url( 'build/index.js', __FILE__ ), 
+              $deps,
+              $asset_file['version'],
+              time(),
+         
       
-        );
+        
+          );
+  
+    }
 
+
+    //only load CSS and JS for the admin side- CSS includes BS and JS includes react-bootstrap
+
+    //gap fill block TODO - is thie called admin and frontend prob not the best place to load the CSS and scripts?
+    public function kea_activity_register_block() {
+
+      
         
 
         //
