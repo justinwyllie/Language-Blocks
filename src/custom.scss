@@ -2,6 +2,15 @@
 @import "~bootstrap/scss/bootstrap"; 
 
 
+/* this seems to be controlling some wp paraas? not tested todo */
+body.wp-theme-online-repititor-admin-theme p:not(.alert)
+{
+    font-size: var(--bs-body-font-size) !important; 
+    line-height: var(--bs-body-line-height) !important; 
+    margin: 0 0 1rem !important; 
+}
+
+
 div .kea-text
 {
     border: 2px solid red;
@@ -64,28 +73,6 @@ input.kea-wide-field, textarea.kea-wide-field
 
 
 
-/* for theme front page */
-
-.kea-pointer
-{
-    cursor: pointer !important;
-}
 
 
-
-ol.breadcrumb
-{
-    margin-left: 0em !important;
-}
-
-
-#reg-email-marker
-{
-    display: none;
-}
-
-#reg-email-marker.invalid
-{
-    display: block;
-}
 

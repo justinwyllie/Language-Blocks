@@ -62,9 +62,8 @@ class KeaActivities
         add_action( 'rest_api_init', array($this, 'json_rest_route'));
         //add_action('admin_init', array($this, 'fix_post_roles'));
 
-        add_action( 'admin_enqueue_scripts', array($this, 'register_plugin_scripts' ));
-
-      
+        add_action( 'admin_enqueue_scripts', array($this, 'register_plugin_scripts_admin' ));
+           
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
 
         
@@ -229,7 +228,8 @@ class KeaActivities
 
     }
 
-    public function register_plugin_scripts()
+    //admin_enqueue
+    public function register_plugin_scripts_admin()
     {
       
         if (isset($_GET['page']) && $_GET['page'] === 'communication_settings') {
@@ -843,7 +843,7 @@ class KeaActivities
     public function kea_activity_register_post_meta() {
 
         
-
+        ////admin_enqueue
         //todo - this is historical - now we use _kea_activity_xml but prior to Nov 25 we used this so historical data has this key
         register_post_meta( 'kea_activity', '_kea_activity_meta', array(
             'type'         => 'string',   
@@ -959,13 +959,17 @@ class KeaActivities
                 kea_activity_without_key_key bigint NOT NULL,
                 kea_activity_assignment_key bigint NOT NULL DEFAULT 0,
                 PRIMARY KEY  kea_activity_id (kea_activity_id),
-                UNIQUE (kea_activity_post_id)
+                UNIQUE (kea_activity_post_id)  
             ) $charset_collate;";
             $result = dbDelta( $sql_update_1 );
             update_option( 'kea_activity_db_version', 2.1);
         }
     }
 
+ 
+
+    //admin_enqueue
+    //THIS IS ONLY CALLED ON ACTUAL ADMIN PAGES NOT ON THE SPLASH PAGE
     public function load_scripts_css_admin_pages()
     {
           // automatically load dependencies and version
@@ -983,10 +987,9 @@ class KeaActivities
           );
           wp_enqueue_style("activity-editor");
   
-          //TODO be careful with the dependency here if we decide to load 'activity-editor' only on admin side
-          //also if we don't need this dependency i.e. bootstrap CSS we could move this to the theme where it belongs 
-          //TODO - take the CSS which is in the file and put it in the custom.scss file - it can be part of the build.
-          wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array('activity-editor'), filemtime( plugin_dir_path( __FILE__ ) . 'assets/styles.css'));
+         
+          //THIS IS NOT THE SPLASH CSS WHICH IS LOADED IN kea-repi
+          wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array(), filemtime( plugin_dir_path( __FILE__ ) . 'assets/styles.css'));
        
    
   
