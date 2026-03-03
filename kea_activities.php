@@ -1078,7 +1078,7 @@ class KeaActivities
             $output = '<div ' . $wrapper_attributes . '>';
             $output .= '<nav aria-label="breadcrumb">';
             $output .= '<ol class="breadcrumb">';
-            $output .= '<li class="breadcrumb-item"><a href="' . esc_url(home_url('/')) . '">Home</a></li>';
+            $output .= '<li class="breadcrumb-item"><a href="' . esc_url(home_url('/')) . '">Главная</a></li>';
             $output .= '<li class="breadcrumb-item active" aria-current="page">' . get_the_title() . '</li>';
             $output .= '</ol></nav>';
             $output .= '</div>';
