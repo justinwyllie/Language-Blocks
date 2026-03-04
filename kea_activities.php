@@ -378,7 +378,7 @@ class KeaActivities
 
     private function convert_gapfill_form_data_to_json($form_data)
     {
-        
+     
         $processed_json = new StdClass();
 
         $processed_json->activity_type = $form_data['activity_type'];
@@ -624,7 +624,6 @@ class KeaActivities
         }
     
 
-
       
         $author_id = get_post_field( 'post_author', $post_id );
         $post_meta = get_post_meta($post_id); 
@@ -685,7 +684,7 @@ class KeaActivities
         $json_result = update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
         if ($json_result === false)
         {
-             if (array_key_exists('_kea_activity_json', $post_meta) && (md5($post_meta['_kea_activity_json'][0]) != md5($formatted_data['json'])))
+             if (array_key_exists('_kea_activity_json', $post_meta) && (md5($post_meta['_kea_activity_json'][0]) != md5($json_string)))
             {
                 $msg = "In save_activity_meta the additional save of json meta  led to error. $post_id";
                 $this->mail_error($msg);
