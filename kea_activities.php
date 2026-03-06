@@ -12,8 +12,7 @@ License: copyright Justin Wyllie
 
 
 
-//include_once('migration.php');
-
+include_once('migration.php');
 
 
 
@@ -72,6 +71,9 @@ class KeaActivities
 
         add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
         add_filter( 'rest_russian_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
+
+        add_filter( 'rest_levels_query', array($this, 'rest_levels_order_in_metabox'), 10, 2 );
+        add_filter( 'ages_bands_levels_query', array($this, 'rest_ages_bands_order_in_metabox'), 10, 2 );
 
    
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
@@ -164,6 +166,25 @@ class KeaActivities
             $query_params['per_page']['maximum'] = 1000; 
         }
         return $query_params;
+    }
+
+    //set_order in migration script
+    public function rest_levels_order_in_metabox( $args, $post_id )
+    {
+
+            $args['orderby'] = 'set_order';
+            $args['order'] = 'asc'; 
+
+            return $args;
+    }
+
+    public function rest_ages_bands_order_in_metabox( $args, $post_id )
+    {
+
+            $args['orderby'] = 'set_order';
+            $args['order'] = 'asc'; 
+
+            return $args;
     }
 
     public function increase_russian_grammar_terms_per_page_limit($query_params, $taxonomy )

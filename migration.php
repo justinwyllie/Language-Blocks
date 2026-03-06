@@ -1,5 +1,7 @@
 <?php 
 
+//https://devteachers.onlinerepititor.ru/fixup=5
+
 function identify_json_table_data_with_no_questions()
 {
 
@@ -590,11 +592,91 @@ AND post_id IN (
 
             }
 
+     
+
             
     
             
         }
     
     }
-    fix_up();
+
+    function register_special_term_meta()
+    {
+
+        if (!isset($_GET['fixup']) )
+        {
+            return;
+
+        }
+
+        if ($_GET['fixup'] != 5) 
+        {
+            return;
+            
+        }
+        echo 'doing';
+
+
+
+        if ( get_option( 'term_meta_added_for_slugs' ) ) {
+            return;
+        }
+
+        echo 'doing2';
+        
+        $term = get_term_by( 'slug', 'advanced', 'levels' );
+      
+        if ( $term && ! is_wp_error( $term ) ) {
+            update_term_meta( $term->term_id, 'set_order', '3' , true);
+        }
+
+        $term = get_term_by( 'slug', 'intermediate', 'levels' );
+        if ( $term && ! is_wp_error( $term ) ) {
+            update_term_meta( $term->term_id, 'set_order', '2' , true);
+        }
+
+
+        $term = get_term_by( 'slug', 'beginner', 'levels' );
+        if ( $term && ! is_wp_error( $term ) ) {
+            update_term_meta( $term->term_id, 'set_order', '1' , true);
+        }
+
+
+        $term = get_term_by( 'slug', 'kids', 'ages_bands' );
+        if ( $term && ! is_wp_error( $term ) ) {
+            update_term_meta( $term->term_id, 'set_order', '1', true) ;
+        }
+
+        $term = get_term_by( 'slug', 'teens', 'ages_bands' );
+        if ( $term && ! is_wp_error( $term ) ) {
+            update_term_meta( $term->term_id, 'set_order', '2', true) ;
+        }
+
+        $term = get_term_by( 'slug', 'adults', 'ages_bands' );
+        if ( $term && ! is_wp_error( $term ) ) {
+            update_term_meta( $term->term_id, 'set_order', '3', true) ;
+        }
+
+                            /*
+                            SELECT tm.meta_key, tm.meta_value
+            FROM aguc4I_termmeta tm
+            INNER JOIN aguc4I_terms t ON t.term_id = tm.term_id
+            INNER JOIN aguc4I_term_taxonomy tt ON tt.term_id = t.term_id
+            WHERE t.slug = 'beginner' 
+            AND tt.taxonomy = 'ages_bands';
+
+            */
+
+
+        echo 'done';
+
+        
+        update_option( 'term_meta_added_for_slugs', true );
+
+    }
+
+
+    add_action( 'init', 'register_special_term_meta' , 100);
+    //fix_up();
 ?>
