@@ -677,6 +677,6 @@ AND post_id IN (
     }
 
 
-    add_action( 'init', 'register_special_term_meta' , 100);
+   // add_action( 'init', 'register_special_term_meta' , 100);
     //fix_up();
 ?>
