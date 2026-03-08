@@ -932,9 +932,15 @@ class KeaActivities
     
     }
 
-    //TODO this is untested because we have manually run alter table statements.
+
     public function kea_activity_activated()
     {
+
+        //terms
+        $this->register_grammar_taxonomy();
+        $this->register_terms_to_grammar_taxonomy();
+
+        //database
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
         
         $db_version = '1.1';
@@ -1117,7 +1123,78 @@ class KeaActivities
     }
 
 
+    private function register_grammar_taxonomy()
+    {
+        $labels = array(
+            'name'              => _x( 'English Grammar', 'taxonomy general name' ),
+            'singular_name'     => _x( 'English Grammar', 'taxonomy singular name' ),
+            'search_items'      => __( 'Search English Grammar' ),
+            'all_items'         => __( 'All English Grammar' ),
+            'parent_item'       => __( 'Parent Level' ),
+            'parent_item_colon' => __( 'Parent Level:' ),
+            'edit_item'         => __( 'Edit English Grammar' ),
+            'update_item'       => __( 'Update English Grammar' ),
+            'add_new_item'      => __( 'Add New English Grammar Term' ),
+            'new_item_name'     => __( 'New Grammar Name' ),
+            'menu_name'         => __( 'English Grammar' ),
+            );
 
+            $args = array(
+            'hierarchical'          => true,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'grammar' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'grammar_terms',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+            );
+
+           
+        //if the plugin is being run  with video posts associate taxonomy to that
+        $target_post_types_grammar = array( 'kea_activity' );
+        $post_types = get_post_types();  
+        if (array_key_exists("video", $post_types))
+        {
+            $target_post_types_grammar[] = "video";
+        }
+
+        register_taxonomy( 'grammar', $target_post_types_grammar, $args );
+    }
+
+    private function register_terms_to_grammar_taxonomy()
+    {
+
+
+        //child ones
+        $parent_term = get_term_by('slug', 'lexis', 'grammar');
+        $lexis_child_terms = array('By - Until');
+
+        if ($parent_term && !is_wp_error($parent_term)) {
+            foreach ($lexis_child_terms as $term_name) {
+      
+                if (!term_exists($term_name, 'grammar')) {
+                    wp_insert_term(
+                        $term_name,
+                        'grammar',
+                        array(
+                            'parent' => $parent_term->term_id
+                        )
+                    );
+                }
+            }
+        }
+
+        //top-level
+        $terms = array();
+        foreach ($terms as $term_name) {
+            if (!term_exists($term_name, 'grammar')) {
+                wp_insert_term($term_name, 'grammar');
+            }
+        }
+    }
 
 
 
@@ -1172,34 +1249,7 @@ class KeaActivities
         register_taxonomy( 'levels', $target_post_types_levels, $args );  
     
         
-        /*
-        wp_insert_term(
-            'Beginner',
-            'levels',
-            array(
-                'description' => 'Beginner Level',
-                'slug'        => 'beginner' //parent if hier
-            )
-        );
-        wp_insert_term(
-            'Intermediate',
-            'levels',
-            array(
-                'description' => 'Intermediate Level',
-                'slug'        => 'intermediate' //parent if hier
-            )
-        );
-        wp_insert_term(
-            'Advanced',
-            'levels',
-            array(
-                'description' => 'Advanced Level',
-                'slug'        => 'advanced' //parent if hier
-            )
-        );
-        */
-    
-        //Ages 
+ 
     
         $labels = array(
             'name'              => _x( 'Age', 'taxonomy general name' ),
@@ -1241,92 +1291,16 @@ class KeaActivities
         //$post_types are we sure we have kea_video_item?  
         register_taxonomy( 'ages_bands', $target_post_types_age_bands, $args);
     
-        /*
-        wp_insert_term(
-            'Kids',
-            'ages_bands',
-            array(
-                'description' => 'Kids (7-12)',
-                'slug'        => 'kids' //parent if hier
-            )
-        );
-        wp_insert_term(
-            'Teens',
-            'ages_bands',
-            array(
-                'description' => 'Teenagers',
-                'slug'        => 'teens' //parent if hier
-            )
-        );
-        wp_insert_term(
-            'Adult',
-            'ages_bands',
-            array(
-                'description' => 'Adults',
-                'slug'        => 'adults' //parent if hier
-            )
-        );
-        */
+  
     
 
     
         //Grammar 
     
-        $labels = array(
-            'name'              => _x( 'English Grammar', 'taxonomy general name' ),
-            'singular_name'     => _x( 'English Grammar', 'taxonomy singular name' ),
-            'search_items'      => __( 'Search English Grammar' ),
-            'all_items'         => __( 'All English Grammar' ),
-            'parent_item'       => __( 'Parent Level' ),
-            'parent_item_colon' => __( 'Parent Level:' ),
-            'edit_item'         => __( 'Edit English Grammar' ),
-            'update_item'       => __( 'Update English Grammar' ),
-            'add_new_item'      => __( 'Add New English Grammar Term' ),
-            'new_item_name'     => __( 'New Grammar Name' ),
-            'menu_name'         => __( 'English Grammar' ),
-            );
-
-   
-            
-            $args = array(
-            'hierarchical'          => true,
-            'labels'                => $labels,
-            'show_ui'               => true,
-            'show_admin_column'     => true,
-            'query_var'             => true,
-            'rewrite'               => array( 'slug' => 'grammar' ),
-            'show_in_rest'          => true,
-            'rest_base'             => 'grammar_terms',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $this->caps
-            );
-
-
-       
-            
-        //if the plugin is being run on the main site with video posts associate taxonomy to that
-        $target_post_types_grammar = array( 'kea_activity' );
-        
-        if (array_key_exists("video", $post_types))
-        {
-            $target_post_types_grammar[] = "video";
-        }
+        $this->register_grammar_taxonomy();
     
 
-
-
-        register_taxonomy( 'grammar', $target_post_types_grammar, $args );
-        /* ????
-        One thing to note, if you want more than 10 results, you should add 
-        ?per_page=100 at the end of your URL. If you have more than 100 results. 
-        You need to use some pagination, i.e. to get the second page: 
-        /wp-json/wp/v2/priority-tags?per_page=100&page=2 – 
-        who knows?
-        */
     
-   
-    
-
         
         
         //RUSSIAN
