@@ -1170,7 +1170,7 @@ class KeaActivities
 
         //child ones
         $parent_term = get_term_by('slug', 'lexis', 'grammar');
-        $lexis_child_terms = array('By - Until');
+        $lexis_child_terms = array('By - Until', 'No - not');
 
         if ($parent_term && !is_wp_error($parent_term)) {
             foreach ($lexis_child_terms as $term_name) {
