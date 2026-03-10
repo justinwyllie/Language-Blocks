@@ -5,8 +5,9 @@ import { useSelect } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
 import { useRef } from '@wordpress/element';
 import { Formik, FieldArray, useFormikContext  } from 'formik';
-import { Instruction, GapFillQuestion, LinkPanel, AuthorPanel} from './components';
-import { Alert } from 'react-bootstrap';
+import { Instruction, GapFillQuestion, InfoBoxAlignment , LinkPanel, AuthorPanel} from './components';
+import { Alert, Button } from 'react-bootstrap';
+
 
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 const settings  = window.kea_language_blocks.settings;
@@ -22,8 +23,14 @@ const POST_TITLE_LENGTH = window.kea_language_blocks.settings.page_title_length;
 
 
 
+
 const GapFill = ({postType, setAttributes, attributes}) =>
 {
+
+
+
+
+
     const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
     const initialValues = {}; 
     initialValues.set = false;
@@ -395,16 +402,20 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                 <Row>
                     <Col>
                         <h3>Questions</h3>
-                        <p>To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
+                        <p class="alert alert-info">To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
                             Answers in second box separated by |. Variants can be expressed like this: is not:isn't|</p>
-                            <p class="mb-4">
-                                In sentences with more than one gap variants must be consistent. For example:<br />
+                            <p class="mb-4 alert alert-info">
+                                In sentences with more than one gap variants must be consistent in order. For example:<br />
                                 Did:Have|take:taken (correct)<br />
-                                Did:Have|taken:take (not correct - wrong order)<br />
+                                Did:Have|taken:take (not correct - wrong order because 'Did taken' is wrong.)<br />
                                 Have:Did|put| (not correct - number of variants must match)<br />
                                 Have:Did|cut:cut| (correct - note; you have to repeat the variants for consistency)
                             
                             </p>
+
+                            <InfoBoxAlignment  />
+
+                       
 
                     </Col>
                 </Row>
@@ -428,7 +439,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                             <button
                                 className="secondary btn btn-primary"
                                 type="button"
-                                onClick={() => push({ question: '', answer: '' })}>
+                                onClick={() => push({ question: '', answer: '' , matchingMode: 'aligned'})}>
                             +
                             </button>
                         </div>

@@ -502,6 +502,17 @@ class KeaActivities
             $qNode = $xmlDoc->createElement('q' . $i);
             $qNode->setAttribute('questionNumber', (string)($i + 1));
             $qNode->setAttribute('answer', rtrim($item['answer']));
+
+            if (isset($item['matchingMode']))
+            {
+                $qNode->setAttribute('matchingMode', $item['matchingMode']);
+            }
+            else
+            {
+                $qNode->setAttribute('matchingMode', 'aligned');
+            }
+            
+
             $qNode->appendChild($xmlDoc->createTextNode($item['question']));
             $questionsNode->appendChild($qNode);
         }

@@ -2,7 +2,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import { Field, ErrorMessage, FieldArray } from 'formik';
-import { Button} from 'react-bootstrap';
+import { Alert, Button} from 'react-bootstrap';
+import React from 'react';
 
 import { useSelect, useDispatch }  from '@wordpress/data';
 import { useEntityProp, store as coreStore } from '@wordpress/core-data';
@@ -84,6 +85,30 @@ const GapFillQuestion = ({idx, remove, handleChange, handleBlur, setFieldValue})
                         handleBlur(e);
                     }}
                 />
+                
+                
+                <div>
+                    <p>
+                        <label>
+                            <Field 
+                            type="radio" 
+                            name={`questions.${idx}.matchingMode`} 
+                            value="aligned"
+                            />
+                            Aligned (position-locked)
+                        </label>
+                        
+                        <label>
+                            <Field 
+                            type="radio" 
+                            name={`questions.${idx}.matchingMode`} 
+                            value="independent"
+                            />
+                            Independent (any variant)
+                        </label>
+                    </p>
+                </div>
+
                 <ErrorMessage
                           name={`questions.${idx}.answer`}
                           component="div"
@@ -444,10 +469,41 @@ const LinkPanel = () => {
 		</PluginDocumentSettingPanel>);
 }
 
+// <Button onClick={() => setShow(true)}>Show Alert</Button>
+
+const InfoBoxAlignment = () =>
+{
+    const [show, setShow] = useState(true);
+  
+    return (
+      <div className="container mt-3">
+        {show ? (
+          <Alert variant="info" onClose={() => setShow(false)} dismissible>
+                <p>
+                    Nb. if you choose 'Independent (any variant)' the system will not try to mark based on variant position. Usually, this is not what you want - so 
+                    in almost all cases simply leave this setting at the default 'Aligned (position locked)'. The 'Independent (any variant)' setting is useful 
+                    for a case where the variants are independent, for example:
+                </p>
+                <p>
+                    Have:Did|seen:see|am cooking:'m cooking|
+                </p>
+                <p>
+                In this case you probably want to choose 'Independent (any variant)' so that regardless of what the user chose for the first two 
+                sections | either of the third variants 'am cooking:'m cooking' will be allowed. 
+                </p>
+          </Alert>
+        ) : (
+            <span></span>
+        )}
+      </div>
+    );
+}
+
 export {
     Instruction,
     GapFillQuestion,
     LinkPanel,
     AuthorPanel,
-    MultipleChoiceQuestion
+    MultipleChoiceQuestion,
+    InfoBoxAlignment
 }
