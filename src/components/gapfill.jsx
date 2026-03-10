@@ -8,7 +8,7 @@ import { Formik, FieldArray, useFormikContext  } from 'formik';
 import { Instruction, GapFillQuestion, InfoBoxAlignment , LinkPanel, AuthorPanel} from './components';
 import { Alert, Button } from 'react-bootstrap';
 
-
+import React, { useEffect } from 'react'
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
@@ -45,48 +45,28 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         //every time form renders which s every time a value changes 
         const { values, errors } = useFormikContext();
         console.log("errors IS2", errors);
-        const prevValuesRef = React.useRef(); // 👈 Define the ref!
 
-        // Process values to ensure matchingMode exists on all questions
-        const processedValues = React.useMemo(() => {
-          
-            if (!values.questions) return values;
-            console.log('questions', values.questions);
-            const needsUpdate = values.questions.some(q => !q.hasOwnProperty('matchingMode'));
-            
-            if (!needsUpdate) return values;
-            
-            // Add default 'aligned' to any question missing it
-            return {
-                ...values,
-                questions: values.questions.map(q => ({
-                    ...q,
-                    matchingMode: q.matchingMode || 'aligned'
-                }))
-            };
-        }, [values]);
+        //TODO not every time
+        values.questions.forEach(function(q) 
+            {
+            if (!q.hasOwnProperty('matchingMode'))
+            {
+                q.matchingMode = 'aligned';
+            }
+        });
+       
       
-        React.useEffect(() => {
-            // Check if values actually changed to avoid loops
-            if (JSON.stringify(prevValuesRef.current) === JSON.stringify(processedValues)) {
-                return; 
-            }
-            
-            prevValuesRef.current = processedValues;
-            
-            if (Object.keys(errors).length > 0)
-            {
-                lockPostSaving('activities/activity-gap-fill');
-            }
-            else
-            {
-                setAttributes({formData: processedValues});      
-                setAttributes({ activityType: 'gapfill'});
-                unlockPostSaving('activities/activity-gap-fill');
-            }
-        }, [processedValues, errors, setAttributes]);
-        
-        return null;
+        if (Object.keys(errors).length > 0)
+        {
+            lockPostSaving('activities/activity-gap-fill');
+        }
+        else
+        {
+            setAttributes({formData: values});   
+            setAttributes({ activityType: 'gapfill'});
+            unlockPostSaving('activities/activity-gap-fill');
+        }
+
 
     }
 
