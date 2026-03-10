@@ -69,7 +69,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         React.useEffect(() => {
             // Check if values actually changed to avoid loops
             if (JSON.stringify(prevValuesRef.current) === JSON.stringify(processedValues)) {
-                return; // Skip if same as before
+                return; 
             }
             
             prevValuesRef.current = processedValues;
