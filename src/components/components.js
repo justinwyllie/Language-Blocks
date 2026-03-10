@@ -469,20 +469,32 @@ const LinkPanel = () => {
 		</PluginDocumentSettingPanel>);
 }
 
-// <Button onClick={() => setShow(true)}>Show Alert</Button>
 
-const InfoBoxAlignment = () =>
+
+const InfoBoxAlignment = ({showInfoBox, setShowInfoBox}) =>
 {
-    const [show, setShow] = useState(true);
+   
   
     return (
       <div className="container mt-3">
-        {show ? (
-          <Alert variant="info" onClose={() => setShow(false)} dismissible>
-        
-
-                <p>With the default setting 'Aligned (position locked)' the system will try to follow the order of variants as in the above example:</p>
-                <p>Didn't:Did not:Haven't:Have not|see:see:seen:seen|</p>
+        {showInfoBox ? (
+          <Alert variant="info" onClose={() => setShowInfoBox(false)} dismissible>
+                <p>
+                    Variants can be expressed like this: is not:isn't| . 
+                    You can have several variants so long as there are the same number in each | | section. 
+                </p>             
+                <p>
+                    Didn't:Did not:Haven't:Have not|see:see:seen:seen|
+                </p>               
+                <p>
+                    Notice that there are 4 variants in each section. Very important.
+                </p>
+                <p>
+                    With the default setting 'Aligned (position locked)' the system will try to follow the order of variants as in the above example:
+                </p>
+                <p>
+                    Didn't:Did not:Haven't:Have not|see:see:seen:seen|
+                </p>
                 <p>
                     This means if the user enters "Didn't" the system will expect the second variant to be "see", not "seen"
                 </p>

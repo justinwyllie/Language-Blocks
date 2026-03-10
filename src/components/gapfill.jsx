@@ -8,7 +8,7 @@ import { Formik, FieldArray, useFormikContext  } from 'formik';
 import { Instruction, GapFillQuestion, InfoBoxAlignment , LinkPanel, AuthorPanel} from './components';
 import { Alert, Button } from 'react-bootstrap';
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useBlockProps, RichText } from '@wordpress/block-editor'; 
 const settings  = window.kea_language_blocks.settings;
 import { LABELS } from '../translations';
@@ -28,7 +28,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
 {
 
 
-
+    const [showInfoBox, setShowInfoBox] = useState(false);
 
 
     const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' ); 
@@ -413,15 +413,13 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                     <Col>
                         <h3>Questions</h3>
                         <p class="alert alert-info">To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
-                            Answers in second box separated by |. Variants can be expressed like this: is not:isn't|</p>
-                            <p class="mb-4 alert alert-info">
-                                You can have several variants so long as there are the same number in each | | section. <br />
-                                Didn't:Did not:Haven't:Have not|see:see:seen:seen|<br />
-                                Notice that there are 4 variants in each section. Very important.
-                            
+                            Answers in second box separated by |. </p>
+                        
+                            <p>
+                                {<Button onClick={() => setShowInfoBox(true)} >Show information about creating exercises with variants</Button>}
                             </p>
 
-                            <InfoBoxAlignment  />
+                            <InfoBoxAlignment showInfoBox={showInfoBox} setShowInfoBox={setShowInfoBox}  />
 
                        
 
