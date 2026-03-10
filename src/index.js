@@ -92,7 +92,7 @@ registerBlockType( 'activities/activity-gap-fill', {
     title: 'Activity Gap Fill',
     icon: 'universal-access-alt',
     category: 'widgets', /* custom https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/#managing-block-categories */ 
-    //we are bypassing attributes as we are saving just one block of xml to post meta not html string
+ 
     attributes: {
         activityType: {
             type: 'string'

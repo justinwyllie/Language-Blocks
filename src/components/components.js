@@ -479,17 +479,25 @@ const InfoBoxAlignment = () =>
       <div className="container mt-3">
         {show ? (
           <Alert variant="info" onClose={() => setShow(false)} dismissible>
+        
+
+                <p>With the default setting 'Aligned (position locked)' the system will try to follow the order of variants as in the above example:</p>
+                <p>Didn't:Did not:Haven't:Have not|see:see:seen:seen|</p>
                 <p>
-                    Nb. if you choose 'Independent (any variant)' the system will not try to mark based on variant position. Usually, this is not what you want - so 
-                    in almost all cases simply leave this setting at the default 'Aligned (position locked)'. The 'Independent (any variant)' setting is useful 
-                    for a case where the variants are independent, for example:
+                    This means if the user enters "Didn't" the system will expect the second variant to be "see", not "seen"
                 </p>
                 <p>
-                    Have:Did|seen:see|am cooking:'m cooking|
+                    However; in some cases you wish variants to be marked independently. If even one variant is not dependent on the others choose 'Independent (any variant)'.
+                    Examples where this is the correct setting:
                 </p>
                 <p>
-                In this case you probably want to choose 'Independent (any variant)' so that regardless of what the user chose for the first two 
-                sections | either of the third variants 'am cooking:'m cooking' will be allowed. 
+                    Have:Did|seen:see|am cooking:'m cooking|  or:
+                </p>
+                <p>
+                    Do:Do|like:like|am cooking:'m cooking|
+                </p>
+                <p>
+                    In these cases either "'m cooking" or "am cooking" is correct, regardless of what the user chose for the other gaps, so, in this case, choose 'Independent (any variant)'.
                 </p>
           </Alert>
         ) : (

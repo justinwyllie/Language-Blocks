@@ -45,18 +45,48 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         //every time form renders which s every time a value changes 
         const { values, errors } = useFormikContext();
         console.log("errors IS2", errors);
-      
-        if (Object.keys(errors).length > 0)
-        {
-            lockPostSaving('activities/activity-gap-fill');
-        }
-        else
-        {
-            setAttributes({formData: values});   
-            setAttributes({ activityType: 'gapfill'});
-            unlockPostSaving('activities/activity-gap-fill');
-        }
+        const prevValuesRef = React.useRef(); // 👈 Define the ref!
 
+        // Process values to ensure matchingMode exists on all questions
+        const processedValues = React.useMemo(() => {
+          
+            if (!values.questions) return values;
+            console.log('questions', values.questions);
+            const needsUpdate = values.questions.some(q => !q.hasOwnProperty('matchingMode'));
+            
+            if (!needsUpdate) return values;
+            
+            // Add default 'aligned' to any question missing it
+            return {
+                ...values,
+                questions: values.questions.map(q => ({
+                    ...q,
+                    matchingMode: q.matchingMode || 'aligned'
+                }))
+            };
+        }, [values]);
+      
+        React.useEffect(() => {
+            // Check if values actually changed to avoid loops
+            if (JSON.stringify(prevValuesRef.current) === JSON.stringify(processedValues)) {
+                return; // Skip if same as before
+            }
+            
+            prevValuesRef.current = processedValues;
+            
+            if (Object.keys(errors).length > 0)
+            {
+                lockPostSaving('activities/activity-gap-fill');
+            }
+            else
+            {
+                setAttributes({formData: processedValues});      
+                setAttributes({ activityType: 'gapfill'});
+                unlockPostSaving('activities/activity-gap-fill');
+            }
+        }, [processedValues, errors, setAttributes]);
+        
+        return null;
 
     }
 
@@ -405,11 +435,9 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                         <p class="alert alert-info">To create a gap use ___ (3 underscores). Words in brackets separated by a comma.
                             Answers in second box separated by |. Variants can be expressed like this: is not:isn't|</p>
                             <p class="mb-4 alert alert-info">
-                                In sentences with more than one gap variants must be consistent in order. For example:<br />
-                                Did:Have|take:taken (correct)<br />
-                                Did:Have|taken:take (not correct - wrong order because 'Did taken' is wrong.)<br />
-                                Have:Did|put| (not correct - number of variants must match)<br />
-                                Have:Did|cut:cut| (correct - note; you have to repeat the variants for consistency)
+                                You can have several variants so long as there are the same number in each | | section. <br />
+                                Didn't:Did not:Haven't:Have not|see:see:seen:seen|<br />
+                                Notice that there are 4 variants in each section. Very important.
                             
                             </p>
 
