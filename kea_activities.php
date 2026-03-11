@@ -1179,11 +1179,11 @@ class KeaActivities
     {
 
 
-        //child ones
-        $parent_term = get_term_by('slug', 'lexis', 'grammar');
+        //child ones - lexis
+        $lexis_parent_term = get_term_by('slug', 'lexis', 'grammar');
         $lexis_child_terms = array('By - Until', 'No - not', 'Talking about purpose', 'Prepositions of place');
 
-        if ($parent_term && !is_wp_error($parent_term)) {
+        if ($lexis_parent_term && !is_wp_error($lexis_parent_term)) {
             foreach ($lexis_child_terms as $term_name) {
       
                 if (!term_exists($term_name, 'grammar')) {
@@ -1191,12 +1191,34 @@ class KeaActivities
                         $term_name,
                         'grammar',
                         array(
-                            'parent' => $parent_term->term_id
+                            'parent' => $lexis_parent_term->term_id
                         )
                     );
                 }
             }
         }
+
+        //child ones - modal-verbs
+        $modals_parent_term = get_term_by('slug', 'modal-verbs', 'grammar');
+        $modals_child_terms = array('Modals of obligation');
+
+        if ($modals_parent_term && !is_wp_error($modals_parent_term)) {
+            foreach ($modals_child_terms as $term_name) {
+      
+                if (!term_exists($term_name, 'grammar')) {
+                    wp_insert_term(
+                        $term_name,
+                        'grammar',
+                        array(
+                            'parent' => $modals_parent_term->term_id
+                        )
+                    );
+                }
+            }
+        }
+
+
+        
 
         //top-level
         $terms = array();
