@@ -1182,7 +1182,7 @@ class KeaActivities
         //child ones - lexis
         $lexis_parent_term = get_term_by('slug', 'lexis', 'grammar');
         $lexis_child_terms = array('By - Until', 'No - not', 'Talking about purpose', 'Prepositions of place', 'Question words',
-            'Verbs and Prepositions');
+            'Verbs and Prepositions', 'No, not, any');
 
         if ($lexis_parent_term && !is_wp_error($lexis_parent_term)) {
             foreach ($lexis_child_terms as $term_name) {
