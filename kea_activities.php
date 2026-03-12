@@ -1201,7 +1201,7 @@ class KeaActivities
 
         //child ones - modal-verbs
         $modals_parent_term = get_term_by('slug', 'modal-verbs', 'grammar');
-        $modals_child_terms = array('Modals of obligation');
+        $modals_child_terms = array('Modals of obligation','Requests and offers');
 
         if ($modals_parent_term && !is_wp_error($modals_parent_term)) {
             foreach ($modals_child_terms as $term_name) {
