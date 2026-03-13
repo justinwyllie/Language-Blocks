@@ -511,6 +511,10 @@ const InfoBoxAlignment = ({showInfoBox, setShowInfoBox}) =>
                 <p>
                     In these cases either "'m cooking" or "am cooking" is correct, regardless of what the user chose for the other gaps, so, in this case, choose 'Independent (any variant)'.
                 </p>
+                <p>
+                    Pay attention to this special case: Are:Are|going to meet:meeting| . In a case like this, with the variants the same in slot 1, you should use 'Independent (any variant)'. The problem is
+                     that if the user correctly enters 'Are' for the first variant, the system will match this as position 1, and only accept 'going to' for the second variant.
+                </p>
           </Alert>
         ) : (
             <span></span>

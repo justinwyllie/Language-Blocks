@@ -1218,6 +1218,25 @@ class KeaActivities
             }
         }
 
+           //child ones - modal-verbs
+           $adverbs_parent_term = get_term_by('slug', 'adverbs', 'grammar');
+           $adverbs_child_terms = array('Comparative of adverbs');
+   
+           if ($adverbs_parent_term && !is_wp_error($adverbs_parent_term)) {
+               foreach ($adverbs_child_terms as $term_name) {
+         
+                   if (!term_exists($term_name, 'grammar')) {
+                       wp_insert_term(
+                           $term_name,
+                           'grammar',
+                           array(
+                               'parent' => $adverbs_parent_term->term_id
+                           )
+                       );
+                   }
+               }
+           }
+
 
         
 
