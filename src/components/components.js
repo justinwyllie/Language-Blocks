@@ -479,42 +479,45 @@ const InfoBoxAlignment = ({showInfoBox, setShowInfoBox}) =>
       <div className="container mt-3">
         {showInfoBox ? (
           <Alert variant="info" onClose={() => setShowInfoBox(false)} dismissible>
+                <h5>Variant pattern</h5>
                 <p>
+                    
                     Variants can be expressed like this: is not:isn't| . 
-                    You can have several variants so long as there are the same number in each | | section. 
+                    You can have several variants so long as there are the same number in each | | slot. Variants are divided by : . You
+                    cannot use : as part of the answer. It is a reserved character - just for dividing.
                 </p>             
                 <p>
                     Didn't:Did not:Haven't:Have not|see:see:seen:seen|
                 </p>               
                 <p>
-                    Notice that there are 4 variants in each section. Very important.
+                    Notice that there are 4 variants in each slot. Very important.
                 </p>
+                <h5>Linked variants</h5>
                 <p>
-                    With the default setting 'Aligned (position locked)' the system will try to follow the order of variants as in the above example:
+                    <p>Consider: </p>
+                    <p>Didn't:Did not:Haven't:Have not|see:see:seen:seen| </p>
+                    Here, if the student chooses "Didn't" for the first slot they must choose "see" for the second slot. The variants are 
+                    linked. Once the user chooses "Didn't" the marking system will only accept the variant in position 1 in each slot.
+                    For these cases choose 'Aligned (position locked)' to ensure correct marking. (Notice that by duplicating "see" and 
+                    "seen" we can still support the valid "Did not" and "Didn't" forms).
                 </p>
+                <h5>Independent variants</h5>
                 <p>
-                    Didn't:Did not:Haven't:Have not|see:see:seen:seen|
+                    <p>Consider: </p>
+                    <p>am writing:'m writing|realise:realize|</p>
+                    Here, the choice of "realise" or "realize" is totally independent of the first slot choice. To ensure that the student is
+                    marked correctly for both "realise" or "realize" regardless of what they put in the first slot, choose 'Independent (any variant)'.
                 </p>
+                <h5>Mixing linked and independent variants</h5>
                 <p>
-                    This means if the user enters "Didn't" the system will expect the second variant to be "see", not "seen"
+                    If you try to mix linked and indpendent variants in one question, errors are likely to ensue. Either correct 
+                    variants will be rejected or incorrect variants will be accepted. For this reason, it is strongly recommended to avoid 
+                    mixing linked and independent variants in one question. 
                 </p>
-                <p>
-                    However; in some cases you wish variants to be marked independently. If even one variant is not dependent on the others choose 'Independent (any variant)'.
-                    Examples where this is the correct setting:
-                </p>
-                <p>
-                    Have:Did|seen:see|am cooking:'m cooking|  or:
-                </p>
-                <p>
-                    Do:Do|like:like|am cooking:'m cooking|
-                </p>
-                <p>
-                    In these cases either "'m cooking" or "am cooking" is correct, regardless of what the user chose for the other gaps, so, in this case, choose 'Independent (any variant)'.
-                </p>
-                <p>
-                    Pay attention to this special case: Are:Are|going to meet:meeting| . In a case like this, with the variants the same in slot 1, you should use 'Independent (any variant)'. The problem is
-                     that if the user correctly enters 'Are' for the first variant, the system will match this as position 1, and only accept 'going to' for the second variant.
-                </p>
+               
+                    
+              
+        
           </Alert>
         ) : (
             <span></span>
