@@ -110,9 +110,14 @@ class KeaActivities
         $domain = $_SERVER['HTTP_HOST'];
         $message = "On $domain : \n\n" . $message;
 
+        $unsubscribe_string = '<mailto:' . UNSUBSCRIBE_EMAIL . '>';
+
         try
         {
-
+            $phpmailer->addCustomHeader('List-Unsubscribe', $unsubscribe_string);
+            $phpmailer->Hostname = EMAIL_SENDING_HOST;
+            $phpmailer->CharSet = 'UTF-8';
+            $phpmailer->Encoding = 'base64';
             $phpmailer->isSMTP(); 
             $phpmailer->Host = 'localhost'; 
             $phpmailer->SMTPAuth = true;
