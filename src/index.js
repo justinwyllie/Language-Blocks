@@ -8,8 +8,13 @@ import { registerPlugin } from '@wordpress/plugins';
 const { __ } = wp.i18n; //TODO check
 
 
+
+
 import { GapFill } from './components/gapfill';
 import { MultipleChoice } from './components/multiple-choice';
+
+
+
 
 
 //import bootstrap CSS 
@@ -88,7 +93,7 @@ registerPlugin( 'kea-grammar-links-meta', {
 //https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/ 
 //https://deliciousbrains.com/custom-gutenberg-block/
 registerBlockType( 'activities/activity-gap-fill', {
-    apiVersion: 2,
+    apiVersion: 3,
     title: 'Activity Gap Fill',
     icon: 'universal-access-alt',
     category: 'widgets', /* custom https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/#managing-block-categories */ 
@@ -150,7 +155,7 @@ registerBlockType( 'activities/activity-gap-fill', {
 //https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/ 
 //https://deliciousbrains.com/custom-gutenberg-block/
 registerBlockType( 'activities/activity-multiple-choice', {
-    apiVersion: 2,
+    apiVersion: 3,
     title: 'Activity Multiple Choice',
     icon: 'universal-access-alt',
     category: 'widgets', /* custom https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/#managing-block-categories */ 
@@ -216,12 +221,11 @@ registerBlockType( 'activities/activity-multiple-choice', {
 
 
 registerBlockType( 'activities/breadcrumbs', {
-    apiVersion: 2,
+    apiVersion: 3,
     title: 'Breadcrumbs (top-level only)',
     icon: 'admin-site',
     category: 'widgets', 
     attributes: {
-   
     },
 
 
@@ -236,20 +240,24 @@ registerBlockType( 'activities/breadcrumbs', {
         }, []);
 
      
-        const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
+        const blockProps = useBlockProps({
+            className: 'wp-block-breadcrumbs' // Adds your specific hook if needed
+        });
             //TODO!
 
         return (
-            <nav aria-label="breadcrumb" className="wp-block">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <a href="/">Home</a>
-                    </li>
-                    <li className="breadcrumb-item active" aria-current="page">
-                        {postTitle || 'Current Page'}
-                    </li>
-                </ol>
-            </nav>
+            <div {...blockProps}>
+                <nav  aria-label="breadcrumb" className="wp-block">
+                    <ol className="breadcrumb">
+                        <li className="breadcrumb-item">
+                            <a href="/">Home</a>
+                        </li>
+                        <li className="breadcrumb-item active" aria-current="page">
+                            {postTitle || 'Current Page'}
+                        </li>
+                    </ol>
+                </nav>
+            </div>
         )
     },
  

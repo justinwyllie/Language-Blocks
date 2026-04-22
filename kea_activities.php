@@ -62,6 +62,7 @@ class KeaActivities
         //add_action('admin_init', array($this, 'fix_post_roles'));
 
         add_action( 'admin_enqueue_scripts', array($this, 'register_plugin_scripts_admin' ));
+       
            
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
 
@@ -1006,6 +1007,7 @@ class KeaActivities
     }
 
  
+  
 
     //admin_enqueue
     //THIS IS ONLY CALLED ON ACTUAL ADMIN PAGES NOT ON THE SPLASH PAGE
@@ -1013,24 +1015,10 @@ class KeaActivities
     {
           // automatically load dependencies and version
           $asset_file = include( plugin_dir_path( __FILE__ ) . 'build/index.asset.php');
-    
-          $css = "/wp-content/plugins/kea_activities/build/index.css";
-          //wp_enqueue_style("kea_activities_css",  $css, array(), wp_get_theme()->get( 'Version' )  );
-  
-  
-          wp_register_style(
-              'activity-editor',
-              $css,
-              array( 'wp-edit-blocks', 'wp-admin' ),
-              filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
-          );
-          wp_enqueue_style("activity-editor");
-  
-         
+            
+ 
           //THIS IS NOT THE SPLASH CSS WHICH IS LOADED IN kea-repi
           wp_enqueue_style("splash", plugins_url( '/assets/styles.css', __FILE__ ), array(), filemtime( plugin_dir_path( __FILE__ ) . 'assets/styles.css'));
-       
-   
   
           wp_enqueue_script('settings', plugins_url( 'scripts/settings.js', __FILE__ ), array(), filemtime( plugin_dir_path( __FILE__ ) . '/scripts/settings.js'));
   
@@ -1050,9 +1038,7 @@ class KeaActivities
           $deps = $asset_file['dependencies'];
           $deps[] = 'settings';
   
-      
-        
-          
+            
           wp_register_script(
               'activity-script',
               plugins_url( 'build/index.js', __FILE__ ), 
@@ -1066,20 +1052,34 @@ class KeaActivities
   
     }
 
+    /*
+    *  If this returns true, the editor is iframed.
+            !!document.querySelector('iframe[name="editor-canvas"]')
+    */
 
-    //only load CSS and JS for the admin side- CSS includes BS and JS includes react-bootstrap
-
-    //gap fill block TODO - is thie called admin and frontend prob not the best place to load the CSS and scripts?
+    //init 
+    //https://developer.wordpress.org/block-editor/reference-guides/block-api/block-metadata/
     public function kea_activity_register_block() {
 
-      
+        //this would load on the front-end as well
+        //use handlee in block json so we get it 2x! 
+        if (is_admin())
+        {
+            $css = "/wp-content/plugins/kea_activities/build/index.css";
+            wp_register_style(
+                'activity-editor',
+                $css,
+                array( 'wp-edit-blocks', 'wp-admin' ),
+                filemtime( plugin_dir_path( __FILE__ ) . 'build/index.css' )
+            );
+            wp_enqueue_style("activity-editor");
+        }
+     
         
-
-        //
-        register_block_type( 'activities/activity-gap-fill', array(
-            'api_version' => 2,
+        register_block_type( __DIR__ . '/build/activity-gap-fill', array(
+            'api_version' => 3,
             'title' => 'Activity Gap Fill',
-            'editor_style' => 'activity-editor',      
+            'editor_style' => 'activity-editor',  
             'editor_script' => 'activity-script',
             'render_callback' => 'render_activity_gap_fill_block',
             'attributes' => array(
@@ -1088,17 +1088,15 @@ class KeaActivities
             )
         ) );
 
-        //TODO i think we can remove this
+
         function render_activity_gap_fill_block($attributes, $content) {
             // Return empty string - no frontend output
             return '';
-            
-            // OR process the data server-side when needed
-            // return process_activity_data($attributes['formData']);
         }
 
-        register_block_type( 'activities/activity-multiple-choice', array(
-            'api_version' => 2,
+       
+        register_block_type(__DIR__ . '/build/activity-multiple-choice', array(
+            'api_version' => 3,
             'title' => 'Activity Multiple Chocie',
             'editor_style' => 'activity-editor',      
             'editor_script' => 'activity-script',
@@ -1107,7 +1105,6 @@ class KeaActivities
                 'activityType' => array('type' => 'string')
             )
         ) );
-
 
         
         function render_simple_breadcrumb_block($attributes, $content) {
@@ -1124,9 +1121,9 @@ class KeaActivities
             
             return $output;
         }
-
-        register_block_type( 'activities/breadcrumbs', array(
-            'api_version' => 2,
+        
+        register_block_type(__DIR__ . '/build/breadcrumbs', array(
+            'api_version' => 3,
             'title' => 'Breadcrumbs (top-level only)',
             'editor_style' => 'activity-editor',      
             'editor_script' => 'activity-script',
@@ -1135,6 +1132,7 @@ class KeaActivities
                
             )
         ) );
+       
         
     }
 

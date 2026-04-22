@@ -44,7 +44,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     {
         //every time form renders which s every time a value changes 
         const { values, errors } = useFormikContext();
-        console.log("errors IS2", errors);
+      
 
         //TODO not every time
         values.questions.forEach(function(q) 
@@ -150,7 +150,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
 
     function setInitialValues() {
 
-        console.log("INIT ATTR", attributes);
+       
             
             if (Object.keys(attributes['formData']).length === 0)
             {
@@ -192,7 +192,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
             
 
             validate={values => {
-                console.log("VALIDATE CALLED");
+               
                 let errors = {};
             
                 /*
