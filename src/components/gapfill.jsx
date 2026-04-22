@@ -139,10 +139,10 @@ const GapFill = ({postType, setAttributes, attributes}) =>
             return <></>
         }
         else
-        {
+        {  
             if (postTitle.length < POST_TITLE_LENGTH)
             {
-                alertRef.current?.closest(".block-editor-writing-flow").scrollIntoView({ behavior: 'smooth' }); //TODO maybe hanlde no element found?
+                alertRef.current?.scrollIntoView({ behavior: 'smooth' }); //TODO maybe hanlde no element found?
             }
             return <Alert variant="danger">{LABELS[settings.defaultUserLang]['please_check_the_form']['nominative']}</Alert>;
         }
