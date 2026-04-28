@@ -79,55 +79,68 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     );
     const alertRef = useRef();
 
+    //TODO this code is shared with mc
+    //see increase_grammar_terms_per_page_limit PHP
+    const grammarTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'}) 
+
+    ); 
+
+   const russianGrammarTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+    
+    const englishLexisTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "english_lexis", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+
+    console.log('english_lexis', englishLexisTaxonomy );
+
+    
+    const terms = [];
+    let userLabels = [];
+ 
+
+    if (grammarTaxonomy) {
+        grammarTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }));
+    }
+
+    if (russianGrammarTaxonomy) {
+        russianGrammarTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
+    if (englishLexisTaxonomy) {
+        englishLexisTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
 
 
-    //BUILD LABELS USING CUSTOM ENDPOINT
-    //TODO still this gets it on every render...
-    ///current saved?
+    //detect user changing taxonomy terms
+    //i think this will get the latest unsaved values   - it subscribes
+    //just gets you ids though
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
-    const [englishLexisTerms, setEnglishLexisTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' );
-
-    const grammarTermsData = useSelect((select) => {
-        if (!grammarTerms?.length) return [];
-        
-        return select('core').getEntityRecords('kea/v1', 'grammar_terms_for_labels', {
-            ids: grammarTerms.join(',')
-        });
-    });
-
-    const russianGrammarTermsData = useSelect((select) => {
-        if (!russianGrammarTerms?.length) return [];
-        
-        return select('core').getEntityRecords('kea/v1', 'russian_grammar_terms_for_labels', {
-            ids: russianGrammarTerms.join(',')
-        });
-    });
-
-    const englishLexisTermsData = useSelect((select) => {
-        if (!englishLexisTerms?.length) return [];
-        
-        return select('core').getEntityRecords('kea/v1', 'english_lexis_terms_for_labels', {
-            ids: englishLexisTerms.join(',')
-        });
-    });
-
-  
-    let userLabels = [];
+    const [englishLexisTerms, setEnglishLexisGrammarTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' ); 
     
-    grammarTermsData.forEach((item) => {
-        userLabels.push(item.name);
+    
+    grammarTerms.forEach((item) => {
+        userLabels.push(terms[item]);
     });
-    russianGrammarTermsData.forEach((item) => {
-        userLabels.push(item.name);
+    russianGrammarTerms.forEach((item) => {
+        userLabels.push(terms[item]);
     });
-    englishLexisTermsData.forEach((item) => {
-        userLabels.push(item.name);
+    englishLexisTerms.forEach((item) => {
+        userLabels.push(terms[item]);
     });
-
-    //end section about building labels 
-
-
+   
+   
 
      
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?

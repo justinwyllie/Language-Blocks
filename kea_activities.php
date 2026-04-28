@@ -54,7 +54,7 @@ class KeaActivities
         add_filter('manage_kea_activity_posts_columns', array($this, 'kea_activitiy_add_type_column'));
         add_action('manage_kea_activity_posts_custom_column', array($this, 'kea_activity_populate_type_column'), 10, 2);
 
-        add_action( 'init', array($this, 'wporg_register_taxonomy_english' ));
+        add_action( 'init', array($this, 'register_all_taxonomies' ));
         //add_action( 'set_object_terms', array( $this, 'block_non_permitted_working_with_cats' ), 10, 6 );
 
         add_action( 'init', array($this, 'kea_activity_register_block' ));
@@ -70,8 +70,9 @@ class KeaActivities
         add_filter('rest_pre_insert_kea_activity', array($this, 'validate_activity_title_length'), 10, 2);
 
         //handles   ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'})  etc
-        //add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
-        //add_filter( 'rest_russian_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
+        add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
+        add_filter( 'rest_russian_grammar_collection_params', array($this, 'increase_russian_grammar_terms_per_page_limit'), 10, 2 );
+        add_filter( 'rest_english_lexis_collection_params', array($this, 'increase_english_lexis_terms_per_page_limit'), 10, 2 );
 
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
@@ -159,7 +160,7 @@ class KeaActivities
        
     }
 
-    /*
+   
     public function increase_grammar_terms_per_page_limit($query_params, $taxonomy )
     {
         if ( isset( $query_params['per_page'] ) ) {
@@ -179,7 +180,15 @@ class KeaActivities
         }
         return $query_params;
     }
-    */
+
+    public function increase_english_lexis_terms_per_page_limit($query_params, $taxonomy )
+    {
+        if ( isset( $query_params['per_page'] ) ) {
+            //TODO could use wp_count_terms to set this to the existing number, but then would need to get this in the front-end as well. for now 1000. 
+            $query_params['per_page']['maximum'] = 1000; 
+        }
+        return $query_params;
+    }
 
 
 
@@ -753,7 +762,7 @@ class KeaActivities
             'methods' => 'GET',
             'callback' => array($this, 'special_get_json_for_ad_hoc_projects_via_slug'),
             'permission_callback' => function() {
-                return is_user_logged_in();
+                return current_user_can('read');
             }
             
         ) );
@@ -762,102 +771,16 @@ class KeaActivities
             'methods' => 'GET',
             'callback' => array($this, 'special_get_json_for_ad_hoc_projects'),
             'permission_callback' => function() {
-                return is_user_logged_in();
+                return current_user_can('read');
             }
             
         ) );
-
-        //these endpoints get term names for given ids for display in the blocks. xxx
-        register_rest_route('kea/v1', '/grammar_terms_for_labels', [
-            'methods' => 'GET',
-            'callback' => function($request) {
-                $term_ids = $request->get_param('ids');
-                if (empty($term_ids)) return [];
-                
-                $ids = array_map('intval', explode(',', $term_ids));
-                
-                $terms = get_terms([
-                    'taxonomy' => 'grammar',
-                    'include' => $ids,
-                    'hide_empty' => true
-                ]);
-
-                if (is_wp_error($terms))
-                {
-                    return new WP_Error('db_error', __('Database error', 'kea'), ['status' => 500]);
-                }
-                return rest_ensure_response($terms);
-
-                
-            },
-            'permission_callback' => function() {
-                return is_user_logged_in();
-            }
-        ]);
-
-        register_rest_route('kea/v1', '/russian_grammar_terms_for_labels', [
-            'methods' => 'GET',
-            'callback' => function($request) {
-                $term_ids = $request->get_param('ids');
-                if (empty($term_ids)) return [];
-                
-                $ids = array_map('intval', explode(',', $term_ids));
-                
-                $terms = get_terms([
-                    'taxonomy' => 'russian_grammar',
-                    'include' => $ids,
-                    'hide_empty' => true
-                ]);
-
-                if (is_wp_error($terms))
-                {
-                    return new WP_Error('db_error', __('Database error', 'kea'), ['status' => 500]);
-                }
-                return rest_ensure_response($terms);
-
-                
-               
-            },
-            'permission_callback' => function() {
-                return is_user_logged_in();
-            }
-        ]);
-
-        register_rest_route('kea/v1', '/english_lexis_terms_for_labels', [
-            'methods' => 'GET',
-            'callback' => function($request) {
-                $term_ids = $request->get_param('ids');
-                if (empty($term_ids)) return [];
-                
-                $ids = array_map('intval', explode(',', $term_ids));
-                
-                $terms = get_terms([
-                    'taxonomy' => 'english_lexis',
-                    'include' => $ids,
-                    'hide_empty' => true
-                ]);
-                
-                if (is_wp_error($terms))
-                {
-                    return new WP_Error('db_error', __('Database error', 'kea'), ['status' => 500]);
-                }
-                return rest_ensure_response($terms);
-                
-            },
-            'permission_callback' => function() {
-                return is_user_logged_in();
-            }
-        ]);
-
 
 
        
     }
 
-    /*
-    'permission_callback' => function () {
-                return current_user_can( 'read' );
-            } */
+  
 
     public function special_get_json_for_ad_hoc_projects($request)
     {
@@ -1017,14 +940,335 @@ class KeaActivities
     
     }
 
+    public function register_all_taxonomies()
+    {
+        $this->register_english_lexis_taxonomy();
+        $this->register_grammar_taxonomy();
+        $this->register_russian_grammar_taxonomy();
+
+        $this->register_levels_taxonomy();
+        $this->register_ages_bands_taxonomy();
+       
+  
+    }
+
+    private function register_russian_grammar_taxonomy()
+    {
+        
+        $labels = array(
+            'name'              => _x( 'Russian Grammar', 'taxonomy general name', 'kea' ),
+            'singular_name'     => _x( 'Russian Grammar', 'taxonomy singular name' ,'kea'),
+            'search_items'      => __( 'Search Russian Grammar' , 'kea' ),
+            'all_items'         => __( 'All Russian Grammar' , 'kea' ),
+            'parent_item'       => __( 'Parent Level' , 'kea' ),
+            'parent_item_colon' => __( 'Parent Level:' , 'kea' ),
+            'edit_item'         => __( 'Edit Grammar', 'kea'  ),
+            'update_item'       => __( 'Update Russian Grammar' , 'kea' ),
+            'add_new_item'      => __( 'Add New Russian Grammar Term' , 'kea' ),
+            'new_item_name'     => __( 'New Grammar Name', 'kea'  ),
+            'menu_name'         => __( 'Russian Grammar' , 'kea' ),
+            );
+            
+            $args = array(
+            'hierarchical'          => true,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'russian_grammar' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'russian_grammar_terms',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+            );
+    
+        register_taxonomy( 'russian_grammar', array( 'kea_activity' ), $args);
+    }
+
+    private function register_levels_taxonomy()
+    {
+        
+        $labels = array(
+            'name'              => _x( 'Levels', 'taxonomy general name' ,'kea' ),
+            'singular_name'     => _x( 'Level', 'taxonomy singular name', 'kea' ),
+            'search_items'      => __( 'Search Levels' , 'kea' ),
+            'all_items'         => __( 'All Levels' , 'kea' ),
+            'parent_item'       => __( 'Parent Level' , 'kea' ),
+            'parent_item_colon' => __( 'Parent Level:', 'kea'  ),
+            'edit_item'         => __( 'Edit Level', 'kea'  ),
+            'update_item'       => __( 'Update Level' , 'kea' ),
+            'add_new_item'      => __( 'Add New Level' , 'kea' ),
+            'new_item_name'     => __( 'New Level Name' , 'kea' ),
+            'menu_name'         => __( 'Level', 'kea'  ),
+            );
+
+           
+            
+            $args = array(
+            'hierarchical'          => true,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'level' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'levels',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+          
+            );
+            
+        $post_types = get_post_types();  
+        //if the plugin is running on the home site attach this taxonomy to video too.  
+        $target_post_types_levels = array( 'kea_activity' );  
+        if (array_key_exists("video", $post_types))
+        {
+            $target_post_types_levels[] = "video";
+        }
+    
+        if (array_key_exists("kea_vocab_item", $post_types))
+        {
+            $target_post_types_levels[] = "kea_vocab_item";
+        }
+        
+
+        register_taxonomy( 'levels', $target_post_types_levels, $args );  
+    
+    }
+
+    private function register_ages_bands_taxonomy()
+    {
+        
+        $labels = array(
+            'name'              => _x( 'Age', 'taxonomy general name' , 'kea'),
+            'singular_name'     => _x( 'Age', 'taxonomy singular name' ,'kea'),
+            'search_items'      => __( 'Search Ages' , 'kea' ),
+            'all_items'         => __( 'All Ages' , 'kea' ),
+            'parent_item'       => __( 'Parent Level', 'kea'  ),
+            'parent_item_colon' => __( 'Parent Level:' , 'kea' ),
+            'edit_item'         => __( 'Edit Age', 'kea'  ),
+            'update_item'       => __( 'Update Age' , 'kea' ),
+            'add_new_item'      => __( 'Add New Age' , 'kea' ),
+            'new_item_name'     => __( 'New Age Name' , 'kea' ),
+            'menu_name'         => __( 'Age' , 'kea' ),
+            );
+            
+            $args = array(
+            'hierarchical'          => true,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'age_band' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'ages_bands',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+            );
+    
+        $target_post_types_age_bands = array( 'kea_activity' );
+        $post_types = get_post_types();  
+        
+        //not sure we need ages as the ages are given in the taxonomy for 'themes'
+        //TODO - check logic
+        //they have to be so we can get a simple request for all terms for e.g. themes/kids
+        if (array_key_exists("kea_vocab_item", $post_types))
+        {
+            $target_post_types_age_bands[] = "kea_vocab_item";
+        }
+    
+        //$post_types are we sure we have kea_video_item?  
+        register_taxonomy( 'ages_bands', $target_post_types_age_bands, $args);
+    
+    }
+
+  
+
+    public function register_english_lexis_taxonomy()
+    {
+        $labels = array(
+            'name'              => _x( 'English Lexis', 'taxonomy general name', 'kea' ),
+            'singular_name'     => _x( 'English Lexis', 'taxonomy singular name' ,'kea' ),
+            'search_items'      => __( 'Search English Lexis', 'kea' ),
+            'all_items'         => __( 'All English Lexis', 'kea'  ),
+            'parent_item'       => __( 'Parent Level', 'kea'  ),
+            'parent_item_colon' => __( 'Parent Level:', 'kea'  ),
+            'edit_item'         => __( 'Edit English Lexis', 'kea'  ),
+            'update_item'       => __( 'Update English Lexis', 'kea'  ),
+            'add_new_item'      => __( 'Add New English Lexis Term', 'kea'  ),
+            'new_item_name'     => __( 'New Lexis Name' , 'kea' ),
+            'menu_name'         => __( 'English Lexis' , 'kea' ),
+            );
+
+            $args = array(
+            'hierarchical'          => true,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'english_lexis' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'english_lexis_terms',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+            );
+
+           
+        //if the plugin is being run  with video posts associate taxonomy to that
+        $target_post_types_english_lexis = array( 'kea_activity' );
+        $post_types = get_post_types();  
+        if (array_key_exists("video", $post_types))
+        {
+            $target_post_types_english_lexis[] = "video";
+        }
+     
+        register_taxonomy( 'english_lexis', $target_post_types_english_lexis, $args );
+        $this->register_terms_to_english_lexis_taxonomy();
+
+
+    }
+
+    
+    private function register_grammar_taxonomy()
+    {
+        $labels = array(
+            'name'              => _x( 'English Grammar', 'taxonomy general name', 'kea'),
+            'singular_name'     => _x( 'English Grammar', 'taxonomy singular name' ,'kea'),
+            'search_items'      => __( 'Search English Grammar', 'kea'  ),
+            'all_items'         => __( 'All English Grammar', 'kea'  ),
+            'parent_item'       => __( 'Parent Level' , 'kea' ),
+            'parent_item_colon' => __( 'Parent Level:' , 'kea' ),
+            'edit_item'         => __( 'Edit English Grammar' , 'kea' ),
+            'update_item'       => __( 'Update English Grammar', 'kea'  ),
+            'add_new_item'      => __( 'Add New English Grammar Term' , 'kea' ),
+            'new_item_name'     => __( 'New Grammar Name' , 'kea' ),
+            'menu_name'         => __( 'English Grammar' , 'kea' ),
+            );
+
+            $args = array(
+            'hierarchical'          => true,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'grammar' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'grammar_terms',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+            );
+
+           
+        //if the plugin is being run  with video posts associate taxonomy to that
+        $target_post_types_grammar = array( 'kea_activity' );
+        $post_types = get_post_types();  
+        if (array_key_exists("video", $post_types))
+        {
+            $target_post_types_grammar[] = "video";
+        }
+
+        register_taxonomy( 'grammar', $target_post_types_grammar, $args );
+        $this->register_terms_to_grammar_taxonomy();
+    }
+
+
+
+  
+
+    private function register_terms_to_english_lexis_taxonomy()
+    {
+        $taxonomy = 'english_lexis';
+        $term_name = 'business';
+
+        if ( taxonomy_exists( $taxonomy ) ) {
+            
+            $term_exists = term_exists( $term_name, $taxonomy );
+            
+            if ( ! $term_exists ) {
+                // Term doesn't exist, so insert it
+                $term_id = wp_insert_term( $term_name, $taxonomy, array(
+                    'slug' => 'business', // Optional: custom slug
+                    'description' => '',   // Optional: term description
+                ) );
+            } 
+        } 
+    }
+
+    private function register_terms_to_grammar_taxonomy()
+    {
+
+
+        /*
+        $lexis_parent_term = get_term_by('slug', 'lexis', 'grammar');
+        $lexis_child_terms = array('By - Until', 'No - not', 'Talking about purpose', 'Prepositions of place', 'Question words',
+            'Verbs and Prepositions', 'No, not, any');
+
+        if ($lexis_parent_term && !is_wp_error($lexis_parent_term)) {
+            foreach ($lexis_child_terms as $term_name) {
+      
+                if (!term_exists($term_name, 'grammar')) {
+                    wp_insert_term(
+                        $term_name,
+                        'grammar',
+                        array(
+                            'parent' => $lexis_parent_term->term_id
+                        )
+                    );
+                }
+            }
+        }
+        */
+
+        //child ones - modal-verbs
+        $modals_parent_term = get_term_by('slug', 'modal-verbs', 'grammar');
+        $modals_child_terms = array('Modals of obligation','Requests and offers');
+
+        if ($modals_parent_term && !is_wp_error($modals_parent_term)) {
+            foreach ($modals_child_terms as $term_name) {
+      
+                if (!term_exists($term_name, 'grammar')) {
+                    wp_insert_term(
+                        $term_name,
+                        'grammar',
+                        array(
+                            'parent' => $modals_parent_term->term_id
+                        )
+                    );
+                }
+            }
+        }
+
+           //child ones - modal-verbs
+           $adverbs_parent_term = get_term_by('slug', 'adverbs', 'grammar');
+           $adverbs_child_terms = array('Comparative of adverbs');
+   
+           if ($adverbs_parent_term && !is_wp_error($adverbs_parent_term)) {
+               foreach ($adverbs_child_terms as $term_name) {
+         
+                   if (!term_exists($term_name, 'grammar')) {
+                       wp_insert_term(
+                           $term_name,
+                           'grammar',
+                           array(
+                               'parent' => $adverbs_parent_term->term_id
+                           )
+                       );
+                   }
+               }
+           }
+
+    }
+
+
+
+
+
+
 
     public function kea_activity_activated()
     {
 
         
-        $this->register_grammar_taxonomy();
-        $this->register_english_lexis_taxonomy();
-        $this->register_terms_to_grammar_taxonomy();
 
         //database
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -1206,330 +1450,8 @@ class KeaActivities
     }
 
 
-    private function register_grammar_taxonomy()
-    {
-        $labels = array(
-            'name'              => _x( 'English Grammar', 'taxonomy general name' 'kea'),
-            'singular_name'     => _x( 'English Grammar', 'taxonomy singular name' ,'kea'),
-            'search_items'      => __( 'Search English Grammar', 'kea'  ),
-            'all_items'         => __( 'All English Grammar', 'kea'  ),
-            'parent_item'       => __( 'Parent Level' , 'kea' ),
-            'parent_item_colon' => __( 'Parent Level:' , 'kea' ),
-            'edit_item'         => __( 'Edit English Grammar' , 'kea' ),
-            'update_item'       => __( 'Update English Grammar', 'kea'  ),
-            'add_new_item'      => __( 'Add New English Grammar Term' , 'kea' ),
-            'new_item_name'     => __( 'New Grammar Name' , 'kea' ),
-            'menu_name'         => __( 'English Grammar' , 'kea' ),
-            );
-
-            $args = array(
-            'hierarchical'          => true,
-            'labels'                => $labels,
-            'show_ui'               => true,
-            'show_admin_column'     => true,
-            'query_var'             => true,
-            'rewrite'               => array( 'slug' => 'grammar' ),
-            'show_in_rest'          => true,
-            'rest_base'             => 'grammar_terms',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $this->caps
-            );
-
-           
-        //if the plugin is being run  with video posts associate taxonomy to that
-        $target_post_types_grammar = array( 'kea_activity' );
-        $post_types = get_post_types();  
-        if (array_key_exists("video", $post_types))
-        {
-            $target_post_types_grammar[] = "video";
-        }
-
-        register_taxonomy( 'grammar', $target_post_types_grammar, $args );
-    }
-
-    private function register_english_lexis_taxonomy()
-    {
-        $labels = array(
-            'name'              => _x( 'English Lexis', 'taxonomy general name', 'kea' ),
-            'singular_name'     => _x( 'English Lexis', 'taxonomy singular name' ,'kea' ),
-            'search_items'      => __( 'Search English Lexis', 'kea' ),
-            'all_items'         => __( 'All English Lexis', 'kea'  ),
-            'parent_item'       => __( 'Parent Level', 'kea'  ),
-            'parent_item_colon' => __( 'Parent Level:', 'kea'  ),
-            'edit_item'         => __( 'Edit English Lexis', 'kea'  ),
-            'update_item'       => __( 'Update English Lexis', 'kea'  ),
-            'add_new_item'      => __( 'Add New English Lexis Term', 'kea'  ),
-            'new_item_name'     => __( 'New Lexis Name' , 'kea' ),
-            'menu_name'         => __( 'English Lexis' , 'kea' ),
-            );
-
-            $args = array(
-            'hierarchical'          => false,
-            'labels'                => $labels,
-            'show_ui'               => true,
-            'show_admin_column'     => true,
-            'query_var'             => true,
-            'rewrite'               => array( 'slug' => 'english_lexis' ),
-            'show_in_rest'          => true,
-            'rest_base'             => 'english_lexis_terms',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $this->caps
-            );
-
-           
-        //if the plugin is being run  with video posts associate taxonomy to that
-        $target_post_types_english_lexis = array( 'kea_activity' );
-        $post_types = get_post_types();  
-        if (array_key_exists("video", $post_types))
-        {
-            $target_post_types_english_lexis[] = "video";
-        }
-
-        register_taxonomy( 'english_lexis', $target_post_types_grammar, $args );
-        $this->register_terms_to_english_lexis_taxonomy();
 
 
-    }
-
-    private function register_terms_to_english_lexis_taxonomy()
-    {
-        $taxonomy = 'english_lexis';
-        $term_name = 'business';
-
-        if ( taxonomy_exists( $taxonomy ) ) {
-            
-            $term_exists = term_exists( $term_name, $taxonomy );
-            
-            if ( ! $term_exists ) {
-                // Term doesn't exist, so insert it
-                $term_id = wp_insert_term( $term_name, $taxonomy, array(
-                    'slug' => 'business', // Optional: custom slug
-                    'description' => '',   // Optional: term description
-                ) );
-            } 
-        } 
-    }
-
-    private function register_terms_to_grammar_taxonomy()
-    {
-
-
-        //child ones - lexis
-        $lexis_parent_term = get_term_by('slug', 'lexis', 'grammar');
-        $lexis_child_terms = array('By - Until', 'No - not', 'Talking about purpose', 'Prepositions of place', 'Question words',
-            'Verbs and Prepositions', 'No, not, any');
-
-        if ($lexis_parent_term && !is_wp_error($lexis_parent_term)) {
-            foreach ($lexis_child_terms as $term_name) {
-      
-                if (!term_exists($term_name, 'grammar')) {
-                    wp_insert_term(
-                        $term_name,
-                        'grammar',
-                        array(
-                            'parent' => $lexis_parent_term->term_id
-                        )
-                    );
-                }
-            }
-        }
-
-        //child ones - modal-verbs
-        $modals_parent_term = get_term_by('slug', 'modal-verbs', 'grammar');
-        $modals_child_terms = array('Modals of obligation','Requests and offers');
-
-        if ($modals_parent_term && !is_wp_error($modals_parent_term)) {
-            foreach ($modals_child_terms as $term_name) {
-      
-                if (!term_exists($term_name, 'grammar')) {
-                    wp_insert_term(
-                        $term_name,
-                        'grammar',
-                        array(
-                            'parent' => $modals_parent_term->term_id
-                        )
-                    );
-                }
-            }
-        }
-
-           //child ones - modal-verbs
-           $adverbs_parent_term = get_term_by('slug', 'adverbs', 'grammar');
-           $adverbs_child_terms = array('Comparative of adverbs');
-   
-           if ($adverbs_parent_term && !is_wp_error($adverbs_parent_term)) {
-               foreach ($adverbs_child_terms as $term_name) {
-         
-                   if (!term_exists($term_name, 'grammar')) {
-                       wp_insert_term(
-                           $term_name,
-                           'grammar',
-                           array(
-                               'parent' => $adverbs_parent_term->term_id
-                           )
-                       );
-                   }
-               }
-           }
-
-
-        
-
-        //top-level
-        $terms = array();
-        foreach ($terms as $term_name) {
-            if (!term_exists($term_name, 'grammar')) {
-                wp_insert_term($term_name, 'grammar');
-            }
-        }
-    }
-
-
-
-    public function wporg_register_taxonomy_english() {
-
-        //Levels 
-    
-        $labels = array(
-            'name'              => _x( 'Levels', 'taxonomy general name' ,'kea' ),
-            'singular_name'     => _x( 'Level', 'taxonomy singular name', 'kea' ),
-            'search_items'      => __( 'Search Levels' , 'kea' ),
-            'all_items'         => __( 'All Levels' , 'kea' ),
-            'parent_item'       => __( 'Parent Level' , 'kea' ),
-            'parent_item_colon' => __( 'Parent Level:', 'kea'  ),
-            'edit_item'         => __( 'Edit Level', 'kea'  ),
-            'update_item'       => __( 'Update Level' , 'kea' ),
-            'add_new_item'      => __( 'Add New Level' , 'kea' ),
-            'new_item_name'     => __( 'New Level Name' , 'kea' ),
-            'menu_name'         => __( 'Level', 'kea'  ),
-            );
-
-           
-            
-            $args = array(
-            'hierarchical'          => true,
-            'labels'                => $labels,
-            'show_ui'               => true,
-            'show_admin_column'     => true,
-            'query_var'             => true,
-            'rewrite'               => array( 'slug' => 'level' ),
-            'show_in_rest'          => true,
-            'rest_base'             => 'levels',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $this->caps
-          
-            );
-            
-        $post_types = get_post_types();  
-        //if the plugin is running on the home site attach this taxonomy to video too.  
-        $target_post_types_levels = array( 'kea_activity' );  
-        if (array_key_exists("video", $post_types))
-        {
-            $target_post_types_levels[] = "video";
-        }
-    
-        if (array_key_exists("kea_vocab_item", $post_types))
-        {
-            $target_post_types_levels[] = "kea_vocab_item";
-        }
-        
-
-        register_taxonomy( 'levels', $target_post_types_levels, $args );  
-    
-        
- 
-    
-        $labels = array(
-            'name'              => _x( 'Age', 'taxonomy general name' , 'kea'),
-            'singular_name'     => _x( 'Age', 'taxonomy singular name' 'kea'),
-            'search_items'      => __( 'Search Ages' , 'kea' ),
-            'all_items'         => __( 'All Ages' , 'kea' ),
-            'parent_item'       => __( 'Parent Level', 'kea'  ),
-            'parent_item_colon' => __( 'Parent Level:' , 'kea' ),
-            'edit_item'         => __( 'Edit Age', 'kea'  ),
-            'update_item'       => __( 'Update Age' , 'kea' ),
-            'add_new_item'      => __( 'Add New Age' , 'kea' ),
-            'new_item_name'     => __( 'New Age Name' , 'kea' ),
-            'menu_name'         => __( 'Age' , 'kea' ),
-            );
-            
-            $args = array(
-            'hierarchical'          => true,
-            'labels'                => $labels,
-            'show_ui'               => true,
-            'show_admin_column'     => true,
-            'query_var'             => true,
-            'rewrite'               => array( 'slug' => 'age_band' ),
-            'show_in_rest'          => true,
-            'rest_base'             => 'ages_bands',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $this->caps
-            );
-    
-        $target_post_types_age_bands = array( 'kea_activity' );
-        
-        //not sure we need ages as the ages are given in the taxonomy for 'themes'
-        //TODO - check logic
-        //they have to be so we can get a simple request for all terms for e.g. themes/kids
-        if (array_key_exists("kea_vocab_item", $post_types))
-        {
-            $target_post_types_age_bands[] = "kea_vocab_item";
-        }
-    
-        //$post_types are we sure we have kea_video_item?  
-        register_taxonomy( 'ages_bands', $target_post_types_age_bands, $args);
-    
-  
-    
-
-    
-        //Grammar 
-    
-        $this->register_grammar_taxonomy();
-    
-
-    
-        
-        
-        //RUSSIAN
-    
-        $labels = array(
-            'name'              => _x( 'Russian Grammar', 'taxonomy general name', 'kea' ),
-            'singular_name'     => _x( 'Russian Grammar', 'taxonomy singular name' ,'kea'),
-            'search_items'      => __( 'Search Russian Grammar' , 'kea' ),
-            'all_items'         => __( 'All Russian Grammar' , 'kea' ),
-            'parent_item'       => __( 'Parent Level' , 'kea' ),
-            'parent_item_colon' => __( 'Parent Level:' , 'kea' ),
-            'edit_item'         => __( 'Edit Grammar', 'kea'  ),
-            'update_item'       => __( 'Update Russian Grammar' , 'kea' ),
-            'add_new_item'      => __( 'Add New Russian Grammar Term' , 'kea' ),
-            'new_item_name'     => __( 'New Grammar Name', 'kea'  ),
-            'menu_name'         => __( 'Russian Grammar' , 'kea' ),
-            );
-            
-            $args = array(
-            'hierarchical'          => true,
-            'labels'                => $labels,
-            'show_ui'               => true,
-            'show_admin_column'     => true,
-            'query_var'             => true,
-            'rewrite'               => array( 'slug' => 'russian_grammar' ),
-            'show_in_rest'          => true,
-            'rest_base'             => 'russian_grammar_terms',
-            'rest_controller_class' => 'WP_REST_Terms_Controller',
-            'capabilities'          => $this->caps
-            );
-    
-        register_taxonomy( 'russian_grammar', array( 'kea_activity' ), $args);
-    
-     
-    
-        /*
-        wp_delete_term(46, 'ages');
-        wp_delete_term(8, 'ages');
-        */
-    
-    }
 
     //Filters the post data for a REST API response. https://developer.wordpress.org/reference/hooks/rest_prepare_this-post_type/
     //strange - docs say 3 params but only 1 expected. 
