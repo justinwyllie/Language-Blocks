@@ -80,50 +80,55 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     const alertRef = useRef();
 
 
-    //see increase_grammar_terms_per_page_limit PHP
-    const grammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'}) 
 
-    ); 
-
-   const russianGrammarTaxonomy =  useSelect(
-        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_grammar", {per_page: 1000, context: "view", call: 'kea'})
-                 
-    );
-    
-   
-    
-    const terms = [];
-    let userLabels = [];
- 
-
-    if (grammarTaxonomy) {
-        grammarTaxonomy.forEach((item => {
-            terms[item.id] = item.name;
-        }));
-    }
-
-    if (russianGrammarTaxonomy) {
-        russianGrammarTaxonomy.forEach((item => {
-            terms[item.id] = item.name;
-        }))
-    }
-
-
-    //detect user changing taxonomy terms
-    //i think this will get the latest unsaved values   - it subscribes
-    //just gets you ids though
+    //BUILD LABELS USING CUSTOM ENDPOINT
+    //TODO still this gets it on every render...
+    ///current saved?
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
+    const [englishLexisTerms, setEnglishLexisTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' );
     
-    
-    grammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
-    });
-    russianGrammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
-    });
    
+    const grammarTermsData = useSelect((select) => {
+        if (!grammarTerms?.length) return [];
+        
+        return select('core').getEntityRecords('kea/v1', 'grammar_terms_for_labels', {
+            ids: grammarTerms.join(',')
+        });
+    });
+
+    const russianGrammarTermsData = useSelect((select) => {
+        if (!russianGrammarTerms?.length) return [];
+        
+        return select('core').getEntityRecords('kea/v1', 'russian_grammar_terms_for_labels', {
+            ids: russianGrammarTerms.join(',')
+        });
+    });
+
+    const englishLexisTermsData = useSelect((select) => {
+        if (!englishLexisTerms?.length) return [];
+        
+        return select('core').getEntityRecords('kea/v1', 'english_lexis_terms_for_labels', {
+            ids: englishLexisTerms.join(',')
+        });
+    });
+
+  
+    let userLabels = [];
+    
+    grammarTermsData.forEach((item) => {
+        userLabels.push(item.name);
+    });
+    russianGrammarTermsData.forEach((item) => {
+        userLabels.push(item.name);
+    });
+    englishLexisTermsData.forEach((item) => {
+        userLabels.push(item.name);
+    });
+
+    //end section about building labels 
+
+
 
      
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
