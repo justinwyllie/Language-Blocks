@@ -87,8 +87,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
     const [englishLexisTerms, setEnglishLexisTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' );
-    
-   
+
     const grammarTermsData = useSelect((select) => {
         if (!grammarTerms?.length) return [];
         
