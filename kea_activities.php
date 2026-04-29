@@ -1178,7 +1178,7 @@ class KeaActivities
     private function register_terms_to_english_lexis_taxonomy()
     {
         $taxonomy = 'english_lexis';
-        $term_name = 'business';
+        $term_name = 'Business';
 
         if ( taxonomy_exists( $taxonomy ) ) {
             
