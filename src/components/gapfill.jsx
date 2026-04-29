@@ -105,7 +105,8 @@ const GapFill = ({postType, setAttributes, attributes}) =>
 
     
     const terms = [];
-    let userLabels = [];
+    let userLabelsGrammar = [];
+    let userLabelsLexis = [];
  
 
     if (grammarTaxonomy) {
@@ -143,16 +144,16 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     
     
     grammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
+        userLabelsGrammar.push(terms[item]);
     });
     russianGrammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
+        userLabelsGrammar.push(terms[item]);
     });
     englishLexisTerms.forEach((item) => {
-        userLabels.push(terms[item]);
+        userLabelsLexis.push(terms[item]);
     });
     russianLexisTerms.forEach((item) => {
-        userLabels.push(terms[item]);
+        userLabelsLexis.push(terms[item]);
     });
    
 
@@ -493,8 +494,11 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                 <Form.Group as={Row}>
                     <Col sm={{ span: 10, offset: 0 }}>
                         <div className="px-1 py-1 mt-3 mb-3">
-                            {userLabels.map((item, i) => {
+                            {userLabelsGrammar.map((item, i) => {
                                 return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
+                            })}
+                            {userLabelsLexis.map((item, i) => {
+                                return <span className="badge rounded-pill bg-light text-dark me-2" key={i}>{item}</span>
                             })}
                         </div>
                     </Col>

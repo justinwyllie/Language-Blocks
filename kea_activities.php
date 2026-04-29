@@ -678,31 +678,35 @@ class KeaActivities
         $post_assignment_key_meta = intval($post_meta["_assignment_key_meta"][0]); 
 
 
-
+        //TODO check for WP_ERROR on geet_the_terms
         $grammar_terms = get_the_terms($post, "grammar");
         $russian_grammar_terms = get_the_terms($post, "russian_grammar");
+        $english_lexis_terms = get_the_terms($post, "english_lexis");
+        $russian_lexis_terms = get_the_terms($post, "russian_lexis");
         $ages_bands_values = get_the_terms($post, "ages_bands");
         $levels_values = get_the_terms($post, "levels");
-        $labels = array();
-        $ages_bands = array();
-        $levels = array();
-        function addTerm($terms, &$target)
+
+        function get_terms_array($terms)
         {
             
-            if ($terms === false)
+            if ($terms === false) //no terms 
             {
-                return;
+                return [];
             }
+            $result = [];
             foreach ($terms as $term)
             {
-                array_push($target, $term->name);
+                array_push($result, $term->name);
             }
-
+            return $result;
         }
-        addTerm($grammar_terms,  $labels);
-        addTerm($russian_grammar_terms, $labels);
-        addTerm($ages_bands_values, $ages_bands);
-        addTerm($levels_values, $levels);
+
+
+        $labels = new stdClass();
+        $labels->lexis = array_merge(get_terms_array($english_lexis_terms), get_terms_array($russian_lexis_terms));
+        $labels->grammar = array_merge(get_terms_array($grammar_terms), get_terms_array($russian_grammar_terms));
+        $ages_bands = get_terms_array($ages_bands_values);
+        $levels = get_terms_array($levels_values);
 
         $new_json = $formatted_data['json'];
         $new_json->labels = $labels;
@@ -712,7 +716,7 @@ class KeaActivities
 
       
        //currently we put the ready to render an ex json in the db and the meta key. currenrly node consumes the db. i *think* we migrated all exes to meta in case
-        $json_result = update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash to doube slash to overcome db unslash
+        $json_result = update_post_meta($post_id, "_kea_activity_json", wp_slash($json_string)); //wp_slash  to overcome update_post_meta unslash
         if ($json_result === false)
         {
              if (array_key_exists('_kea_activity_json', $post_meta) && (md5($post_meta['_kea_activity_json'][0]) != md5($json_string)))

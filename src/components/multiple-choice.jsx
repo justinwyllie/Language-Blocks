@@ -92,7 +92,8 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
 
 
     const terms = [];
-    let userLabels = [];
+    let userLabelsGrammar = [];
+    let userLabelsLexis = [];
  
 
     if (grammarTaxonomy != undefined) {
@@ -132,28 +133,28 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
     if (grammarTerms != undefined)
     {
         grammarTerms.forEach((item) => {
-            userLabels.push(terms[item]);
+            userLabelsGrammar.push(terms[item]);
         });
     }
     
     if (russianGrammarTerms != undefined)
     {
         russianGrammarTerms.forEach((item) => {
-            userLabels.push(terms[item]);
+            userLabelsGrammar.push(terms[item]);
         });
     }
     
     if (englishLexisTerms != undefined)
     {
         englishLexisTerms.forEach((item) => {
-            userLabels.push(terms[item]);
+            userLabelsLexis.push(terms[item]);
         });
     }
 
     if (russianLexisTerms != undefined)
     {
         russianLexisTerms.forEach((item) => {
-            userLabels.push(terms[item]);
+            userLabelsLexis.push(terms[item]);
         });
     }
 
@@ -495,8 +496,11 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
                 <Form.Group as={Row}>
                     <Col sm={{ span: 10, offset: 0 }}>
                         <div className="px-1 py-1 mt-3 mb-3">
-                            {userLabels.map((item, i) => {
+                            {userLabelsGrammar.map((item, i) => {
                                 return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
+                            })}
+                            {userLabelsLexis.map((item, i) => {
+                                return <span className="badge rounded-pill bg-light text-dark me-2" key={i}>{item}</span>
                             })}
                         </div>
                     </Col>
