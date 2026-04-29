@@ -96,7 +96,12 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                  
     );
 
-    console.log('english_lexis', englishLexisTaxonomy );
+    const russianLexisTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_lexis", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+
+  
 
     
     const terms = [];
@@ -121,6 +126,12 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         }))
     }
 
+    if (russianLexisTaxonomy) {
+        russianLexisTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
 
     //detect user changing taxonomy terms
     //i think this will get the latest unsaved values   - it subscribes
@@ -128,6 +139,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
     const [englishLexisTerms, setEnglishLexisGrammarTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' ); 
+    const [russianLexisTerms, setRussianLexisGrammarTerms] = useEntityProp( 'postType', postType, 'russian_lexis_terms' ); 
     
     
     grammarTerms.forEach((item) => {
@@ -139,7 +151,9 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     englishLexisTerms.forEach((item) => {
         userLabels.push(terms[item]);
     });
-   
+    russianLexisTerms.forEach((item) => {
+        userLabels.push(terms[item]);
+    });
    
 
      

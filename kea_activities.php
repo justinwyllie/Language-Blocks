@@ -62,17 +62,14 @@ class KeaActivities
         //add_action('admin_init', array($this, 'fix_post_roles'));
 
         add_action( 'admin_enqueue_scripts', array($this, 'register_plugin_scripts_admin' ));
-       
-           
         add_filter('pre_get_posts', array($this, 'limit_posts_for_current_author'));
-
-        
         add_filter('rest_pre_insert_kea_activity', array($this, 'validate_activity_title_length'), 10, 2);
 
         //handles   ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'})  etc
         add_filter( 'rest_grammar_collection_params', array($this, 'increase_grammar_terms_per_page_limit'), 10, 2 );
         add_filter( 'rest_russian_grammar_collection_params', array($this, 'increase_russian_grammar_terms_per_page_limit'), 10, 2 );
         add_filter( 'rest_english_lexis_collection_params', array($this, 'increase_english_lexis_terms_per_page_limit'), 10, 2 );
+        add_filter( 'rest_russian_lexis_collection_params', array($this, 'increase_russian_lexis_terms_per_page_limit'), 10, 2 );
 
         //TODO - this is a hack - people who can edit_pages ie. eds can do these things with taxonomies 
         //people who can edit_posts can do this thing. - not sure how to do this. create new caps and assign to roles ?
@@ -164,7 +161,6 @@ class KeaActivities
     public function increase_grammar_terms_per_page_limit($query_params, $taxonomy )
     {
         if ( isset( $query_params['per_page'] ) ) {
-            //TODO could use wp_count_terms to set this to the existing number, but then would need to get this in the front-end as well. for now 1000. 
             $query_params['per_page']['maximum'] = 1000; 
         }
         return $query_params;
@@ -175,7 +171,6 @@ class KeaActivities
     public function increase_russian_grammar_terms_per_page_limit($query_params, $taxonomy )
     {
         if ( isset( $query_params['per_page'] ) ) {
-            //TODO could use wp_count_terms to set this to the existing number, but then would need to get this in the front-end as well. for now 1000. 
             $query_params['per_page']['maximum'] = 1000; 
         }
         return $query_params;
@@ -184,11 +179,19 @@ class KeaActivities
     public function increase_english_lexis_terms_per_page_limit($query_params, $taxonomy )
     {
         if ( isset( $query_params['per_page'] ) ) {
-            //TODO could use wp_count_terms to set this to the existing number, but then would need to get this in the front-end as well. for now 1000. 
             $query_params['per_page']['maximum'] = 1000; 
         }
         return $query_params;
     }
+
+    public function increase_russian_lexis_terms_per_page_limit($query_params, $taxonomy )
+    {
+        if ( isset( $query_params['per_page'] ) ) {
+            $query_params['per_page']['maximum'] = 1000; 
+        }
+        return $query_params;
+    }
+
 
 
 
@@ -943,13 +946,13 @@ class KeaActivities
     public function register_all_taxonomies()
     {
         $this->register_english_lexis_taxonomy();
+        $this->register_russian_lexis_taxonomy();
         $this->register_grammar_taxonomy();
         $this->register_russian_grammar_taxonomy();
 
         $this->register_levels_taxonomy();
         $this->register_ages_bands_taxonomy();
-       
-  
+ 
     }
 
     private function register_russian_grammar_taxonomy()
@@ -1096,7 +1099,7 @@ class KeaActivities
             'edit_item'         => __( 'Edit English Lexis', 'kea'  ),
             'update_item'       => __( 'Update English Lexis', 'kea'  ),
             'add_new_item'      => __( 'Add New English Lexis Term', 'kea'  ),
-            'new_item_name'     => __( 'New Lexis Name' , 'kea' ),
+            'new_item_name'     => __( 'New English Lexis Name' , 'kea' ),
             'menu_name'         => __( 'English Lexis' , 'kea' ),
             );
 
@@ -1124,6 +1127,50 @@ class KeaActivities
      
         register_taxonomy( 'english_lexis', $target_post_types_english_lexis, $args );
         $this->register_terms_to_english_lexis_taxonomy();
+
+
+    }
+
+    public function register_russian_lexis_taxonomy()
+    {
+        $labels = array(
+            'name'              => _x( 'Russian Lexis', 'taxonomy general name', 'kea' ),
+            'singular_name'     => _x( 'Russian Lexis', 'taxonomy singular name' ,'kea' ),
+            'search_items'      => __( 'Search Russian Lexis', 'kea' ),
+            'all_items'         => __( 'All Russian Lexis', 'kea'  ),
+            'parent_item'       => __( 'Parent Level', 'kea'  ),
+            'parent_item_colon' => __( 'Parent Level:', 'kea'  ),
+            'edit_item'         => __( 'Edit Russian Lexis', 'kea'  ),
+            'update_item'       => __( 'Update Russian Lexis', 'kea'  ),
+            'add_new_item'      => __( 'Add New Russian Lexis Term', 'kea'  ),
+            'new_item_name'     => __( 'New Russian Lexis Name' , 'kea' ),
+            'menu_name'         => __( 'Russian Lexis' , 'kea' ),
+            );
+
+            $args = array(
+            'hierarchical'          => false,
+            'labels'                => $labels,
+            'show_ui'               => true,
+            'show_admin_column'     => true,
+            'query_var'             => true,
+            'rewrite'               => array( 'slug' => 'russian_lexis' ),
+            'show_in_rest'          => true,
+            'rest_base'             => 'russian_lexis_terms',
+            'rest_controller_class' => 'WP_REST_Terms_Controller',
+            'capabilities'          => $this->caps
+            );
+
+           
+        //if the plugin is being run  with video posts associate taxonomy to that
+        $target_post_types_russian_lexis = array( 'kea_activity' );
+        $post_types = get_post_types();  
+        if (array_key_exists("video", $post_types))
+        {
+            $target_post_types_russian_lexis[] = "video";
+        }
+     
+        register_taxonomy( 'russian_lexis', $target_post_types_russian_lexis, $args );
+        $this->register_terms_to_russian_lexis_taxonomy();
 
 
     }
@@ -1179,6 +1226,7 @@ class KeaActivities
     {
         $taxonomy = 'english_lexis';
         $term_name = 'Business';
+        $term_slug = 'business';
 
         if ( taxonomy_exists( $taxonomy ) ) {
             
@@ -1187,8 +1235,28 @@ class KeaActivities
             if ( ! $term_exists ) {
                 // Term doesn't exist, so insert it
                 $term_id = wp_insert_term( $term_name, $taxonomy, array(
-                    'slug' => 'business', // Optional: custom slug
-                    'description' => '',   // Optional: term description
+                    'slug' => $term_slug, 
+                    'description' => '',   
+                ) );
+            } 
+        } 
+    }
+
+    private function register_terms_to_russian_lexis_taxonomy()
+    {
+        $taxonomy = 'russian_lexis';
+        $term_name = 'Бизнес';
+        $term_slug = 'бизнес';
+
+        if ( taxonomy_exists( $taxonomy ) ) {
+            
+            $term_exists = term_exists( $term_name, $taxonomy );
+            
+            if ( ! $term_exists ) {
+                // Term doesn't exist, so insert it
+                $term_id = wp_insert_term( $term_name, $taxonomy, array(
+                    'slug' => $term_slug, 
+                    'description' => '',   
                 ) );
             } 
         } 
