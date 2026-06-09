@@ -13,8 +13,8 @@ License: copyright Justin Wyllie
 
 
 //include_once('migration.php');
-
-
+$plugins_dir = WP_PLUGIN_DIR;
+include_once($plugins_dir . '/kea_activities_repititor/includes/utilities/utilities.php');
 
 
 class KeaActivities
@@ -88,65 +88,10 @@ class KeaActivities
         );
 
     } 
-
-    //TODO shared with kea_repi TODO - use PHPMailer to control all headers this will probaby fail 
   
     public function mail_error($message)
     {
-        
-
-
-        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-            // WordPress hasn't loaded it yet
-            require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
-            require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
-            require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
-        }
-
-        $phpmailer = new PHPMailer\PHPMailer\PHPMailer(true);
-
-        $no_reply = DO_NOT_REPLY_EMAIL;
-        $password = DO_NOT_REPLY_EMAIL_PASSWORD;
-
-        $domain = $_SERVER['HTTP_HOST'];
-        $message = "On $domain : \n\n" . $message;
-
-        $unsubscribe_string = '<mailto:' . UNSUBSCRIBE_EMAIL . '>';
-
-        try
-        {
-            $phpmailer->addCustomHeader('List-Unsubscribe', $unsubscribe_string);
-            $phpmailer->Hostname = EMAIL_SENDING_HOST;
-            $phpmailer->CharSet = 'UTF-8';
-            $phpmailer->Encoding = 'base64';
-            $phpmailer->isSMTP(); 
-            $phpmailer->Host = 'localhost'; 
-            $phpmailer->SMTPAuth = true;
-
-            $phpmailer->Username = $no_reply;
-            $phpmailer->Password = $password;
-            $phpmailer->SMTPSecure = ''; 
-            $phpmailer->Port = 25;  
-       
-            $phpmailer->setFrom($no_reply, 'Online Repititor');
-            $phpmailer->Sender = $no_reply; 
-            $phpmailer->addAddress($this->support_email);
-            $phpmailer->Subject = $this->support_email_subject;
-            $phpmailer->Body = $message;
-            if ($phpmailer->send()) 
-            {
-                error_log('Email sent successfully');
-            } 
-            else 
-            {
-                $this->error_log2( $phpmailer->ErrorInfo );
-            }
-        }
-        catch(Exception $e)
-        {
-            $this->error_log2( $e->getMessage());
-        }
-
+        \KeaUtilities\system_mail_message($message);
     }
 
 
