@@ -164,33 +164,24 @@ class KeaActivities
     * this is pretty brutal. makes no distinction re. post tyoes
     * says: if this is admin page and user is not admin and we are getting posts
     * then modify the posts query so if user cannot edit others posts which will be true if e.g. author 
+    * that sentence doesn't make sense
     * then add a only this user id to the query which gets the list of posts to display
     * there is no capability for viewing posts in the edit list  - so we cannot simply take away a capability 
- 
+ xxx
     */
-    public function limit_posts_for_current_author($query)
+   public function limit_posts_for_current_author($query)
     {
-
-     
-        
         global $pagenow;
 
-        if( 'edit.php' != $pagenow || !$query->is_admin )
+        if (!is_admin() || 'edit.php' !== $pagenow || !$query->is_main_query()) {
             return $query;
-
-       
-
-        if( !current_user_can( 'edit_others_posts' ) ) {
-            global $user_ID;
-            $query->set('author', $user_ID );
-            
         }
 
+        if (!current_user_can('edit_others_posts')) {
+            $query->set('author', get_current_user_id());
+        }
 
-       
         return $query;
-        
-
     }
 
     //admin_enqueue
