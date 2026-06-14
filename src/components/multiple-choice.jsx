@@ -80,8 +80,20 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
                  
     );
 
+    const englishLexisTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "english_lexis", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+
+    const russianLexisTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_lexis", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+
+
     const terms = [];
-    let userLabels = [];
+    let userLabelsGrammar = [];
+    let userLabelsLexis = [];
  
 
     if (grammarTaxonomy != undefined) {
@@ -96,30 +108,57 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
         }))
     }
 
+    if (englishLexisTaxonomy) {
+        englishLexisTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
+    if (russianLexisTaxonomy) {
+        russianLexisTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
+
     //detect user changing taxonomy terms
     //i think this weill get the latest unsaved values    
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
+    const [englishLexisTerms, setEnglishLexisGrammarTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' ); 
+    const [russianLexisTerms, setRussianLexisGrammarTerms] = useEntityProp( 'postType', postType, 'russian_lexis_terms' ); 
   
 
 
     if (grammarTerms != undefined)
     {
         grammarTerms.forEach((item) => {
-            userLabels.push(terms[item]);
+            userLabelsGrammar.push(terms[item]);
         });
     }
     
     if (russianGrammarTerms != undefined)
     {
         russianGrammarTerms.forEach((item) => {
-            userLabels.push(terms[item]);
+            userLabelsGrammar.push(terms[item]);
         });
     }
     
+    if (englishLexisTerms != undefined)
+    {
+        englishLexisTerms.forEach((item) => {
+            userLabelsLexis.push(terms[item]);
+        });
+    }
 
- 
- 
+    if (russianLexisTerms != undefined)
+    {
+        russianLexisTerms.forEach((item) => {
+            userLabelsLexis.push(terms[item]);
+        });
+    }
+
+
     
     const blockProps = useBlockProps();//? gets props passed to this 'edit' component?
 
@@ -457,8 +496,11 @@ const MultipleChoice = ({postType, setAttributes, attributes}) =>
                 <Form.Group as={Row}>
                     <Col sm={{ span: 10, offset: 0 }}>
                         <div className="px-1 py-1 mt-3 mb-3">
-                            {userLabels.map((item, i) => {
+                            {userLabelsGrammar.map((item, i) => {
                                 return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
+                            })}
+                            {userLabelsLexis.map((item, i) => {
+                                return <span className="badge rounded-pill bg-light text-dark me-2" key={i}>{item}</span>
                             })}
                         </div>
                     </Col>

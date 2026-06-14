@@ -79,7 +79,7 @@ const GapFill = ({postType, setAttributes, attributes}) =>
     );
     const alertRef = useRef();
 
-
+    //TODO this code is shared with mc
     //see increase_grammar_terms_per_page_limit PHP
     const grammarTaxonomy =  useSelect(
         ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "grammar", {per_page: 1000, context: "view", call: 'kea'}) 
@@ -91,10 +91,22 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                  
     );
     
-   
+    const englishLexisTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "english_lexis", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+
+    const russianLexisTaxonomy =  useSelect(
+        ( select ) => wp.data.select('core').getEntityRecords('taxonomy', "russian_lexis", {per_page: 1000, context: "view", call: 'kea'})
+                 
+    );
+
+  
+
     
     const terms = [];
-    let userLabels = [];
+    let userLabelsGrammar = [];
+    let userLabelsLexis = [];
  
 
     if (grammarTaxonomy) {
@@ -109,19 +121,39 @@ const GapFill = ({postType, setAttributes, attributes}) =>
         }))
     }
 
+    if (englishLexisTaxonomy) {
+        englishLexisTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
+    if (russianLexisTaxonomy) {
+        russianLexisTaxonomy.forEach((item => {
+            terms[item.id] = item.name;
+        }))
+    }
+
 
     //detect user changing taxonomy terms
     //i think this will get the latest unsaved values   - it subscribes
     //just gets you ids though
     const [grammarTerms, setGammarTerms] = useEntityProp( 'postType', postType, 'grammar_terms' ); 
     const [russianGrammarTerms, setRussianGrammarTerms] = useEntityProp( 'postType', postType, 'russian_grammar_terms' ); 
+    const [englishLexisTerms, setEnglishLexisGrammarTerms] = useEntityProp( 'postType', postType, 'english_lexis_terms' ); 
+    const [russianLexisTerms, setRussianLexisGrammarTerms] = useEntityProp( 'postType', postType, 'russian_lexis_terms' ); 
     
     
     grammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
+        userLabelsGrammar.push(terms[item]);
     });
     russianGrammarTerms.forEach((item) => {
-        userLabels.push(terms[item]);
+        userLabelsGrammar.push(terms[item]);
+    });
+    englishLexisTerms.forEach((item) => {
+        userLabelsLexis.push(terms[item]);
+    });
+    russianLexisTerms.forEach((item) => {
+        userLabelsLexis.push(terms[item]);
     });
    
 
@@ -462,8 +494,11 @@ const GapFill = ({postType, setAttributes, attributes}) =>
                 <Form.Group as={Row}>
                     <Col sm={{ span: 10, offset: 0 }}>
                         <div className="px-1 py-1 mt-3 mb-3">
-                            {userLabels.map((item, i) => {
+                            {userLabelsGrammar.map((item, i) => {
                                 return <span className="badge rounded-pill bg-info text-dark me-2" key={i}>{item}</span>
+                            })}
+                            {userLabelsLexis.map((item, i) => {
+                                return <span className="badge rounded-pill bg-light text-dark me-2" key={i}>{item}</span>
                             })}
                         </div>
                     </Col>
