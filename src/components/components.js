@@ -356,26 +356,14 @@ const LinkPanel = () => {
         ((meta._with_key_meta == '') || (typeof meta._with_key_meta == "undefined"))   )   )
     {
             updateAndSaveMeta("_with_key_meta", vals[0].toString());
-            if (settings.domain.type == "query")
-            {
-                linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + vals[0].toString();
-            }
-            else
-            {
-                linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[0].toString();
-            }
-          
+            linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[0].toString() + '/0';
+    
     }
     else
     {   
-        if (settings.domain.type == "query")
-        {
-            linkWithKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._with_key_meta;
-        }
-        else
-        {
-            linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_meta;
-        }
+
+        linkWithKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._with_key_meta + '/0';;
+        
     }
 
     if (    (! meta.hasOwnProperty("_without_key_meta"))  || (   meta.hasOwnProperty("_without_key_meta") &&
@@ -383,28 +371,12 @@ const LinkPanel = () => {
     {
 
         updateAndSaveMeta("_without_key_meta", vals[1].toString());
-           
-        if (settings.domain.type == "query")
-        {
-            linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + vals[1].toString();
-        }
-        else
-        {
-            linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString();
-        }
-        
+        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + vals[1].toString() + '/0';;
+  
     }
     else
     {   
-        if (settings.domain.type == "query")
-        {
-            linkWithoutKey = settings.domain.domainForUsers + "/?q=" + slug + "&postId=" + postId + "&key=" + meta._without_key_meta;
-        }
-        else
-        {
-            linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta;
-        }
-    
+        linkWithoutKey = settings.domain.domainForUsers + "/" + slug + "/" + postId + "/" + meta._without_key_meta + '/0';;
     }
 
     if (    (! meta.hasOwnProperty("_assignment_key_meta"))  || (   meta.hasOwnProperty("_assignment_key_meta") &&
